@@ -15,13 +15,13 @@
   ],
   "license": "MIT",
   "author": "coder <naturalperson@126.com>",
-  "homepage": "https://github.com/CODEOWNER/singularity-dsh-plugin#readme",
+  "homepage": "https://github.com/naturalth2012/singularity-dsh-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CODEOWNER/singularity-dsh-plugin.git"
+    "url": "git+https://github.com/naturalth2012/singularity-dsh-plugin.git"
   },
   "bugs": {
-    "url": "https://github.com/CODEOWNER/singularity-dsh-plugin/issues"
+    "url": "https://github.com/naturalth2012/singularity-dsh-plugin/issues"
   },
   "type": "module",
   "icon": "icon.svg",
