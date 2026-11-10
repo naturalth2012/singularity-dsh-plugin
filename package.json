@@ -41,10 +41,12 @@
     "locale/*.json",
     "icon.svg",
     "README.md",
+    "PUBLISHING.md",
     "LICENSE"
   ],
   "scripts": {
     "preflight": "node scripts/preflight.cjs",
+    "pack-check": "node scripts/pack-check.cjs",
     "set-repo": "node scripts/set-repo.cjs",
     "market": "node scripts/make-market-entry.cjs",
     "test": "node tests/engine.test.cjs && node tests/mount.test.cjs",

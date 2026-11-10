@@ -9,6 +9,26 @@ DeepSeek Harness 插件。在 Harness 里增加一个 **Singularity** 面板与�
 
 ---
 
+## 安装
+
+**方式一 · 插件市场**：Harness → 插件 → 插件市场，搜索 **Singularity** 一键安装。
+
+**方式二 · npm**：
+
+```sh
+dsh plugin --profile <profile> add singularity-dsh-plugin
+```
+
+**方式三 · GitHub 源码**（免构建，无运行时依赖）：
+
+```sh
+dsh plugin --profile <profile> add github:<你的用户名>/singularity-dsh-plugin
+```
+
+装好后刷新页面（F5）即可，无需重启。
+
+---
+
 ## 使用
 
 安装后，左侧栏出现 **Singularity** 图标（order 30，在 dsh-context 之后）。
@@ -18,10 +38,12 @@ DeepSeek Harness 插件。在 Harness 里增加一个 **Singularity** 面板与�
 |------|------|
 | **历史长河** | 2024–2060 年份滑块、七阶段轨道、8 项实时指标、演化曲线、条件触发事件 |
 | **演化引擎** | 14 个杠杆（技术/制度/社会/摩擦）；技术有自主趋势，制度由你设定；实时敏感度与结构归因 |
-| **三岔路口** | 三种路径引力场实时计算，标出胜出者；路径对照表 |
+| **三岔路口** | 四条引力路径实时计算，标出胜出者；路径对照表 |
 | **指标矩阵** | 13 项终局指标、4 组轨迹图、逐年数据表（点击跳转到该年） |
 | **情景对比** | 六情景并排：结局、发展 D、丰裕、自由、不平等、窗口期；可一键载入 |
 | **理论底座** | 三重动力、本路径判定、两条经典引文 |
+
+> 发布到 GitHub 与插件市场的完整步骤见 [PUBLISHING.md](./PUBLISHING.md)。
 
 ---
 
