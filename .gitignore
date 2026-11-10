@@ -1,0 +1,16 @@
+# 依赖与产物
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# 打包与市场条目产物（由 scripts/ 生成，不入库）
+dist/
+*.tgz
+
+# 本地测试产物
+tests/*.local.*
+
+# 编辑器
+.vscode/
+.idea/

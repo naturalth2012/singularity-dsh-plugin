@@ -1,0 +1,61 @@
+{
+  "name": "singularity-dsh-plugin",
+  "version": "1.0.0",
+  "private": false,
+  "description": "AI 时代的社会形态演化模拟：可交互的历史推演器，作为 DeepSeek Harness 中的一个全宽面板",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "simulation",
+    "political-economy",
+    "ai",
+    "ui"
+  ],
+  "license": "MIT",
+  "author": "coder <naturalperson@126.com>",
+  "homepage": "https://github.com/CODEOWNER/singularity-dsh-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CODEOWNER/singularity-dsh-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CODEOWNER/singularity-dsh-plugin/issues"
+  },
+  "type": "module",
+  "icon": "icon.svg",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "preflight": "node scripts/preflight.cjs",
+    "set-repo": "node scripts/set-repo.cjs",
+    "market": "node scripts/make-market-entry.cjs",
+    "test": "node tests/engine.test.cjs && node tests/mount.test.cjs",
+    "pack": "npm pack"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-locale"]
+    }
+  }
+}

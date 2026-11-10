@@ -1,0 +1,3 @@
+- insert:
+    - id: singularity
+      name: 'singularity-dsh-plugin'
