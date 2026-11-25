@@ -1,6 +1,6 @@
 {
   "name": "singularity-dsh-plugin",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": false,
   "description": "AI 时代的社会形态演化模拟：可交互的历史推演器，作为 DeepSeek Harness 中的一个全宽面板",
   "keywords": [
@@ -43,14 +43,17 @@
     "assets/*.png",
     "README.md",
     "PUBLISHING.md",
+    "MODEL-CONTRACT.md",
     "LICENSE"
   ],
   "scripts": {
     "preflight": "node scripts/preflight.cjs",
+    "check:contract": "node scripts/contract-check.cjs",
     "pack-check": "node scripts/pack-check.cjs",
     "set-repo": "node scripts/set-repo.cjs",
     "market": "node scripts/make-market-entry.cjs",
     "test": "node tests/engine.test.cjs && node tests/mount.test.cjs",
+    "verify": "node scripts/contract-check.cjs && node tests/engine.test.cjs && node tests/mount.test.cjs && node scripts/preflight.cjs",
     "pack": "npm pack"
   },
   "dsh": {

@@ -40,7 +40,8 @@ const build = new Function('require', 'document', 'window',
   'return (function(){'
   + patched
   + '\n;return { simulate: simulate, targetOf: targetOf, SCENARIOS: SCENARIOS,'
-  + ' LEVERS: LEVERS, sensitivity: sensitivity, diagnose: diagnose, decidePath: decidePath,'
+  + ' LEVERS: LEVERS, LEVER_BY_KEY: LEVER_BY_KEY, sensitivity: sensitivity,'
+  + ' diagnose: diagnose, decidePath: decidePath,'
   + ' GATE_PEN: GATE_PEN, NOW: NOW };'
   + '})();');
 
@@ -239,6 +240,152 @@ check('敏感度按影响排序', sens.items.every((it, idx, arr) => idx === 0 |
 // 归因
 const diag = api.diagnose(base);
 check('归因非空', diag.length > 0, diag.length + ' 条：' + diag.map((d) => d.tag).join('/'));
+
+/* ══════════════════════════════════════════════════════════════
+   v1.1 R4：场景键名校验
+   ══════════════════════════════════════════════════════════════ */
+console.log('\n=== v1.1 R4：场景键名校验 ===');
+// 现有六个剧本的键必须全部合法（校验本身不能误伤）
+let allScenariosValid = true;
+let badScenario = '';
+Object.keys(api.SCENARIOS).forEach((name) => {
+  const sc = api.SCENARIOS[name];
+  if (!sc.values) return;
+  Object.keys(sc.values).forEach((k) => {
+    if (!api.LEVER_BY_KEY[k]) { allScenariosValid = false; badScenario = name + '.' + k; }
+  });
+});
+check('现有六剧本的键全部合法', allScenariosValid, allScenariosValid ? '6/6 剧本通过' : badScenario);
+
+// 校验逻辑本身：注入一个拼错的键必须被检出
+const typoDetected = (() => {
+  const sc = { bad: { values: { redistributon: 0.5 } } };   // 故意拼错
+  let caught = false;
+  Object.keys(sc).forEach((name) => {
+    Object.keys(sc[name].values).forEach((k) => {
+      if (!api.LEVER_BY_KEY[k]) caught = true;
+    });
+  });
+  return caught;
+})();
+check('拼错的键能被检出', typoDetected);
+
+// 校验的报错信息应指明键名（检查源码里的报错模板）
+const fs2 = require('fs');
+const clientSrc = fs2.readFileSync(require('path').join(__dirname, '..', 'client.js'), 'utf8');
+check('报错信息包含键名占位', clientSrc.indexOf('含未知杠杆键') >= 0
+  && clientSrc.indexOf('请检查拼写') >= 0);
+
+/* ══════════════════════════════════════════════════════════════
+   v1.1 R5：杠杆状态持久化（纯函数部分）
+   ══════════════════════════════════════════════════════════════ */
+console.log('\n=== v1.1 R5：持久化逻辑 ===');
+// 从 client.js 提取 loadPersisted / savePersisted 做行为测试
+const loadStart = clientSrc.indexOf('function loadPersisted()');
+const saveStart = clientSrc.indexOf('function savePersisted(');
+const saveEnd = clientSrc.indexOf('\n    }', saveStart) + 6;
+check('loadPersisted 存在', loadStart > 0);
+check('savePersisted 存在', saveStart > 0);
+
+if (loadStart > 0 && saveStart > 0) {
+  // 构造一个可控的 localStorage 存根，重新求值两个函数
+  const makeStore = (initial) => {
+    const box = { data: initial, throwOnGet: false, throwOnSet: false };
+    return {
+      box,
+      localStorage: {
+        getItem() { if (box.throwOnGet) throw new Error('denied'); return box.data === undefined ? null : box.data; },
+        setItem(k, v) { if (box.throwOnSet) throw new Error('quota'); box.data = v; },
+      },
+    };
+  };
+  const buildPersist = (store) => {
+    const src = clientSrc.slice(loadStart, saveEnd);
+    return new Function('window', 'LEVER_BY_KEY', 'SCENARIOS', 'targetOf', 'STORE_KEY', 'STORE_VERSION',
+      src + '\n;return { loadPersisted, savePersisted };')(
+      { localStorage: store.localStorage },
+      api.LEVER_BY_KEY, api.SCENARIOS, api.targetOf, 'singularity:state:v1', 1);
+  };
+
+  // 1) 空存储 → 默认值
+  let st = makeStore(null);
+  let p = buildPersist(st);
+  let r = p.loadPersisted();
+  check('空存储回退默认', Object.keys(r.target).length === 0 && r.scenario === 'baseline',
+    'target=' + JSON.stringify(r.target) + ' scenario=' + r.scenario);
+
+  // 2) 往返一致（含边界 0 / 1）
+  st = makeStore(null);
+  p = buildPersist(st);
+  p.savePersisted({ cognition: 0, conflict: 1, capture: 0.5 }, 'baseline');
+  r = p.loadPersisted();
+  check('往返一致（含边界 0/1）',
+    r.target.cognition === 0 && r.target.conflict === 1 && r.target.capture === 0.5,
+    JSON.stringify(r.target));
+
+  // 3) 稀疏 target 保持稀疏
+  check('稀疏 target 保持稀疏', Object.keys(r.target).length === 3, Object.keys(r.target).length + ' 键');
+
+  // 4) 坏 JSON → 回退默认
+  st = makeStore('{not json');
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('坏 JSON 回退默认', Object.keys(r.target).length === 0 && r.scenario === 'baseline');
+
+  // 5) 版本不符 → 回退默认
+  st = makeStore(JSON.stringify({ v: 99, target: { cognition: 0.9 }, scenario: 'baseline' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('版本不符回退默认', Object.keys(r.target).length === 0);
+
+  // 6) 未知键被忽略
+  st = makeStore(JSON.stringify({ v: 1, target: { cognition: 0.9, bogus_key: 0.5 }, scenario: 'baseline' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('未知键被忽略', r.target.cognition === 0.9 && r.target.bogus_key === undefined,
+    JSON.stringify(r.target));
+
+  // 7) 超范围值被钳制
+  st = makeStore(JSON.stringify({ v: 1, target: { cognition: 5, conflict: -3 }, scenario: 'baseline' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('超范围值被钳制到 [0,1]', r.target.cognition === 1 && r.target.conflict === 0,
+    'cognition=' + r.target.cognition + ' conflict=' + r.target.conflict);
+
+  // 8) 存储抛异常 → 不崩溃
+  st = makeStore(null); st.box.throwOnGet = true;
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('读取抛异常时安全回退', Object.keys(r.target).length === 0 && r.scenario === 'baseline');
+
+  // 9) 写入抛异常 → 不崩溃
+  st = makeStore(null); st.box.throwOnSet = true;
+  p = buildPersist(st);
+  let writeThrew = false;
+  try { p.savePersisted({ cognition: 0.5 }, 'baseline'); } catch (e) { writeThrew = true; }
+  check('写入抛异常不崩溃', !writeThrew);
+
+  // 10) scenario 与 target 一致性：手调后不高亮剧本
+  const baselineTarget = api.targetOf('baseline');   // {} （baseline 的 values 为空）
+  st = makeStore(JSON.stringify({ v: 1, target: { cognition: 0.9 }, scenario: 'baseline' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('手调杠杆后剧本不高亮（scenario=null）', r.scenario === null,
+    'scenario=' + r.scenario + '（baseline 目标为 ' + JSON.stringify(baselineTarget) + '）');
+
+  // 11) 与剧本完全一致时保持高亮
+  const sdTarget = api.targetOf('social_democracy');
+  st = makeStore(JSON.stringify({ v: 1, target: sdTarget, scenario: 'social_democracy' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('与剧本一致时保持高亮', r.scenario === 'social_democracy', 'scenario=' + r.scenario);
+
+  // 12) 非法 scenario 回退 baseline
+  st = makeStore(JSON.stringify({ v: 1, target: {}, scenario: 'no_such_scenario' }));
+  p = buildPersist(st);
+  r = p.loadPersisted();
+  check('非法 scenario 回退 baseline', r.scenario === 'baseline', 'scenario=' + r.scenario);
+}
 
 console.log('\n--- 汇总 ---');
 console.log(pass + '/' + (pass + fail) + ' 通过');

@@ -5,6 +5,17 @@ window.__ModuleLoader__.load({
     const h = React.createElement;
 
     /* ══════════════════════════════════════════════════════════════
+       ENGINE-BEGIN  引擎区（第 1–2 节）
+       ------------------------------------------------------------------
+       本区是纯预测模型，只依赖 ECMAScript 内置对象（Math / JSON / Object /
+       Array）。它不得引用 React、document、window、localStorage 或任何视图
+       符号——这样引擎才能被测试与 contract-check 单独提取、逐条核对假设。
+
+       对外契约见 MODEL-CONTRACT.md；常数漂移由 scripts/contract-check.cjs
+       在回归中拦截。改动本区任何公式或常数，必须同步更新该文档。
+       ══════════════════════════════════════════════════════════════ */
+
+    /* ══════════════════════════════════════════════════════════════
        1. 数据层
        ══════════════════════════════════════════════════════════════ */
     const T0 = 2024, T1 = 2050, T2 = 2060;
@@ -70,6 +81,21 @@ window.__ModuleLoader__.load({
         },
       },
     };
+
+    /* 场景键名启动校验（v1.1）：SCENARIOS 的 values 键若拼错，simulate 会静默
+       忽略它（targetOf 直接复制键值，leversAt 查不到就回落到默认趋势），
+       剧本于是悄悄失效、且没有任何报错。这里在模块加载时一次性拦住拼写错误，
+       让错误在开发阶段就暴露，而不是变成「这个剧本看起来没效果」的悬案。 */
+    Object.keys(SCENARIOS).forEach((scenarioKey) => {
+      const sc = SCENARIOS[scenarioKey];
+      if (!sc || !sc.values) return;
+      Object.keys(sc.values).forEach((leverKey) => {
+        if (!LEVER_BY_KEY[leverKey]) {
+          throw new Error('[singularity] 场景 "' + scenarioKey + '" 含未知杠杆键 "'
+            + leverKey + '"，请检查拼写；合法键见 LEVERS 定义');
+        }
+      });
+    });
 
     const STAGES = [
       { id: 0, key: 'mercantile', name: '商业资本主义', short: '前史', color: '#7b8ba3', thesis: '机器是人的延伸，资本靠雇佣劳动攫取剩余。', detail: '蒸汽、工厂与流水线把分散的手工业聚合为社会化大生产。生产资料私人占有与生产社会化之间的张力，自此成为历史的主轴。', keys: ['雇佣劳动', '私人占有', '商品交换', '利润动机'] },
@@ -393,6 +419,16 @@ window.__ModuleLoader__.load({
     }
 
     /* ══════════════════════════════════════════════════════════════
+       ENGINE-END  引擎区结束
+       ------------------------------------------------------------------
+       以上符号构成模型契约的完整表面：LEVERS / LEVER_BY_KEY / NOW /
+       SCENARIOS / TECH_TREND / STAGES / EXTRA_STAGES / BRANCHES /
+       DYNAMICS / EVENTS / 三个闸门常数 / simulate / targetOf /
+       sensitivity / diagnose / decidePath / stageOf / branchScores。
+       视图区只消费这些符号，不得反向修改模型状态。
+       ══════════════════════════════════════════════════════════════ */
+
+    /* ══════════════════════════════════════════════════════════════
        3. 样式（仅用主题 token，数据色视为图示用色）
        ══════════════════════════════════════════════════════════════ */
     const CSS = `
@@ -601,6 +637,78 @@ window.__ModuleLoader__.load({
     /* ══════════════════════════════════════════════════════════════
        4. UI
        ══════════════════════════════════════════════════════════════ */
+    /* ── 杠杆状态持久化（v1.1）──────────────────────────────────────
+       刷新页面不该丢失用户拨了半天的滑块。这里只持久化「模型输入」
+       （杠杆目标值 + 场景选择），不持久化浏览态（当前标签页、时间轴年份、
+       选中事件）——那些是阅读位置，不是模型假设。
+
+       两条设计要点：
+       1. target 是稀疏对象：{} 表示「全部走默认趋势」，与 14 键全量语义不同。
+          因此原样存取，不做补全，避免把「未指定」变成「锁死为当前默认值」。
+       2. scenario 必须与 target 一起校验：手调过杠杆后，剧本按钮不应继续
+          高亮（否则界面声称「你在 baseline」，实际跑的是手调参数）。
+          不一致时置 null，现有 `scenario === k` 比较自然不点亮任何按钮。
+    ──────────────────────────────────────────────────────────────── */
+    const STORE_KEY = 'singularity:state:v1';
+    const STORE_VERSION = 1;
+
+    /** 读取持久化状态；任何异常或不合规数据都静默回退默认值。 */
+    function loadPersisted() {
+      const fallback = { target: {}, scenario: 'baseline' };
+      let raw;
+      try {
+        if (typeof window === 'undefined' || !window.localStorage) return fallback;
+        raw = window.localStorage.getItem(STORE_KEY);
+      } catch (e) {
+        return fallback;                       // 隐私模式 / 存储被禁用
+      }
+      if (!raw) return fallback;
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        return fallback;                       // 损坏数据
+      }
+      if (!data || data.v !== STORE_VERSION) return fallback;
+
+      // target：逐键校验，未知键丢弃，数值钳制到 [0,1]（与滑块行为一致）
+      const target = {};
+      if (data.target && typeof data.target === 'object') {
+        Object.keys(data.target).forEach((k) => {
+          if (!LEVER_BY_KEY[k]) return;        // 杠杆集合已变，旧键作废
+          const v = data.target[k];
+          if (typeof v !== 'number' || !isFinite(v)) return;
+          target[k] = Math.max(0, Math.min(1, v));
+        });
+      }
+
+      // scenario：与 target 一致性校验
+      let scenario = data.scenario;
+      const validScenario = typeof scenario === 'string' && !!SCENARIOS[scenario];
+      if (!validScenario) {
+        scenario = 'baseline';
+      } else {
+        // 若 target 与该剧本的目标值不一致，说明用户手调过 → 不高亮任何剧本
+        const ref = targetOf(scenario);
+        const keys = Object.keys(target).concat(Object.keys(ref));
+        const diverged = keys.some((k) => target[k] !== ref[k]);
+        if (diverged) scenario = null;
+      }
+      return { target: target, scenario: scenario };
+    }
+
+    /** 写入持久化状态；失败（如配额满）不影响使用。 */
+    function savePersisted(target, scenario) {
+      try {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+        window.localStorage.setItem(STORE_KEY, JSON.stringify({
+          v: STORE_VERSION,
+          target: target,
+          scenario: scenario,
+        }));
+      } catch (e) { /* 存储不可用：静默放弃持久化，不影响当前会话 */ }
+    }
+
     const pct = (v, d) => (v * 100).toFixed(d === undefined ? 0 : d) + '%';
 
     const METRIC_META = {
@@ -761,10 +869,15 @@ window.__ModuleLoader__.load({
     /* ── 主组件 ── */
     function SingularityApp() {
       const [tab, setTab] = React.useState('timeline');
-      const [scenario, setScenario] = React.useState('baseline');
-      const [target, setTarget] = React.useState({});
+      // 惰性初始化：只在首次挂载时读一次 localStorage，避免每次渲染都读盘。
+      const [restored] = React.useState(loadPersisted);
+      const [scenario, setScenario] = React.useState(restored.scenario);
+      const [target, setTarget] = React.useState(restored.target);
       const [year, setYear] = React.useState(2035);
       const [picked, setPicked] = React.useState(null);
+
+      // 杠杆或场景变化即写回；浏览态（tab / year / picked）不参与持久化。
+      React.useEffect(() => { savePersisted(target, scenario); }, [target, scenario]);
 
       const sim = React.useMemo(() => simulate(target), [target]);
       const sens = React.useMemo(() => sensitivity(target), [target]);

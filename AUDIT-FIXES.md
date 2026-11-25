@@ -86,5 +86,16 @@ shock      += 年际替代率变化（pace 现只进指标，不回流拨杆）
 
 ## 附：测试体系补强
 
-- `scripts/audit-probe.cjs`、`audit-probe2.cjs` 转正为 `tests/adversarial.test.cjs`（分布断言 + 文案一致性断言 + 抖动上限断言），随 `npm test` 运行。
-- 新增 `MODEL-CONTRACT.md`：把指标定义、系数表、闸门、裁决规则写成外部契约（吸收自 jiangsu-housing-intel 的 DATA-CONTRACT 模式），测试直接对照契约。
+- `scripts/audit-probe.cjs`、`audit-probe2.cjs` 转正为 `tests/adversarial.test.cjs`（分布断言 + 文案一致性断言 + 抖动上限断言），随 `npm test` 运行。`[ ] 待做`
+- 新增 `MODEL-CONTRACT.md`：把指标定义、系数表、闸门、裁决规则写成外部契约（吸收自 jiangsu-housing-intel 的 DATA-CONTRACT 模式），测试直接对照契约。`[x] 已做 (v1.1)`
+
+## 附：v1.1 吸收的跨插件工程模式
+
+| 编号 | 模式 | 来源 | 落地 |
+|------|------|------|------|
+| A5 | 状态持久化（版本化键名 + 容错回退） | iptv-player / holiday-countdown | `client.js` 的 `loadPersisted` / `savePersisted`，只持久化模型输入不持久化浏览态 |
+| A6 | 启动期数据自校验 | jiangsu-housing-intel 的 DATA-CONTRACT 模式 | `SCENARIOS[].values` 键名断言，拼错立即抛错并指明键名 |
+| A9 | 契约文档 + 自动化对照 | 同上 | `MODEL-CONTRACT.md` + `scripts/contract-check.cjs`（38 项断言） |
+
+**未吸收**（明确边界）：实时数据接入、外部 API 富化、推荐算法、分级分档。
+Singularity 是**预测模型**，不是数据面板——这些模式属于另一类插件的问题域。

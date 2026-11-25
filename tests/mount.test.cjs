@@ -18,9 +18,11 @@ const check = (name, ok, detail) => {
 };
 
 /* ── 存根 ── */
+// useState 必须与真实 React 语义一致：传函数时惰性调用（init function）。
+// 早期存根直接返回 v，会让 `useState(loadPersisted)` 拿到函数本身而非其结果。
 const ReactStub = {
   createElement: (type, props, ...children) => ({ __el: true, type, props: props || {}, children }),
-  useState: (v) => [v, () => {}],
+  useState: (v) => [typeof v === 'function' ? v() : v, () => {}],
   useMemo: (fn) => fn(),
   useEffect: () => {},
   useRef: () => ({ current: null }),
@@ -133,6 +135,29 @@ let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
 check('侧栏图标渲染不抛异常', iconError === null, iconError ? iconError.message : '');
 check('图标是 svg', icon && icon.type === 'svg');
+
+/* ── v1.1 R5：无 localStorage 环境下渲染仍然安全 ── */
+// 这是真实的浏览器边界：隐私模式、被 CSP 禁用的存储、或非浏览器宿主。
+// windowStub 本身没有 localStorage，上面的渲染冒烟已隐式覆盖；
+// 这里显式断言「缺少存储时组件不崩、且不写入任何东西」。
+let noStoreError = null;
+try {
+  const savedWindow = windowStub.localStorage;
+  delete windowStub.localStorage;
+  mainReg.component({});
+  if (savedWindow !== undefined) windowStub.localStorage = savedWindow;
+} catch (e) { noStoreError = e; }
+check('缺少 localStorage 时渲染不抛异常', noStoreError === null,
+  noStoreError ? noStoreError.message : '安全回退');
+
+/* ── v1.1 R5：持久化键名与版本一致性 ── */
+check('持久化键名已版本化', /singularity:state:v\d+/.test(src),
+  (src.match(/singularity:state:v\d+/) || ['未找到'])[0]);
+check('持久化版本常量与键名版本一致', (() => {
+  const keyMatch = src.match(/STORE_KEY\s*=\s*'singularity:state:v(\d+)'/);
+  const verMatch = src.match(/STORE_VERSION\s*=\s*(\d+)/);
+  return !!(keyMatch && verMatch && keyMatch[1] === verMatch[1]);
+})());
 
 /* ── 清理 ── */
 effects.forEach((e) => { if (typeof e.dispose === 'function') e.dispose(); });
