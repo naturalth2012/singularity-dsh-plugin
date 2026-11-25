@@ -214,6 +214,17 @@ window.__ModuleLoader__.load({
       };
     }
 
+    /* v1.2 R4：租金压力 —— 只读显示指标（吸收自「后稀缺沙盘」的技术租金占比 R）。
+       权重原样沿用来源模型（p→public_ownership、e→energy、b→capture、a→cognition），
+       2026-11-25 经六剧本 + 20000 随机态校准：0.45/0.60/0.75 三档与结局语义完全分离
+       （techno_feudalism 2038 成形 / collapse 2039 预警 / commons 终值 0.08 深处安全）。
+       它是当期杠杆的即时读数，不参与 decidePath —— 单一裁决函数承诺保持为真。 */
+    function rentPressure(s) {
+      return clamp((0.50 * (1 - s.public_ownership) + 0.20 * (1 - s.energy) + 0.30 * s.capture)
+        * (0.35 + 0.65 * s.cognition));
+    }
+    const RENT_BANDS = { watch: 0.45, warn: 0.60, formed: 0.75 };
+
     const STAGE_BY_ID = {};
     STAGES.forEach((st) => { STAGE_BY_ID[st.id] = st; });
 
@@ -337,6 +348,7 @@ window.__ModuleLoader__.load({
         const info = stageOf(m, s, scores);
         years.push({
           year: year, levers: s, metrics: m,
+          rent: rentPressure(s),
           stage: info.stage, branchStage: info.branch, branchKey: info.branchKey || null,
           path: decidePath(scores),
           branches: scores,
@@ -369,6 +381,17 @@ window.__ModuleLoader__.load({
       const t = {};
       Object.keys(sc.values).forEach((k) => { t[k] = sc.values[k]; });
       return t;
+    }
+
+    /* v1.2 R5：越线查询 —— 在 simulate 的逐年行上找首次达到 threshold 的年份。
+       纯查询函数，不改模型状态；get 是行选择器（如 y => y.rent），故可复用于
+       租金压力以外的任何年度序列。 */
+    function findCrossing(years, get, threshold) {
+      for (let i = 0; i < years.length; i++) {
+        const v = get(years[i]);
+        if (v >= threshold) return { year: years[i].year, value: v };
+      }
+      return null;
     }
 
     function sensitivity(target) {
@@ -424,7 +447,8 @@ window.__ModuleLoader__.load({
        以上符号构成模型契约的完整表面：LEVERS / LEVER_BY_KEY / NOW /
        SCENARIOS / TECH_TREND / STAGES / EXTRA_STAGES / BRANCHES /
        DYNAMICS / EVENTS / 三个闸门常数 / simulate / targetOf /
-       sensitivity / diagnose / decidePath / stageOf / branchScores。
+       sensitivity / diagnose / decidePath / stageOf / branchScores /
+       rentPressure / findCrossing / RENT_BANDS。
        视图区只消费这些符号，不得反向修改模型状态。
        ══════════════════════════════════════════════════════════════ */
 
@@ -883,6 +907,25 @@ window.__ModuleLoader__.load({
       const sens = React.useMemo(() => sensitivity(target), [target]);
       const drivers = React.useMemo(() => diagnose(sim), [sim]);
 
+      // v1.2 R7：租金热力图参数扫描。每格 = 其余杠杆取默认值（tech 走趋势、
+      // 制度/社会取 NOW），仅 override 格子的 public_ownership × capture，
+      // 因此与当前滑块无关 —— 只算一次（49 次 simulate ≈ 1800 次 derive）。
+      const heatGrid = React.useMemo(() => {
+        const steps = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
+        const base = {};
+        LEVERS.forEach((lv) => {
+          base[lv.key] = TECH_KEYS.indexOf(lv.key) >= 0 ? TECH_TREND[lv.key] : NOW[lv.key];
+        });
+        return steps.map((po) => steps.map((cap) => {
+          const t2 = Object.assign({}, base, { public_ownership: po, capture: cap });
+          return simulate(t2).final;
+        }));
+      }, []);
+      const rentBand = (v) =>
+        v >= RENT_BANDS.formed ? 3 : v >= RENT_BANDS.warn ? 2 : v >= RENT_BANDS.watch ? 1 : 0;
+      const RENT_COLORS = ['#2f9e63', '#e0a63a', '#e07b39', '#d64550'];
+      const RENT_LABELS = ['安全', '关注', '预警', '成形'];
+
       const applyScenario = (key) => {
         setScenario(key);
         setTarget(targetOf(key));
@@ -1058,12 +1101,71 @@ window.__ModuleLoader__.load({
       /* ── 指标 ── */
       const metricsTab = () => {
         const m = sim.final.metrics;
+        const rentFinal = sim.final.rent;
+        const rentBandV = rentBand(rentFinal);
+        const rentCross = findCrossing(sim.years, (y) => y.rent, RENT_BANDS.warn);
+        const rentPeak = sim.years.reduce((a, b) => (b.rent > a.rent ? b : a), sim.years[0]);
+        const px = (v) => 36 + v * 272;
+        const py = (v) => 228 - v * 216;
+        const cur = sim.years.filter((y) => y.year === year)[0] || sim.final;
+        const traj = sim.years.map((y) => px(y.metrics.penetration).toFixed(1) + ',' + py(y.metrics.socialization).toFixed(1)).join(' ');
+        const curPo = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
+        const curCap = target.capture !== undefined ? target.capture : NOW.capture;
+        const poSteps = [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0];
+        // R6：相图 —— 渗透×社会化平面上的历史轨迹；阴影 = 封建稳态域（x≥0.68 且 y<0.48）
+        const phaseSvg = h('svg', { viewBox: '0 0 320 244', style: { width: '100%', display: 'block' } },
+          h('rect', { x: px(GATE_PEN), y: py(GATE_SOC), width: 308 - px(GATE_PEN), height: 228 - py(GATE_SOC), fill: 'rgba(244,91,104,.13)' }),
+          h('text', { x: px(GATE_PEN) + 6, y: py(GATE_SOC) + 16, fontSize: 9, fill: '#f45b68' }, '封建稳态域'),
+          h('line', { x1: 36, y1: 228, x2: 308, y2: 228, stroke: 'rgba(140,150,170,.5)' }),
+          h('line', { x1: 36, y1: 12, x2: 36, y2: 228, stroke: 'rgba(140,150,170,.5)' }),
+          h('line', { x1: px(GATE_PEN), y1: 12, x2: px(GATE_PEN), y2: 228, stroke: 'rgba(244,91,104,.5)', strokeDasharray: '4 3' }),
+          h('line', { x1: 36, y1: py(GATE_SOC), x2: 308, y2: py(GATE_SOC), stroke: 'rgba(46,211,138,.5)', strokeDasharray: '4 3' }),
+          h('text', { x: px(GATE_PEN) + 4, y: 20, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.68'),
+          h('text', { x: 42, y: py(GATE_SOC) - 4, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.48'),
+          h('polyline', { points: traj, fill: 'none', stroke: '#4f8cff', strokeWidth: 2, strokeLinejoin: 'round' }),
+          h('circle', { cx: px(cur.metrics.penetration), cy: py(cur.metrics.socialization), r: 4.5, fill: '#e6edf7', stroke: '#4f8cff', strokeWidth: 2 }),
+          h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '渗透度 →'),
+          h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
+        // R7：热力图 —— 7×7 参数扫描（其余杠杆取默认值），颜色 = 终局租金档；点击载入两杆
+        const heatSvg = h('svg', { viewBox: '0 0 296 292', style: { width: '100%', display: 'block' } },
+          heatGrid.map((row, r) => row.map((cell, c) => {
+            const po = poSteps[r];
+            const cap = c / 6;
+            const on = Math.abs(po - curPo) < 0.084 && Math.abs(cap - curCap) < 0.084;
+            return h('g', {
+              key: r + '-' + c, style: { cursor: 'pointer' },
+              onClick: () => setTarget((t2) => { const n = Object.assign({}, t2); n.public_ownership = po; n.capture = cap; return n; }),
+            },
+              h('title', null, '产权 ' + Math.round(po * 100) + '% × 捕获 ' + Math.round(cap * 100) + '% → ' + RENT_LABELS[rentBand(cell.rent)]),
+              h('rect', {
+                x: 30 + c * 37, y: 6 + r * 37, width: 34, height: 34, rx: 4,
+                fill: RENT_COLORS[rentBand(cell.rent)], opacity: 0.88,
+                stroke: on ? 'var(--dsw-alias-label-primary)' : 'none', strokeWidth: on ? 1.5 : 0,
+              }));
+          })),
+          h('text', { x: 168, y: 286, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '公共产权 →'),
+          h('text', { x: 12, y: 140, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 140)' }, '资本捕获 →'),
+          h('text', { x: 26, y: 28, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' }, '1'),
+          h('text', { x: 26, y: 250, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' }, '0'));
         return h('div', null,
           h('div', { className: 'sn-metrics' },
             Object.keys(METRIC_META).map((k) => h(Metric, {
               key: k, label: METRIC_META[k].name, value: m[k], color: METRIC_META[k].color,
               danger: (k === 'inequality' || k === 'shock' || k === 'replacement' || k === 'collapse_risk' || k === 'feudalism_risk') && m[k] > 0.6,
             }))),
+          h('div', { className: 'sn-card', style: { marginBottom: 12 } },
+            h('div', { className: 'sn-card-head' }, '租金压力', h('span', { className: 'sn-hint' }, '垄断占有对分配的绑定程度 · 三档 0.45 / 0.60 / 0.75')),
+            h('div', { className: 'sn-pad' },
+              h('div', { style: { position: 'relative', height: 16, borderRadius: 8, overflow: 'hidden', display: 'flex', marginBottom: 6 } },
+                [{ w: 45, c: RENT_COLORS[0] }, { w: 15, c: RENT_COLORS[1] }, { w: 15, c: RENT_COLORS[2] }, { w: 25, c: RENT_COLORS[3] }].map((seg, i) =>
+                  h('div', { key: i, style: { flex: seg.w + ' 1 0', background: seg.c, opacity: 0.8 } })),
+                h('div', { style: { position: 'absolute', left: 'calc(' + (rentFinal * 100).toFixed(1) + '% - 1px)', top: -3, width: 2, height: 22, background: 'var(--dsw-alias-label-primary)' } })),
+              h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--dsw-alias-label-secondary)', marginBottom: 8 } },
+                ['0', '0.45', '0.60', '0.75', '1'].map((t2, i) => h('span', { key: i }, t2))),
+              h('div', { style: { fontSize: 12 } },
+                h('span', { className: 'sn-pill', style: { color: RENT_COLORS[rentBandV] } }, RENT_LABELS[rentBandV] + ' · ' + Math.round(rentFinal * 100) + '%'),
+                h('span', { style: { marginLeft: 10, fontSize: 11, color: 'var(--dsw-alias-label-secondary)' } },
+                  '峰值 ' + Math.round(rentPeak.rent * 100) + '%（' + rentPeak.year + '）｜ 预警首年 ' + (rentCross ? rentCross.year : '—')))),
           h('div', { className: 'sn-grid2' },
             [[{ key: 'productivity', label: '生产力' }, { key: 'labor_share', label: '劳动份额' }, { key: 'socialization', label: '社会化度' }],
               [{ key: 'collapse_risk', label: '崩解风险' }, { key: 'feudalism_risk', label: '封建化风险' }],
@@ -1073,6 +1175,13 @@ window.__ModuleLoader__.load({
               h('div', { className: 'sn-card-head' }, series.map((s) => s.label).join(' / ')),
               h('div', { className: 'sn-pad' },
                 h(LineChart, { years: sim.years, series: series, cursorYear: year, window: sim.window, height: 175 }))))),
+          h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
+            h('div', { className: 'sn-card' },
+              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化', h('span', { className: 'sn-hint' }, '虚线为闸门 0.68 / 0.48')),
+              h('div', { className: 'sn-pad' }, phaseSvg)),
+            h('div', { className: 'sn-card' },
+              h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获', h('span', { className: 'sn-hint' }, '点击格子载入该组合')),
+              h('div', { className: 'sn-pad' }, heatSvg))),
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, '逐年数据', h('span', { className: 'sn-hint' }, '点击行跳到该年')),
             h('div', { style: { overflowX: 'auto', maxHeight: 320, overflowY: 'auto' } },
@@ -1092,7 +1201,7 @@ window.__ModuleLoader__.load({
                     h('td', null, Math.round(y.metrics.replacement * 100) + '%'),
                     h('td', null, Math.round(y.metrics.labor_share * 100) + '%'),
                     h('td', null, Math.round(y.metrics.inequality * 100) + '%'),
-                    h('td', null, Math.round(y.metrics.freedom * 100) + '%'))))))));
+                    h('td', null, Math.round(y.metrics.freedom * 100) + '%')))))))));
       };
 
       /* ── 对比 ── */
@@ -1132,7 +1241,15 @@ window.__ModuleLoader__.load({
       };
 
       /* ── 理论 ── */
-      const theoryTab = () => h('div', null,
+      const theoryTab = () => {
+        // R2：四张反驳卡 —— 每张都可攻击本模型的结论
+        const REBUTTALS = [
+          { id: 'R1', name: '技术封建化', cond: '智能化快于公有化', impact: '认知劳动贬值先于产权变革，主线路径被截断，历史滑入算力封建制。', reply: '双闸门 GATE_PEN 0.68 ∧ GATE_SOC 0.48 + feudalism 引力；v1.2 租金压力指标为其显性预警读数。' },
+          { id: 'R2', name: '生态天花板', cond: '位置品与生态容量不可自动化', impact: '丰裕度无法归零，按需分配存在物理上限，「后稀缺」永远不完整。', reply: '契约 §9 声明模型域边界：abundance 只对标准化物质与服务产出成立。' },
+          { id: 'R3', name: '计算问题', cond: '算力不等于偏好加总', impact: '计划面临信息与激励双重难题，协调杠杆可能只是纸面能力。', reply: 'meaning / coordination 杠杆是定性 proxies；契约 §9 声明此为模型最强假设之一。' },
+          { id: 'R4', name: '路径依赖', cond: '同一技术基础，制度多解', impact: '历史不存在单线宿命，任何「必然论」都会被反例削弱。', reply: '四条引力路径并行竞争的设计本身 —— 引擎从不断言唯一终点。' },
+        ];
+        return h('div', null,
         h('div', { className: 'sn-quote' },
           h('q', null, '“手推磨产生的是封建主的社会，蒸汽磨产生的是工业资本家的社会。”'),
           h('cite', null, '—— 马克思《哲学的贫困》')),
@@ -1141,6 +1258,29 @@ window.__ModuleLoader__.load({
             h('h4', null, d.name),
             h('div', { className: 'c' }, d.claim),
             h('div', { className: 'd' }, d.detail)))),
+        h('div', { className: 'sn-card', style: { marginBottom: 12 } },
+          h('div', { className: 'sn-card-head' }, '合取命题 · 两个闸门缺一不可', h('span', { className: 'sn-hint' }, '真实常数 0.68 ∧ 0.48')),
+          h('div', { className: 'sn-pad' },
+            h('div', { style: { fontSize: 12.5, lineHeight: 1.8, marginBottom: 10 } },
+              '技术渗透 ≥ 0.68 ∧ 社会化 ≥ 0.48 同时越过闸门，历史才指向共产主义方向；缺任一项，落入其他稳态（算力封建 / 改良停滞 / 崩解）。单凭技术或单凭意愿，都不构成充分条件。'),
+            h('table', { className: 'sn-table' },
+              h('thead', null, h('tr', null, ['来源变量', '含义', '引擎杠杆'].map((t2, i) => h('th', { key: i }, t2)))),
+              h('tbody', null,
+                [['a', '智能化水平', 'cognition / compute / automation'],
+                  ['m', '物质生产自动化', 'automation'],
+                  ['e', '能源与物质丰裕', 'energy'],
+                  ['p', '产权公有化', 'public_ownership'],
+                  ['b', '资本捕获 / 寡头化', 'capture'],
+                  ['g', '组织与协商能力', 'redistribution / coordination / education'],
+                ].map((row, i) => h('tr', { key: i },
+                  h('td', null, row[0]), h('td', null, row[1]), h('td', null, row[2]))))))),
+        h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
+          REBUTTALS.map((rb) => h('div', { className: 'sn-card', key: rb.id },
+            h('div', { className: 'sn-card-head' }, rb.id + ' · ' + rb.name, h('span', { className: 'sn-hint' }, rb.cond)),
+            h('div', { className: 'sn-pad' },
+              h('div', { style: { fontSize: 11.5, lineHeight: 1.7 } }, rb.impact),
+              h('div', { style: { fontSize: 11, lineHeight: 1.7, marginTop: 6, color: 'var(--dsw-alias-label-secondary)' } },
+                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '模型回应：'), rb.reply))))),
         h('div', { className: 'sn-card' },
           h('div', { className: 'sn-card-head' }, '本路径的判定'),
           h('div', { className: 'sn-pad' },
@@ -1158,7 +1298,10 @@ window.__ModuleLoader__.load({
         h('div', { className: 'sn-card' },
           h('div', { className: 'sn-pad', style: { fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.8 } },
             h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '这是一个模拟器，不是预言。'),
-            ' 它的价值不在于预测哪一年会发生什么，而在于把「条件」摊开：技术提供可能性，制度决定落在哪一侧，而制度不是自动演化的 —— 它由组织起来的人写出来。模型中的每个系数都是一次可辩论的判断，你可以拨动杠杆，看它是否还站得住。')));
+            ' 它的价值不在于预测哪一年会发生什么，而在于把「条件」摊开：技术提供可能性，制度决定落在哪一侧，而制度不是自动演化的 —— 它由组织起来的人写出来。模型中的每个系数都是一次可辩论的判断，你可以拨动杠杆，看它是否还站得住。')),
+        h('div', { style: { marginTop: 14, marginBottom: 4, fontSize: 11, color: 'var(--dsw-alias-label-secondary)', textAlign: 'center' } },
+          '启发式推演模型 · 参数为机制性定性标定，未经计量估计 · 不构成任何现实预测'));
+      };
 
       const TABS = [
         { id: 'timeline', label: '历史长河' },

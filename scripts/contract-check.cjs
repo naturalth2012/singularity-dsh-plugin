@@ -179,6 +179,47 @@ check('penetration 权重 0.60 / 0.40',
 check('replacement 教育折减 0.30',
   /gross\s*\*\s*\(1\s*-\s*0\.30\s*\*\s*s\.education\)/.test(engine));
 
+/* ── 7b. 租金压力（v1.2 R4/R5）── */
+console.log('\n=== 7b. 租金压力（只读指标）===');
+check('引擎定义 rentPressure 函数', /function\s+rentPressure\s*\(/.test(engine));
+check('rentPressure 公式：占有 0.50 / 能源 0.20 / 捕获 0.30',
+  /0\.50\s*\*\s*\(1\s*-\s*s\.public_ownership\)/.test(engine)
+  && /0\.20\s*\*\s*\(1\s*-\s*s\.energy\)/.test(engine)
+  && /0\.30\s*\*\s*s\.capture/.test(engine));
+check('rentPressure 认知放大 0.35 / 0.65',
+  /\(0\.35\s*\+\s*0\.65\s*\*\s*s\.cognition\)/.test(engine));
+check('RENT_BANDS 三档 0.45 / 0.60 / 0.75',
+  /RENT_BANDS\s*=\s*\{\s*watch:\s*0\.45,\s*warn:\s*0\.60,\s*formed:\s*0\.75\s*\}/.test(engine));
+check('simulate 逐年行携带只读 rent 字段', /rent:\s*rentPressure\(s\)/.test(engine));
+check('引擎定义 findCrossing 纯查询函数', /function\s+findCrossing\s*\(/.test(engine));
+
+// 单一裁决函数承诺（机器强制）：decidePath 函数体内不得出现 rentPressure。
+const extractFn = (src, name) => {
+  const head = src.indexOf('function ' + name + '(');
+  if (head < 0) return null;
+  const open = src.indexOf('{', head);
+  let d = 1, j = open + 1;
+  for (; j < src.length && d > 0; j++) {
+    if (src[j] === '{') d++;
+    else if (src[j] === '}') d--;
+  }
+  return src.slice(open, j);
+};
+const decidePathBody = extractFn(engine, 'decidePath');
+check('单一裁决函数：decidePath 体不引用 rentPressure',
+  decidePathBody !== null && !decidePathBody.includes('rentPressure'));
+
+// 文档侧：公式、阈值、校准结论与新非对称声明都在契约中
+check('契约含租金压力节（公式/RENT_BANDS/findCrossing）',
+  doc.includes('rentPressure') && doc.includes('RENT_BANDS') && doc.includes('findCrossing'));
+check('契约载明校准阈值 0.45 / 0.60 / 0.75',
+  doc.includes('| 关注 watch | ≥ 0.45')
+  && doc.includes('| 预警 warn | ≥ 0.60')
+  && doc.includes('| 成形 formed | ≥ 0.75'));
+check('契约含 2038/2039 校准锚点', doc.includes('2038') && doc.includes('2039'));
+check('契约 §9 补生态天花板与租金静态性声明',
+  doc.includes('生态天花板不在模型域内') && doc.includes('租金压力是静态函数，非动力学反馈'));
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [

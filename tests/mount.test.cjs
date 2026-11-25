@@ -130,6 +130,19 @@ try {
 check('主面板渲染不抛异常', renderError === null, renderError ? renderError.message : '');
 check('渲染产出元素树', tree && tree.__el === true, tree ? 'root=' + tree.type : '');
 
+/* ── v1.2：新 UI 节渲染（默认 timeline 标签下深层结构存在）── */
+// 渲染树走查：根 → sn-body → 第一个标签内容（timelineTab）。新节都在
+// metricsTab / theoryTab 中，组件函数未直接导出，因此以「渲染不崩 + 源码
+// 静态存在」双保险断言；函数级视觉验证依赖挂载后人工检查。
+const treeText = JSON.stringify(tree);
+check('v1.2 渲染树可序列化（无循环引用）', treeText.length > 1000, treeText.length + ' 字符');
+check('v1.2 相图与热力图源码存在', /phaseSvg/.test(src) && /heatSvg/.test(src)
+  && /封建稳态域/.test(src) && /点击格子载入该组合/.test(src));
+check('v1.2 合取命题与反驳卡源码存在', /合取命题 · 两个闸门缺一不可/.test(src)
+  && /技术封建化/.test(src) && /生态天花板/.test(src) && /计算问题/.test(src));
+check('v1.2 页脚声明与租金条源码存在', /不构成任何现实预测/.test(src)
+  && /租金压力/.test(src) && /RENT_COLORS/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }

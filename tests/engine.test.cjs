@@ -42,6 +42,7 @@ const build = new Function('require', 'document', 'window',
   + '\n;return { simulate: simulate, targetOf: targetOf, SCENARIOS: SCENARIOS,'
   + ' LEVERS: LEVERS, LEVER_BY_KEY: LEVER_BY_KEY, sensitivity: sensitivity,'
   + ' diagnose: diagnose, decidePath: decidePath,'
+  + ' rentPressure: rentPressure, findCrossing: findCrossing, RENT_BANDS: RENT_BANDS,'
   + ' GATE_PEN: GATE_PEN, NOW: NOW };'
   + '})();');
 
@@ -385,6 +386,66 @@ if (loadStart > 0 && saveStart > 0) {
   p = buildPersist(st);
   r = p.loadPersisted();
   check('非法 scenario 回退 baseline', r.scenario === 'baseline', 'scenario=' + r.scenario);
+}
+
+/* ── v1.2 R4/R5：租金压力与越线查询 ───────────────────────────── */
+{
+  const LEVER_KEYS = api.LEVERS.map((lv) => lv.key);
+
+  // 1) 手算锚点：全零态 (0.50+0.20)·0.35 = 0.245
+  const zero = {};
+  LEVER_KEYS.forEach((k) => { zero[k] = 0; });
+  check('rentPressure 全零态 = 0.245', Math.abs(api.rentPressure(zero) - 0.245) < 1e-9,
+    '实际 ' + api.rentPressure(zero));
+
+  // 2) 手算锚点：全一态 0.30·1.0 = 0.30
+  const one = {};
+  LEVER_KEYS.forEach((k) => { one[k] = 1; });
+  check('rentPressure 全一态 = 0.30', Math.abs(api.rentPressure(one) - 0.30) < 1e-9,
+    '实际 ' + api.rentPressure(one));
+
+  // 3) 校准锚点：techno_feudalism 终值进入「成形」带
+  const tf = api.simulate(api.targetOf('techno_feudalism')).final;
+  check('techno_feudalism 终年租金 ≥ 0.75（成形）', tf.rent >= 0.75, '实际 ' + tf.rent.toFixed(3));
+
+  // 4) 校准锚点：commons 终值深处安全
+  const cm = api.simulate(api.targetOf('commons')).final;
+  check('commons 终年租金 < 0.45（安全）', cm.rent < 0.45, '实际 ' + cm.rent.toFixed(3));
+
+  // 5) 校准锚点：baseline 全程停在「关注」带（距预警 ≤0.01，防漂移哨兵）
+  const bl = api.simulate(api.targetOf('baseline'));
+  const blMax = Math.max.apply(null, bl.years.map((y) => y.rent));
+  check('baseline 峰值租金 < 0.60（不到预警）', blMax < 0.60 && blMax >= 0.45,
+    '峰值 ' + blMax.toFixed(3));
+
+  // 6) findCrossing：techno_feudalism 越预警线于 2038（校准值）
+  const tfCross = api.findCrossing(api.simulate(api.targetOf('techno_feudalism')).years, (y) => y.rent, 0.60);
+  check('findCrossing techno_feudalism 预警年 = 2038', tfCross && tfCross.year === 2038,
+    tfCross ? tfCross.year + ' @ ' + tfCross.value.toFixed(3) : 'null');
+
+  // 7) findCrossing：commons 不越预警线 0.60 → null
+  //    （commons 峰值 0.45 恰触「关注」下沿，属精确触线；这里锚定更强的语义）
+  const cmCross = api.findCrossing(api.simulate(api.targetOf('commons')).years, (y) => y.rent, 0.60);
+  check('findCrossing commons 预警线 = null（不越线）', cmCross === null);
+
+  // 8) 每个年度行都带只读 rent 字段
+  const allHave = bl.years.every((y) => typeof y.rent === 'number' && y.rent >= 0 && y.rent <= 1);
+  check('逐年行携带 rent 字段且在 [0,1]', allHave && bl.years.length === 37);
+
+  // 9) RENT_BANDS 三档定稿值
+  check('RENT_BANDS = 0.45/0.60/0.75',
+    api.RENT_BANDS.watch === 0.45 && api.RENT_BANDS.warn === 0.60 && api.RENT_BANDS.formed === 0.75,
+    JSON.stringify(api.RENT_BANDS));
+
+  // 10) 值域 probe：2000 随机态不越界
+  let bad = 0;
+  for (let n = 0; n < 2000; n++) {
+    const s = {};
+    LEVER_KEYS.forEach((k) => { s[k] = Math.random(); });
+    const v = api.rentPressure(s);
+    if (!(v >= 0 && v <= 1)) bad++;
+  }
+  check('rentPressure 值域 probe 2000 态零越界', bad === 0, bad + ' 例越界');
 }
 
 console.log('\n--- 汇总 ---');
