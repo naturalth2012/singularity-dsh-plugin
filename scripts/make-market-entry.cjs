@@ -32,26 +32,34 @@ const repo = parts[1];
 // YAML 双引号字符串里需要转义的只有双引号和反斜杠；换行不会出现。
 const q = (s) => '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
 
-const en = 'An interactive simulator of how AI might end capitalism and open the road to communism, '
-  + 'mounted as a full-width panel. Fourteen levers (AI capability, compute, automation, energy, '
-  + 'redistribution, public ownership, global coordination, labour power, meaning, education, '
-  + 'solidarity, transition shock, class conflict, capital capture) drive a 2024-2060 yearly '
-  + 'simulation; a single decision function picks the winning path among feudalism, social '
-  + 'democracy, communism, and collapse, and the same function feeds the panel, so the displayed '
-  + 'gravity shares always match the resulting outcome. Six preset scenarios, adjustable timeline, '
-  + 'and an offline pure-JS engine with no Host RPC, no network requests and no runtime dependencies.';
+const en = 'An interactive foresight panel simulating social-form evolution in the AI era: '
+  + 'fourteen levers (AI capability, compute, automation, energy, redistribution, public ownership, '
+  + 'global coordination, labour power, meaning, education, solidarity, transition shock, '
+  + 'class conflict, capital capture) drive a 2024-2060 yearly simulation, and a single decision '
+  + 'function picks the outcome among compute-feudalism, social democracy, early communism and '
+  + 'collapse - the panel gravity shares are that same function output, so display always matches '
+  + 'result. Six preset scenarios, draggable timeline, localStorage persistence, an offline pure-JS '
+  + 'engine with no Host RPC and no runtime dependencies, and a published model contract enforced '
+  + 'by 139 automated checks.';
 
-const zh = '一个交互式历史推演器，模拟 AI 如何让资本主义陨落、通往共产主义，以全宽面板挂载。'
-  + '十四个杠杆（AI 认知、算力、自动化、能源、再分配、公共产权、全球协同、劳动者组织度、'
-  + '意义供给、教育、团结度、转型冲击、阶级对抗、资本俘获）驱动 2024-2060 逐年推演；'
-  + '单一裁决函数在算力封建制、社会民主主义、共产主义与文明崩解之间选出胜出路径，'
-  + '面板显示的引力占比即该函数输出，因此始终与实际结局一致。'
-  + '含六种预设情景、可拖动时间轴，引擎为纯 JS 离线运行，无 Host RPC、无网络请求、无运行时依赖。';
+const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠杆（AI 认知、算力、自动化、能源、再分配、'
+  + '公共产权、全球协同、劳动者组织度、意义供给、教育、团结度、转型冲击、阶级对抗、资本俘获）'
+  + '驱动 2024-2060 逐年推演；单一裁决函数在算力封建制、社会民主主义、共产主义初级形态与文明崩解'
+  + '之间选出结局，面板显示的引力占比即该函数输出，显示与结果永远一致。'
+  + '六种预设情景、可拖动时间轴、本地持久化；引擎纯 JS 离线运行，无 Host RPC、无网络请求、'
+  + '零运行时依赖，模型契约由 139 项自动化检查守护。';
+
+// 目录规范要求 icon 为 GitHub 托管的 raster 位图（storefront tile）；
+// 优先用 assets/icon-180.png，其次根 icon.svg（SVG 不符合 raster 建议但可作回退）。
+const iconRel = fs.existsSync(path.join(ROOT, 'assets', 'icon-180.png'))
+  ? 'assets/icon-180.png'
+  : (pkg.icon || null);
 
 const yml = [
   'url: ' + repoUrl,
   'name: ' + owner + '/' + repo,
   'category: ui',
+  ...(iconRel ? ['icon: ' + repoUrl + '/raw/main/' + iconRel] : []),
   'description:',
   '  en: ' + q(en),
   '  zh: ' + q(zh),
@@ -76,11 +84,12 @@ ${zh}
 
 - [x] \`package.json\` 声明了 \`dsh.bundle\`（\`{ bundle: { patch: "./cordis.patch.yml" } }\`），
       同目录有 \`cordis.patch.yml\`
-- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；含 26 项引擎测试与 20 项挂载契约测试）
+- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；含 52 项引擎测试与 23 项挂载契约测试，
+      合计 139 项自动化检查全绿）
 - [x] 仓库已有内容（非占位/纯 README）
 - [x] 仅新增一个文件，未改动任何既有条目
 - [x] 未在 yml 中手写 \`npm:\` 字段
-- [ ] 仓库建满 1 天（CI 自动检查；新仓库需等待）
+- [x] 仓库建满 1 天（2026-11-10 创建）
 - [ ] 已添加 \`dsh-plugin\` topic
 
 ## 链接
