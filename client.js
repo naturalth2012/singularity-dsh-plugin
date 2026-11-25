@@ -194,6 +194,10 @@ window.__ModuleLoader__.load({
     function stageOf(m, s, scores) {
       const pen = m.penetration, soc = m.socialization, abu = m.abundance;
       const meaning = s ? s.meaning : 0.3;
+      // 物理崩解先于一切裁决（AUDIT-FIXES P0-2）：对抗真实摧毁生产力时，
+      // 历史不必越过技术阈值就可以坍塌。这是「文明崩解」的物理入口；
+      // 引力入口仍在渗透越过 GATE_PEN 之后。全零参数 devastation=0，不触发。
+      if (m.devastation > 0.5) return { stage: EXTRA_STAGES.collapse, branch: true, branchKey: 'collapse' };
       if (pen < 0.38) return { stage: STAGE_BY_ID[1], branch: false };
       if (pen < 0.56) return { stage: STAGE_BY_ID[2], branch: false };
       if (pen < GATE_PEN) return { stage: STAGE_BY_ID[3], branch: false };
@@ -267,6 +271,12 @@ window.__ModuleLoader__.load({
       if (id === 6) return { type: 'main', name: '自由人联合体', color: '#e6edf7', stageLabel: '主线 · 共产主义高级形态', thesis: '每个人的自由发展，是一切人自由发展的条件。', detail: '物质稀缺被消解，劳动从谋生手段变为自我确证。国家职能收缩为协调与保障，阶级不再有经济基础。', keys: ['按需分配', '阶级消解', '劳动即需要', '自由发展'] };
       if (id === 5) return { type: 'main', name: '共产主义初级形态', color: '#22c98a', stageLabel: '主线 · 按劳到按需', thesis: '分配不再以劳动时间为中介，阶级的经济基础被抽空。', detail: '算力、能源与自动化产能成为公共基础设施，基本生活品近乎零边际成本，「按需分配」已制度化，但创造型劳动与意义供给尚未完全展开。', keys: ['公共产权', '按需分配', '阶级消解', '国家职能收缩'] };
       if (id === 4) return { type: 'transition', name: '过渡社会', color: '#2ed3d3', stageLabel: '主线 · 混合形态', thesis: '方向对了，但丰裕度与意义供给还没跟上。', detail: '公共产权与全球协同已建立，但可及丰裕度仍不足以支撑按需分配。社会停在「一部分按需、一部分按劳」的混合状态。', keys: ['公共算力', '全民分红', '按需试点', '尚未完成'] };
+      // P0-1：兜底桶拆分（AUDIT-FIXES）。旧版把两种完全不同的失败合并进
+      // 「停滞的资本主义」，导致高冲突世界（损毁 90%、生产力 4%）拿到
+      // 「生产力略有提升」的正面文案。 devastated 已在 stageOf 里筛过一次
+      // （>0.5 进崩解），这里 0.25–0.5 的灰域是「带伤的停滞」：技术确实没强到
+      // 打开分岔窗口，但冲突已经真实消耗了产出——文案必须反映这两种状态。
+      if (m.devastation > 0.25) return { type: 'stagnant', name: '停滞的资本主义', color: '#7b8ba3', stageLabel: '旁支 · 带伤的停滞', thesis: '技术没有强到能摧毁旧秩序，而对抗先消耗了它的耐心。', detail: 'AI 被吸收为一种普通的生产工具，替代率始终没有越过制度能够吸收的阈值；同时冲突已损毁 ' + Math.round(m.devastation * 100) + '% 的有效产出。资本主义没有陨落，但也不是安然老去——它是在内耗中停滞的。', keys: ['工具化 AI', '内耗停滞', '制度惯性', '未发生的历史'] };
       return { type: 'stagnant', name: '停滞的资本主义', color: '#7b8ba3', stageLabel: '旁支 · 历史停在原地', thesis: '技术没有强到能摧毁旧秩序，旧秩序也没有弱到必须改写自己。', detail: 'AI 被吸收为一种普通的生产工具：生产力略有提升，劳动份额缓慢下滑，但替代率始终没有越过制度能够吸收的阈值。资本主义没有陨落，只是又老化了三十年。', keys: ['工具化 AI', '缓慢挤压', '制度惯性', '未发生的历史'] };
     }
 
@@ -309,7 +319,10 @@ window.__ModuleLoader__.load({
       }
       const win = locateWindow(years);
       years.forEach((y) => {
-        y.inWindow = !!(win && win.type === 'passed' === false && y.year >= win.start && y.year <= win.end);
+        // P0-3：两种窗口类型统一标记「年份落在窗口内」。
+        // 旧写法 `win.type === 'passed' === false` 解析为 (win.type==='passed')===false，
+        // 只标 blocked 型，passed 型窗口标记全丢（死代码 bug，见 AUDIT-FIXES.md）。
+        y.inWindow = !!(win && y.year >= win.start && y.year <= win.end);
       });
       const finalYear = years[years.length - 1];
       const info = stageOf(finalYear.metrics, finalYear.levers, finalYear.branches);
@@ -355,7 +368,16 @@ window.__ModuleLoader__.load({
       if (m.collapse_risk > 0.60) d.push({ tag: '高危', text: '崩解风险 ' + Math.round(m.collapse_risk * 100) + '%：转型冲击与阶级对抗，超过了再分配与教育的吸收能力。' });
       const PATH_NAME = { feudalism: '算力封建制', social_democracy: '社会民主主义', communism: '共产主义过渡', collapse: '文明崩解' };
       const winner = decidePath(sc);
-      d.push({ tag: '引力', text: '「' + PATH_NAME[winner] + '」引力 ' + Math.round(sc[winner] * 100) + '% 为四者最高，引擎据此判定终局为「' + sim.outcome.name + '」。' });
+      // P0-1：「引擎据此判定」是强因果陈述，只在渗透越过裁决线（分岔窗口已打开）
+      // 时为真。低技术世界引力再高也只是「悬置」——历史根本没进入裁决环节
+      // （AUDIT-FIXES：随机 2000 组中 783 组共产主义引力胜出而结局停滞）。
+      if (m.penetration >= GATE_PEN) {
+        d.push({ tag: '引力', text: '「' + PATH_NAME[winner] + '」引力 ' + Math.round(sc[winner] * 100) + '% 为四者最高，引擎据此判定终局为「' + sim.outcome.name + '」。' });
+      } else if (m.devastation > 0.25) {
+        d.push({ tag: '引力', text: '「' + PATH_NAME[winner] + '」引力 ' + Math.round(sc[winner] * 100) + '% 虽为当前最高，但冲突已损毁 ' + Math.round(m.devastation * 100) + '% 的有效产出——历史可能先于裁决坍塌，引力悬置于废墟之上。' });
+      } else {
+        d.push({ tag: '引力', text: '「' + PATH_NAME[winner] + '」引力 ' + Math.round(sc[winner] * 100) + '% 为当前最高，但技术渗透度仅 ' + Math.round(m.penetration * 100) + '%（未越过 0.68 的裁决线），分岔窗口未打开——引力悬置，历史尚未进入裁决。' });
+      }
       if (winner === 'collapse') d.push({ tag: '损毁', text: '全面对抗使有效生产力损毁 ' + Math.round(m.devastation * 100) + '%：工厂、电网与协作能力真实下降，而非仅仅是凝聚指标走低。' });
       if (m.labor_share < 0.35) d.push({ tag: '结构', text: '劳动份额降至 ' + Math.round(m.labor_share * 100) + '%：以「劳动—工资—消费」为轴的社会契约已经失效，分配只能改由产权与转移支付承担。' });
       if (m.abundance < 0.55) {
@@ -879,7 +901,9 @@ window.__ModuleLoader__.load({
               h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '分岔点 · 历史橱窗'),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 700 } },
                 '分岔点不是一个时刻，而是一个窗口。窗口内四条引力同时作用于社会，'
-                + '引力值最高者就是引擎实际走的那条路（两者共用同一裁决函数）。',
+                + (sim.window
+                  ? '引力值最高者就是引擎实际走的那条路（两者共用同一裁决函数）。'
+                  : '本路径技术渗透未越过 0.68 的裁决线：引力数值仍在计算，但历史尚未进入裁决，处于悬置状态。'),
                 sim.window
                   ? h('div', { style: { marginTop: 6, color: sim.window.type === 'passed' ? 'var(--dsw-alias-state-success-primary)' : 'var(--dsw-alias-state-error-primary)', fontWeight: 600 } },
                     sim.window.type === 'passed'
