@@ -195,7 +195,8 @@ check('v1.5 晚期反转不新增引擎符号', !/function lateReversal/.test(sr
   && /const lateReversal = React\.useMemo/.test(src));
 
 /* ── v1.6 T1/T5：工具化与模型体检 ── */
-check('v1.6 模型体检标签页存在', /\{ id: 'health', label: '模型体检' \}/.test(src)
+check('v1.6 模型体检标签页存在',
+  /\{ id: 'health', label: t\('tab\.health'\) \}/.test(src)
   && /const healthTab = \(\)/.test(src));
 check('v1.6 体检页显示数据来源元信息', /生成于 ' \+ \(d\.generatedAt/.test(src)
   && /种子 ' \+ d\.seed/.test(src) && /d\.commit/.test(src));
@@ -249,6 +250,18 @@ check('v1.9 补了 focus-visible 焦点样式', (src.match(/:focus-visible/g) ||
 check('v1.9 扫描模式按钮有 aria-pressed',
   /'aria-pressed': heatMode === 'default'/.test(src)
   && /'aria-pressed': heatMode === 'neighborhood'/.test(src));
+
+/* ── v2.0 i18n 分层 ── */
+check('v2.0 makeTranslator 存在且支持 {var} 插值',
+  /function makeTranslator\(locale, fallback\)/.test(src)
+  && /\{\(\\w\+\)\}/.test(src) || /replace\(\/\\\{\(\\w\+\)\\\}\/g/.test(src));
+check('v2.0 activeLocaleId 有三级回退',
+  /function activeLocaleId\(locale\)/.test(src)
+  && /locale\.getLocale/.test(src) && /navigator\.language/.test(src));
+check('v2.0 标签栏走翻译函数', /label: t\('tab\.timeline'\)/.test(src)
+  && /label: t\('tab\.health'\)/.test(src));
+check('v2.0 引擎语义未进 locale（结局名仍在源码里）',
+  /'算力封建制'/.test(src) && /'文明崩解'/.test(src));
 
 let iconError = null;
 let icon = null;
