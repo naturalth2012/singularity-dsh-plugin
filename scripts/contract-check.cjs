@@ -464,6 +464,18 @@ check('有恢复默认入口', /const resetTarget = React\.useCallback/.test(cli
     stale.length ? '仍标待做: ' + stale.join(', ') : 'ok');
 }
 
+/* ── 7k. v1.8 阶段可达性披露（P1-3）── */
+console.log('\n=== 7k. 阶段可达性披露（v1.8）===');
+check('契约声明 stage 0 不可达', doc.includes('不会返回 id 0') || doc.includes('stage 0 出现 0 次'));
+check('契约声明 2024 起点固定', doc.includes('2024 年技术渗透度恒为 0.4008'));
+check('契约声明岔路前技术单变量', doc.includes('制度、社会、意义杠杆在此阶段**完全不参与阶段判定**'));
+check('契约区分不可达与稀有', doc.includes('「不可达」与「稀有」是两件事'));
+check('阶段轨道标注前史', /前史标注：引擎不返回此阶段/.test(client) && /'前史'/.test(client));
+check('理论页含阶段局限三条',
+  /STAGE_LIMITS/.test(client) && /阶段 0 不可达/.test(client)
+  && /岔路前阶段由技术单变量决定/.test(client));
+check('体检页含阶段可达性', /阶段可达性/.test(client) && /结构性不可达/.test(client));
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
