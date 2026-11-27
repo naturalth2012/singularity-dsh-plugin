@@ -50,6 +50,7 @@ const slim = {
     socialDemocracy: report.asymmetries.socialDemocracy,
     chattering: report.asymmetries.chattering,
   },
+  stageReachability: report.stageReachability,
   anchors: report.anchors,
 };
 
