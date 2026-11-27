@@ -38,19 +38,24 @@ const en = 'An interactive foresight panel simulating social-form evolution in t
   + 'class conflict, capital capture) drive a 2024-2060 yearly simulation, and a single decision '
   + 'function picks the outcome among compute-feudalism, social democracy, early communism and '
   + 'collapse - the panel gravity shares are that same function output, so display always matches '
-  + 'result. Six preset scenarios, draggable timeline, localStorage persistence, an offline pure-JS '
-  + 'engine with no Host RPC and no runtime dependencies, a rent-pressure gauge with crossing '
-  + 'years, a penetration-by-socialisation phase diagram with the feudal basin shaded, a rent '
-  + 'heatmap over the ownership-by-capture plane, and a published model contract enforced '
-  + 'by 173 automated checks.';
+  + 'result. Six preset scenarios, a draggable timeline, a policy sandbox that '
+  + 'redirects institutional levers from a chosen intervention year (with the bifurcation-window '
+  + 'badge and a ghost trajectory showing the counterfactual), Monte-Carlo robustness '
+  + '(240 perturbed runs with outcome distribution and agreement), a reversal read-out naming '
+  + 'the smallest lever change that would flip the conclusion, a rent-pressure gauge with '
+  + 'crossing years, a penetration-by-socialisation phase diagram with the feudal basin shaded, '
+  + 'a rent heatmap over the ownership-by-capture plane, and a published model contract enforced '
+  + 'by 204 automated checks.';
 
 const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠杆（AI 认知、算力、自动化、能源、再分配、'
   + '公共产权、全球协同、劳动者组织度、意义供给、教育、团结度、转型冲击、阶级对抗、资本俘获）'
   + '驱动 2024-2060 逐年推演；单一裁决函数在算力封建制、社会民主主义、共产主义初级形态与文明崩解'
   + '之间选出结局，面板显示的引力占比即该函数输出，显示与结果永远一致。'
-  + '六种预设情景、可拖动时间轴、本地持久化；引擎纯 JS 离线运行，无 Host RPC、无网络请求、'
-  + '零运行时依赖；v1.2 新增租金压力仪表（含越线年份）、渗透×社会化相图（封建稳态域阴影）'
-  + '与产权×捕获租金热力图，模型契约由 173 项自动化检查守护。';
+  + '六种预设情景、可拖动时间轴；v1.3 新增政策沙盒（从干预年起重定向制度杠杆，'
+  + '附分岔窗口徽标与无政策幽灵轨迹对照）、蒙特卡洛稳健性（240 次扰动输出结局分布与一致性）、'
+  + '反方读法（给出翻转结论所需的最小杠杆干预）；v1.2 租金压力仪表（含越线年份）、'
+  + '渗透×社会化相图（封建稳态域阴影）与产权×捕获租金热力图；'
+  + '引擎纯 JS 离线运行，无 Host RPC、无网络请求、零运行时依赖，模型契约由 204 项自动化检查守护。';
 
 // 目录规范要求 icon 为 GitHub 托管的 raster 位图（storefront tile）；
 // 优先用 assets/icon-180.png，其次根 icon.svg（SVG 不符合 raster 建议但可作回退）。
@@ -87,8 +92,8 @@ ${zh}
 
 - [x] \`package.json\` 声明了 \`dsh.bundle\`（\`{ bundle: { patch: "./cordis.patch.yml" } }\`），
       同目录有 \`cordis.patch.yml\`
-- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；62 项引擎测试、27 项挂载契约测试
-      与 9 项深层渲染测试，合计 173 项自动化检查全绿）
+- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；75 项引擎测试、31 项挂载契约测试
+      与 15 项深层渲染测试，合计 204 项自动化检查全绿）
 - [x] 仓库已有内容（非占位/纯 README）
 - [x] 仅新增一个文件，未改动任何既有条目
 - [x] 未在 yml 中手写 \`npm:\` 字段
