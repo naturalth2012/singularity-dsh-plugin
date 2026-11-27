@@ -1,6 +1,6 @@
 # Singularity 模型契约
 
-> 版本 **1.8.0** ｜ 对应代码 `client.js` 引擎区（ENGINE-BEGIN…ENGINE-END）
+> 版本 **1.9.0** ｜ 对应代码 `client.js` 引擎区（ENGINE-BEGIN…ENGINE-END）
 > 本文档是模型假设的**可核对清单**。代码里任何常数或公式的改动，都必须同步更新本文档；
 > `scripts/contract-check.cjs` 在回归中拦截二者的漂移。
 
