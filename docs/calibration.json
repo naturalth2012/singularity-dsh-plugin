@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-27T07:53:51.245Z",
-  "version": "1.6.0",
-  "commit": "d107b19",
+  "generatedAt": "2026-11-27T08:26:17.972Z",
+  "version": "1.8.0",
+  "commit": "5534922",
   "seed": 42,
   "samples": 2000,
   "note": "构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。",
@@ -100,6 +100,105 @@
         "3": 1
       },
       "caveat": "前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"
+    }
+  },
+  "stageReachability": {
+    "samples": 20000,
+    "yearSnapshots": 740000,
+    "stages": [
+      {
+        "id": 0,
+        "name": "商业资本主义",
+        "count": 0,
+        "pct": 0
+      },
+      {
+        "id": 1,
+        "name": "算法资本主义",
+        "count": 109334,
+        "pct": 14.8
+      },
+      {
+        "id": 2,
+        "name": "极化资本主义",
+        "count": 362221,
+        "pct": 48.9
+      },
+      {
+        "id": 3,
+        "name": "分岔点",
+        "count": 140068,
+        "pct": 18.9
+      },
+      {
+        "id": 4,
+        "name": "过渡社会",
+        "count": 15277,
+        "pct": 2.1
+      },
+      {
+        "id": 5,
+        "name": "共产主义初级形态",
+        "count": 2663,
+        "pct": 0.4
+      },
+      {
+        "id": 6,
+        "name": "自由人联合体",
+        "count": 0,
+        "pct": 0
+      },
+      {
+        "id": 7,
+        "name": "算力封建制",
+        "count": 20795,
+        "pct": 2.8
+      },
+      {
+        "id": 8,
+        "name": "改良资本主义",
+        "count": 3222,
+        "pct": 0.4
+      },
+      {
+        "id": 9,
+        "name": "崩解",
+        "count": 76150,
+        "pct": 10.3
+      },
+      {
+        "id": 10,
+        "name": "未竟的过渡",
+        "count": 10270,
+        "pct": 1.4
+      }
+    ],
+    "structurallyUnreachable": [
+      {
+        "id": 0,
+        "name": "商业资本主义",
+        "groups": 0,
+        "reason": "stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"
+      }
+    ],
+    "rareButReachable": [
+      {
+        "id": 6,
+        "name": "自由人联合体",
+        "groups": 0,
+        "note": "需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"
+      }
+    ],
+    "start2024": {
+      "penetrationWhenLeversZero": 0.4008,
+      "penetrationWhenLeversFull": 0.4008,
+      "fixed": true,
+      "caveat": "2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"
+    },
+    "techOnlyBeforeGate": {
+      "samples": 1625,
+      "verified": true,
+      "caveat": "pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"
     }
   },
   "anchors": [
