@@ -24,9 +24,17 @@ const body = src.slice(bodyStart, i - 1);
 
 // React 存根：只用到 createElement
 const ReactStub = {
+  // v1.7：ErrorBoundary 是 class 组件，需要 Component 基类才能被求值
+  Component: class {
+    constructor(props) { this.props = props || {}; this.state = {}; }
+    setState(x) {
+      this.state = Object.assign({}, this.state, typeof x === 'function' ? x(this.state) : x);
+    }
+  },
   createElement: (type, props, ...children) => ({ type, props, children }),
   useState: (v) => [v, () => {}],
   useMemo: (fn) => fn(),
+  useCallback: (fn) => fn,
   useEffect: () => {},
 };
 
