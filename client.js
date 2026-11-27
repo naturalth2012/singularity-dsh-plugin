@@ -1574,6 +1574,13 @@ window.__ModuleLoader__.load({
       // t() 在中文环境下返回 ZH_FALLBACK 的原值，所以行为与之前完全一致。
       const localeSvc = props && props.locale ? props.locale : null;
       const t = makeTranslator(localeSvc, ZH_FALLBACK);
+      // v2.2：calibration 数据自带双语字段（caveat / caveatEn），按当前语言选一个。
+      // 与 t() 走同一条语言判定（activeLocaleId），避免「文案英文但标签中文」的错位。
+      // 中文环境下 isEn 为假，pick 第一分支短路，en 参数不被求值 —— 结构性等价于原行为。
+      const isEn = (() => {
+        try { return /^en\b/i.test(activeLocaleId(localeSvc)); } catch (e) { return false; }
+      })();
+      const pick = (zh, en) => (isEn && typeof en === 'string' && en ? en : zh);
       // v1.4 B5：深链恢复优先级 URL > localStorage > 默认（坏数据静默忽略）
       const [deepLink] = React.useState(() => {
         try { return parseShareUrl(typeof window !== 'undefined' ? window.location.search : ''); }
@@ -1694,7 +1701,7 @@ window.__ModuleLoader__.load({
        docs/calibration.json 注入，勿手改。重跑：npm run calibrate
        （生成 → 注入 → 契约断言三者一致）
        HEALTH-DATA-END */
-    const HEALTH_DATA = {"generatedAt":"2026-11-27T09:34:03.483Z","version":"2.1.0","commit":"329fb52","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"stageReachability":{"samples":20000,"yearSnapshots":740000,"stages":[{"id":0,"name":"商业资本主义","count":0,"pct":0},{"id":1,"name":"算法资本主义","count":109334,"pct":14.8},{"id":2,"name":"极化资本主义","count":362221,"pct":48.9},{"id":3,"name":"分岔点","count":140068,"pct":18.9},{"id":4,"name":"过渡社会","count":15277,"pct":2.1},{"id":5,"name":"共产主义初级形态","count":2663,"pct":0.4},{"id":6,"name":"自由人联合体","count":0,"pct":0},{"id":7,"name":"算力封建制","count":20795,"pct":2.8},{"id":8,"name":"改良资本主义","count":3222,"pct":0.4},{"id":9,"name":"崩解","count":76150,"pct":10.3},{"id":10,"name":"未竟的过渡","count":10270,"pct":1.4}],"structurallyUnreachable":[{"id":0,"name":"商业资本主义","groups":0,"reason":"stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"}],"rareButReachable":[{"id":6,"name":"自由人联合体","groups":0,"note":"需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"}],"start2024":{"penetrationWhenLeversZero":0.4008,"penetrationWhenLeversFull":0.4008,"fixed":true,"caveat":"2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"},"techOnlyBeforeGate":{"samples":1625,"verified":true,"caveat":"pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
+    const HEALTH_DATA = {"generatedAt":"2026-11-27T09:47:03.398Z","version":"2.2.0","commit":"cf2d7e2","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","noteEn":"A sampling report generated at build time. Fixed seed, same output for the same version. This is the result of one sampling run, not \"model truth\".","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。","caveatEn":"The coefficient is a compile-time constant; this script cannot scan other values from outside. The win rate here is measured under the current coefficient; the contract §9.1 objection (no independent empirical basis) still stands."},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。","caveatEn":"The reformRoom discount disables this path at public_ownership ≥ 0.62 — this is not sampling noise but a necessary consequence of the formula."},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。","caveatEn":"A feed-forward model has no endogenous tipping point; path flips only occur near the two artificial gates, so chattering is naturally bounded."}},"stageReachability":{"samples":20000,"yearSnapshots":740000,"stages":[{"id":0,"name":"商业资本主义","count":0,"pct":0},{"id":1,"name":"算法资本主义","count":109334,"pct":14.8},{"id":2,"name":"极化资本主义","count":362221,"pct":48.9},{"id":3,"name":"分岔点","count":140068,"pct":18.9},{"id":4,"name":"过渡社会","count":15277,"pct":2.1},{"id":5,"name":"共产主义初级形态","count":2663,"pct":0.4},{"id":6,"name":"自由人联合体","count":0,"pct":0},{"id":7,"name":"算力封建制","count":20795,"pct":2.8},{"id":8,"name":"改良资本主义","count":3222,"pct":0.4},{"id":9,"name":"崩解","count":76150,"pct":10.3},{"id":10,"name":"未竟的过渡","count":10270,"pct":1.4}],"structurallyUnreachable":[{"id":0,"name":"商业资本主义","groups":0,"reason":"stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。","reasonEn":"stageOf only ever returns STAGE_BY_ID[1] at its lowest (pen<0.38 → algorithmic capitalism); there is no branch returning stage 0."}],"rareButReachable":[{"id":6,"name":"自由人联合体","groups":0,"note":"需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。","noteEn":"Requires pen≥0.68, communism winning on gravity, soc≥0.72, abu≥0.78 and meaning≥0.46 simultaneously. The \"universal commons\" scenario reaches it reliably; in random space it is extremely rare (4 groups in a separate unseeded sample of 20000, about 0.02%; 0 groups in this fixed-seed batch)."}],"start2024":{"penetrationWhenLeversZero":0.4008,"penetrationWhenLeversFull":0.4008,"fixed":true,"caveat":"2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。","caveatEn":"In 2024, u=0, so all levers take their NOW baseline values and first-year penetration is independent of the levers. This follows from the interpolation start point and is not a bug; but it means that with the timeline parked at 2024 the stage shown is always \"polarized capitalism\", whereas narratively 2024 should be the transition from prehistory to algorithmic capitalism."},"techOnlyBeforeGate":{"samples":1625,"verified":true,"caveat":"pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。","caveatEn":"When pen < GATE_PEN, sweeping the entire institutional/social/meaning grid at fixed penetration leaves the stage unchanged — institutional levers play no part in stage determination before the fork. This is the core of P1-3 and one of the most questionable simplifications in the model."}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","nameEn":"Baseline · technology races, institutions lag","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","nameEn":"Social democracy · universal dividend","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","nameEn":"Compute feudalism · oligarchic capture","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","nameEn":"Planned transition · organized passage","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","nameEn":"Collapse · high shock + high confrontation","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","nameEn":"Universal commons · post-scarcity communism","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
 
       const applyScenario = (key) => {
         setScenario(key);
@@ -2358,7 +2365,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-pad' },
               h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, t('title.samplingReport')),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
-                d.note || t('b2a.077')),
+                pick(d.note, d.noteEn) || t('b2a.077')),
               h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 7, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } },
                 h('span', null, t('b2b.27', { v: (d.generatedAt || '—').slice(0, 19).replace('T', ' ') })),
                 h('span', null, t('b2b.28', { v: d.version || '—' })),
@@ -2411,19 +2418,19 @@ window.__ModuleLoader__.load({
                   h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.26')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
                     'COLLAPSE_GAIN = ' + d.asymmetries.collapseGain.value + t('b2c.27')
-                    + d.asymmetries.collapseGain.winRatePct + '%。' + d.asymmetries.collapseGain.caveat)),
+                    + d.asymmetries.collapseGain.winRatePct + '%。' + pick(d.asymmetries.collapseGain.caveat, d.asymmetries.collapseGain.caveatEn))),
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
                   h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.28')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
                     t('b2b.32', { n: d.asymmetries.socialDemocracy.wins })
                     + t('b2b.33', { n: d.asymmetries.socialDemocracy.winsWithLowPublicOwnership })
                     + (d.asymmetries.socialDemocracy.pathDependencyConfirmed ? t('b2c.29') : '') + '。'
-                    + d.asymmetries.socialDemocracy.caveat)),
+                    + pick(d.asymmetries.socialDemocracy.caveat, d.asymmetries.socialDemocracy.caveatEn))),
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
                   h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.30')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
                     t('b2b.34', { n: d.asymmetries.chattering.maxFlips })
-                    + d.asymmetries.chattering.caveat))))),
+                    + pick(d.asymmetries.chattering.caveat, d.asymmetries.chattering.caveatEn)))))),
 
           // v1.8：阶段可达性 —— 区分「结构性不可达」与「稀有但可达」
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
@@ -2439,7 +2446,7 @@ window.__ModuleLoader__.load({
               },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3, color: '#d64550' } },
                   t('b2b.37', { v: u.name })),
-                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, u.reason),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, pick(u.reason, u.reasonEn)),
                 h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
                   t('b2b.38', { n: d.stageReachability.samples, c: u.groups })
                   + t('b2a.136')))),
@@ -2449,7 +2456,7 @@ window.__ModuleLoader__.load({
               },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } },
                   t('b2b.39', { v: r.name })),
-                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, r.note))),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, pick(r.note, r.noteEn)))),
               h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, t('b2c.31')),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
@@ -2457,11 +2464,11 @@ window.__ModuleLoader__.load({
                   + t('b2b.41', { v: d.stageReachability.start2024.penetrationWhenLeversFull })
                   + (d.stageReachability.start2024.fixed ? t('b2a.079') : t('b2a.080'))),
                 h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
-                  d.stageReachability.start2024.caveat)),
+                  pick(d.stageReachability.start2024.caveat, d.stageReachability.start2024.caveatEn))),
               h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', marginTop: 8 } },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, t('b2a.081')),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
-                  d.stageReachability.techOnlyBeforeGate.caveat)))),
+                  pick(d.stageReachability.techOnlyBeforeGate.caveat, d.stageReachability.techOnlyBeforeGate.caveatEn))))),
 
           // 六剧本锚点：读者可核对面板显示与采样报告是否一致
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
@@ -2471,7 +2478,7 @@ window.__ModuleLoader__.load({
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null, [t('b2a.082'), t('b2a.072'), t('b2a.083'), t('b2a.073')].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null, d.anchors.map((a) => h('tr', { key: a.scenario },
-                  h('td', { style: { fontSize: 11 } }, a.name),
+                  h('td', { style: { fontSize: 11 } }, pick(a.name, a.nameEn)),
                   h('td', null, h('span', { className: 'sn-pill', style: { fontSize: 10 } }, a.outcome)),
                   h('td', null, Math.round(a.rent * 100) + '%'),
                   h('td', null, Math.round(a.development * 100) + '%'))))))));
