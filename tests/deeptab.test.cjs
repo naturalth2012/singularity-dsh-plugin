@@ -73,6 +73,8 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare']) {
     check('branch 含分岔橱窗与路径对照', joined.includes('分岔点 · 历史橱窗') && joined.includes('路径对照'));
     check('branch 含稳健性卡（分布 + 一致性 + 反方读法）',
       joined.includes('稳健性 · 蒙特卡洛') && joined.includes('一致性') && joined.includes('反方读法'));
+    check('branch 含引力上限非对称脚注', joined.includes('引力上限并不相等'));
+    check('branch 路径对照含社民产权条件', joined.includes('产权 ≥0.62 时本路径失效'));
   } else if (tab === 'compare') {
     check('compare 含六剧本表与租金/一致性列', joined.includes('六种世界')
       && joined.includes('租金') && joined.includes('一致性'));
