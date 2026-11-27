@@ -476,6 +476,40 @@ check('理论页含阶段局限三条',
   && /岔路前阶段由技术单变量决定/.test(client));
 check('体检页含阶段可达性', /阶段可达性/.test(client) && /结构性不可达/.test(client));
 
+/* ── 7l. v1.9 键盘可达性（a11y）── */
+console.log('\n=== 7l. 键盘可达性（v1.9）===');
+{
+  // 核心交互不能只靠鼠标：阶段轨道、剧本、热力图、年份、弹窗
+  check('阶段轨道节点是 button', /return h\('button', \{[\s\S]{0,320}'aria-pressed': on/.test(client));
+  check('热力图有 grid 语义 + roving tabindex',
+    /role: 'grid'/.test(client) && /tabIndex: isFocus \? 0 : -1/.test(client));
+  check('热力图支持方向键导航',
+    /ArrowUp/.test(client) && /ArrowDown/.test(client)
+    && /ArrowLeft/.test(client) && /ArrowRight/.test(client));
+  check('年份行可键盘触发', /role: 'button', tabIndex: 0/.test(client));
+  check('弹窗有 dialog 语义 + Esc 关闭',
+    /role: 'dialog', 'aria-modal': 'true'/.test(client) && /e\.key === 'Escape'/.test(client));
+  check('补了 :focus-visible 焦点样式',
+    (client.match(/:focus-visible/g) || []).length >= 5,
+    (client.match(/:focus-visible/g) || []).length + ' 条');
+  // 可点击的非 button 元素必须带 role 或是有意的遮罩/容器。
+  // 合法例外：
+  //  - 弹窗遮罩：role="presentation"（点击关闭，不是交互控件）
+  //  - 弹窗本体：role="dialog"（onClick 只做 stopPropagation）
+  //  - td 内嵌 button（onClick 在 button 上，正则可能误跨）
+  const badClickable = [];
+  const re = /h\('(div|span|li)'\s*,\s*\{([^{}]|\{[^{}]*\})*?onClick:/g;
+  let m;
+  while ((m = re.exec(client)) !== null) {
+    const snippet = client.slice(m.index, m.index + 700);
+    const hasRole = /role:\s*'(presentation|dialog|button|gridcell|tab)'/.test(snippet)
+      || /role:\s*'dialog'/.test(snippet);
+    if (!hasRole) badClickable.push(m[1]);
+  }
+  check('无「裸 div 可点击」的回退', badClickable.length === 0,
+    badClickable.length ? '仍有 ' + badClickable.length + ' 处: ' + badClickable.join(',') : 'ok');
+}
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
