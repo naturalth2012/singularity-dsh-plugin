@@ -293,6 +293,27 @@ if (!fs.existsSync(SNAP)) {
 }
 check('契约提及 mulberry32', doc.includes('mulberry32'));
 
+/* ── 7e. v1.5 T4 诚实性声明（文档必须写明，否则 UI 的标注失去依据）── */
+console.log('\n=== 7e. 诚实性声明（v1.5）===');
+check('契约声明「窗口不是裁决时刻」', doc.includes('窗口不是裁决时刻'));
+check('契约声明晚期反转实测样本', /578 个有窗口样本/.test(doc) && doc.includes('晚期反转'));
+check('契约声明引力上限非对称', doc.includes('引力上限非对称') && doc.includes('COLLAPSE_GAIN = 1.8'));
+check('契约声明社民路径依赖（255/255）', /255\/255/.test(doc) && doc.includes('public_ownership < 0.62'));
+
+/* ── 7f. 文档计数自动化（v1.5 T3）── */
+console.log('\n=== 7f. 文档计数自动化 ===');
+const readmeSrc = read('README.md');
+const publishingSrc = read('PUBLISHING.md');
+check('README 有 counts:auto 标记对',
+  readmeSrc.includes('<!-- counts:auto -->') && readmeSrc.includes('<!-- /counts:auto -->'));
+check('PUBLISHING 有 counts:auto 标记对',
+  publishingSrc.includes('<!-- counts:auto -->') && publishingSrc.includes('<!-- /counts:auto -->'));
+check('PUBLISHING 无过时路径 D:\\AIApp',
+  !/D:\\AIApp/.test(publishingSrc), /D:\\AIApp/.test(publishingSrc) ? '仍含旧路径' : 'ok');
+check('PUBLISHING 无过时计数 26/26',
+  !/26\/26/.test(publishingSrc), /26\/26/.test(publishingSrc) ? '仍含旧计数' : 'ok');
+check('README 链接 CHANGELOG', /\[CHANGELOG\]\(CHANGELOG\.md\)|CHANGELOG\.md/.test(readmeSrc));
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
