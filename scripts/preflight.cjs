@@ -88,6 +88,23 @@ console.log('\n=== v1.6 工具与校准（T1/T5）===');
   check('package.json 有 calibrate 脚本', !!(pkg.scripts || {}).calibrate);
 }
 
+console.log('\n=== v1.7 插件详情与稳定性（档 A）===');
+{
+  let detailRel = null;
+  try {
+    const zh = JSON.parse(read('locale/zh.json'));
+    detailRel = zh.meta && zh.meta.detail;
+  } catch (e) { /* 下面断言会失败 */ }
+  check('locale 声明 meta.detail', !!detailRel, detailRel || '缺失');
+  let detailSize = 0;
+  if (detailRel) {
+    try { detailSize = read(detailRel).length; } catch (e) { detailSize = 0; }
+  }
+  check('详情文档存在且内容充实（>1500 字符）', detailSize > 1500, detailSize + ' 字符');
+  check('files 含 docs/DETAIL.md', (pkg.files || []).indexOf('docs/DETAIL.md') >= 0);
+  check('client.js 有 ErrorBoundary', /class SnErrorBoundary/.test(read('client.js')));
+}
+
 console.log('\n--- 汇总 ---');
 console.log(`${pass}/${pass + fail} 通过`);
 if (fail) {
