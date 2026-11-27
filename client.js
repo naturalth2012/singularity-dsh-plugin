@@ -715,6 +715,17 @@ window.__ModuleLoader__.load({
       color:var(--dsw-alias-bg-base);font-weight:650}
     .sn-btn-primary:hover{opacity:.9;background:var(--dsw-alias-brand-primary)}
 
+    /* v1.9 a11y：键盘焦点可见。用 :focus-visible 而非 :focus，
+       这样鼠标点击不显示焦点环，键盘导航才显示。 */
+    .sn-root :focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}
+    .sn-node:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px;border-radius:8px}
+    .sn-tab:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:-2px}
+    .sn-table tbody tr:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:-2px}
+    .sn-heat-cell:focus-visible rect,.sn-root [role="gridcell"]:focus-visible rect{
+      stroke:var(--dsw-alias-brand-primary);stroke-width:2.5}
+    /* 杠杆滑块：键盘聚焦时给轨道一圈提示 */
+    .sn-lv input[type=range]:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:4px}
+
     .sn-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
     @media(max-width:820px){.sn-branches{grid-template-columns:1fr}}
     .sn-br{border:1px solid var(--dsw-alias-border-l1);border-radius:11px;padding:13px;
@@ -1073,8 +1084,11 @@ window.__ModuleLoader__.load({
           // v1.8：stage 0 是「前史」——stageOf 不会返回它（契约 §7.1）。
           // 明确标注，避免读者以为 2024 年引擎会判定为「商业资本主义」。
           const prehistory = st.id === 0;
-          return h('div', {
-            key: st.id, className: 'sn-node' + (on ? ' on' : ''),
+          // v1.9 a11y：改 <button> —— 原生语义 + 原生 Enter/Space + 原生焦点环
+          return h('button', {
+            key: st.id, type: 'button', className: 'sn-node' + (on ? ' on' : ''),
+            'aria-pressed': on,
+            'aria-label': '阶段 ' + (st.id + 1) + ' ' + st.name + (prehistory ? '（前史标注，引擎不返回此阶段）' : ''),
             style: { color: on ? st.color : 'var(--dsw-alias-label-primary)', opacity: on || st.id <= p.currentId ? 1 : 0.55 },
             onClick: () => p.onPick(st),
             title: prehistory
@@ -1559,7 +1573,8 @@ window.__ModuleLoader__.load({
                   h('span', { className: 'sn-drv-text' }, d.text))))))),
         h('div', { style: { marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' } },
           Object.keys(SCENARIOS).map((k) => h('button', {
-            key: k, className: 'sn-btn' + (scenario === k ? ' sn-btn-primary' : ''),
+            key: k, type: 'button', className: 'sn-btn' + (scenario === k ? ' sn-btn-primary' : ''),
+            'aria-pressed': scenario === k,
             onClick: () => applyScenario(k),
           }, SCENARIOS[k].name.split(' · ')[0]))));
       };
@@ -1714,16 +1729,60 @@ window.__ModuleLoader__.load({
           h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
         // v1.4 B4：热力图 —— 7×7 参数扫描，颜色 = 终局租金档；点击载入两杆。
         // 审核修复：轴值改用 App 级 heatAxis（与 heatGrid 构造同源，杜绝行序错位）。
-        const heatSvg = h('svg', { viewBox: '0 0 296 292', style: { width: '100%', display: 'block' } },
+        // v1.9 a11y：热力图单元格键盘可达。
+        // 49 个格子若全给 tabIndex=0 会产生 49 个 Tab 停靠点，体验极差，
+        // 所以用 roving tabindex：只有当前选中格 tabIndex=0，其余 -1，
+        // 方向键在网格内移动（WAI-ARIA grid 标准做法）。
+        const heatSelected = (() => {
+          for (let r = 0; r < heatAxis.po.length; r++) {
+            for (let c = 0; c < heatAxis.cap.length; c++) {
+              if (Math.abs(heatAxis.po[r] - curPo) < 0.084 && Math.abs(heatAxis.cap[c] - curCap) < 0.084) return { r: r, c: c };
+            }
+          }
+          return { r: 3, c: 3 };
+        })();
+        const heatPick = (po, cap) => {
+          setTarget((t2) => { const n = Object.assign({}, t2); n.public_ownership = po; n.capture = cap; return n; });
+          setDeepLinkLocked(false);
+        };
+        const heatSvg = h('svg', {
+          viewBox: '0 0 296 292', style: { width: '100%', display: 'block' },
+          role: 'grid', 'aria-label': '参数扫描热力图：公共产权 × 资本捕获，颜色表示终局租金档位。方向键移动，回车载入。',
+        },
           heatGrid.map((row, r) => row.map((cell, c) => {
             const po = heatAxis.po[r];
             const cap = heatAxis.cap[c];
             const on = Math.abs(po - curPo) < 0.084 && Math.abs(cap - curCap) < 0.084;
+            const isFocus = r === heatSelected.r && c === heatSelected.c;
+            const label = '产权 ' + Math.round(po * 100) + '% × 捕获 ' + Math.round(cap * 100)
+              + '% → ' + RENT_LABELS[rentBand(cell.rent)];
             return h('g', {
               key: r + '-' + c, style: { cursor: 'pointer' },
-              onClick: () => { setTarget((t2) => { const n = Object.assign({}, t2); n.public_ownership = po; n.capture = cap; return n; }); setDeepLinkLocked(false); },
+              role: 'gridcell',
+              tabIndex: isFocus ? 0 : -1,
+              'aria-label': label,
+              'aria-selected': on,
+              onClick: () => heatPick(po, cap),
+              onKeyDown: (e) => {
+                const key = e && e.key;
+                let nr = r, nc = c, moved = false;
+                if (key === 'Enter' || key === ' ') { e.preventDefault(); heatPick(po, cap); return; }
+                if (key === 'ArrowUp') { nr = Math.max(0, r - 1); moved = true; }
+                else if (key === 'ArrowDown') { nr = Math.min(heatAxis.po.length - 1, r + 1); moved = true; }
+                else if (key === 'ArrowLeft') { nc = Math.max(0, c - 1); moved = true; }
+                else if (key === 'ArrowRight') { nc = Math.min(heatAxis.cap.length - 1, c + 1); moved = true; }
+                if (!moved) return;
+                e.preventDefault();
+                // 焦点移交给目标格：同一 SVG 内按 data 属性查找
+                const svg = e.currentTarget && e.currentTarget.ownerSVGElement;
+                if (svg) {
+                  const nodes = svg.querySelectorAll('[role="gridcell"]');
+                  const idx = nr * heatAxis.cap.length + nc;
+                  if (nodes && nodes[idx]) nodes[idx].focus();
+                }
+              },
             },
-              h('title', null, '产权 ' + Math.round(po * 100) + '% × 捕获 ' + Math.round(cap * 100) + '% → ' + RENT_LABELS[rentBand(cell.rent)]),
+              h('title', null, label),
               h('rect', {
                 x: 30 + c * 37, y: 6 + r * 37, width: 34, height: 34, rx: 4,
                 fill: RENT_COLORS[rentBand(cell.rent)], opacity: 0.88,
@@ -1779,10 +1838,12 @@ window.__ModuleLoader__.load({
                   h('span', { className: 'sn-hint' }, '点击格子载入该组合'),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'default' ? ' sn-btn-primary' : ''),
+                    type: 'button', 'aria-pressed': heatMode === 'default',
                     onClick: () => setHeatMode('default'), title: '全域扫描（其余杠杆取默认值）',
                   }, '全域'),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'neighborhood' ? ' sn-btn-primary' : ''),
+                    type: 'button', 'aria-pressed': heatMode === 'neighborhood',
                     onClick: () => setHeatMode('neighborhood'), title: '以当前产权×捕获为中心 ±0.5 重扫',
                   }, '邻域'))),
               h('div', { className: 'sn-pad' }, heatSvg))),
@@ -1795,7 +1856,17 @@ window.__ModuleLoader__.load({
                 h('tbody', null,
                   sim.years.filter((y) => y.year % 2 === 0).map((y) => h('tr', {
                     key: y.year, style: { cursor: 'pointer' },
+                    // v1.9 a11y：表格行不能是 button，用 role + tabIndex + Enter/Space
+                    role: 'button', tabIndex: 0,
+                    'aria-label': '跳到 ' + y.year + ' 年（' + y.stage.name + '）',
                     onClick: () => { setYear(y.year); setTab('timeline'); },
+                    onKeyDown: (e) => {
+                      if (e && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        setYear(y.year);
+                        setTab('timeline');
+                      }
+                    },
                   },
                     h('td', null, y.year),
                     h('td', null, h('span', { className: 'sn-pill', style: { color: y.stage.color, fontSize: 10 } }, y.stage.name)),
@@ -2176,10 +2247,18 @@ window.__ModuleLoader__.load({
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
           },
           onClick: () => setPicked(null),
+          // v1.9 a11y：遮罩可 Esc 关闭 + 对话框语义
+          onKeyDown: (e) => { if (e && e.key === 'Escape') { e.preventDefault(); setPicked(null); } },
+          role: 'presentation',
         }, h('div', {
+          role: 'dialog', 'aria-modal': 'true', 'aria-label': picked.name + ' · 阶段详情',
+          // 打开时把焦点移入对话框，关闭时（卸载）浏览器归还给触发元素
+          ref: (el) => { if (el && typeof el.focus === 'function') el.focus(); },
+          tabIndex: -1,
           style: {
             maxWidth: 460, width: '100%', background: 'var(--dsw-alias-bg-overlay)',
             border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 12, padding: 20,
+            outline: 'none',
           },
           onClick: (e) => e.stopPropagation(),
         },
