@@ -21,8 +21,11 @@ new Function('window', 'document', src)(windowStub, documentStub);
 function renderWithTab(tabValue) {
   const ReactStub = {
     createElement: (type, props, ...children) => ({ __el: true, type, props: props || {}, children }),
-    // 第 1 次 useState 调用是 tab —— 顶到指定标签；其余沿用默认语义。
-    useState: (v) => { ReactStub._n = (ReactStub._n || 0) + 1; return ReactStub._n === 1 ? [tabValue, () => {}] : [typeof v === 'function' ? v() : v, () => {}]; },
+    // 顶初始值为 'timeline' 的 useState（即 tab）到指定标签；其余沿用默认语义。
+    // 按初值识别而非调用序位——hook 顺序变化（如 v1.4 新增 deepLink useState）不致错位。
+    useState: (v) => (v === 'timeline'
+      ? [tabValue, () => {}]
+      : [typeof v === 'function' ? v() : v, () => {}]),
     useMemo: (fn) => fn(),
     useEffect: () => {},
     useRef: () => ({ current: null }),
@@ -50,7 +53,7 @@ function walk(node, out) {
   });
 }
 
-for (const tab of ['metrics', 'theory', 'engine', 'branch']) {
+for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare']) {
   const err = [];
   let tree = null;
   try { tree = renderWithTab(tab); } catch (e) { err.push(e.message + '\n' + (e.stack || '').split('\n')[1]); }
@@ -70,6 +73,10 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch']) {
     check('branch 含分岔橱窗与路径对照', joined.includes('分岔点 · 历史橱窗') && joined.includes('路径对照'));
     check('branch 含稳健性卡（分布 + 一致性 + 反方读法）',
       joined.includes('稳健性 · 蒙特卡洛') && joined.includes('一致性') && joined.includes('反方读法'));
+  } else if (tab === 'compare') {
+    check('compare 含六剧本表与租金/一致性列', joined.includes('六种世界')
+      && joined.includes('租金') && joined.includes('一致性'));
+    check('compare 种子化一致性说明可见', joined.includes('种子化，刷新可复算'));
   } else {
     check('theory 含合取命题与映射表', joined.includes('合取命题 · 两个闸门缺一不可') && joined.includes('cognition / compute / automation'));
     check('theory 含四张反驳卡', ['技术封建化', '生态天花板', '计算问题', '路径依赖'].every((k) => joined.includes(k)));
