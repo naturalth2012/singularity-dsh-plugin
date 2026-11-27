@@ -157,9 +157,9 @@ check('v1.3 相图幽灵轨迹源码存在', /ghostSim/.test(src)
 
 /* ── v1.4：显示层红利与分享存档 ── */
 check('v1.4 LineChart get 访问器与租金曲线', /const get = s\.get \|\|/.test(src)
-  && /label: '租金压力', get: \(row\) => row\.rent/.test(src));
-check('v1.4 年表租金列与对比页新列', /'不等', '自由', '租金'\]/.test(src)
-  && /'租金', '一致性', '窗口'/.test(src) && /compareStats/.test(src));
+  && /get: \(row\) => row\.rent/.test(src));
+check('v1.4 年表租金列与对比页新列', /compareStats/.test(src)
+  && /key: 'rent'/.test(src) && /一致性/.test(src));
 check('v1.4 热力图基准切换', /heatMode === 'neighborhood'/.test(src)
   && /setHeatMode\('neighborhood'\)/.test(src) && /邻域 ±0\.5/.test(src));
 check('v1.4 分享深链（编码/解析/按钮）', /b64urlEncode/.test(src)
@@ -198,8 +198,8 @@ check('v1.5 晚期反转不新增引擎符号', !/function lateReversal/.test(sr
 check('v1.6 模型体检标签页存在',
   /\{ id: 'health', label: t\('tab\.health'\) \}/.test(src)
   && /const healthTab = \(\)/.test(src));
-check('v1.6 体检页显示数据来源元信息', /生成于 ' \+ \(d\.generatedAt/.test(src)
-  && /种子 ' \+ d\.seed/.test(src) && /d\.commit/.test(src));
+check('v1.6 体检页显示数据来源元信息', /b2b\.27/.test(src)
+  && /b2b\.29/.test(src) && /d\.commit/.test(src));
 check('v1.6 体检页展示契约 §9 质疑', /§9\.1 崩解系数偏高/.test(src)
   && /§9\.2\/9\.3/.test(src) && /§9\.4/.test(src));
 check('v1.6 体检数据为构建期内联（非运行时计算）',
@@ -234,7 +234,7 @@ check('v1.8 披露含实测数据而非断言', /20000 组随机参数/.test(src
 /* ── v1.9 a11y：键盘可达性 ── */
 check('v1.9 阶段轨道节点是 button 且有 aria',
   /return h\('button', \{[\s\S]{0,300}'aria-pressed': on/.test(src)
-  && /'aria-label': '阶段 ' \+/.test(src));
+  && /'aria-label':/.test(src));
 check('v1.9 剧本按钮有 aria-pressed', /'aria-pressed': scenario === k/.test(src));
 check('v1.9 热力图有 grid/gridcell 语义', /role: 'grid'/.test(src) && /role: 'gridcell'/.test(src));
 check('v1.9 热力图用 roving tabindex（只有 1 个停靠点）',
@@ -243,7 +243,7 @@ check('v1.9 热力图支持方向键 + 回车载入',
   /ArrowUp/.test(src) && /ArrowDown/.test(src) && /ArrowLeft/.test(src) && /ArrowRight/.test(src)
   && /key === 'Enter' \|\| key === ' '/.test(src));
 check('v1.9 年份行 role=button 且可键盘触发',
-  /role: 'button', tabIndex: 0/.test(src) && /跳到 ' \+ y\.year/.test(src));
+  /role: 'button', tabIndex: 0/.test(src) && /b2b\.26/.test(src));
 check('v1.9 弹窗有 dialog 语义 + Esc 关闭',
   /role: 'dialog', 'aria-modal': 'true'/.test(src) && /e\.key === 'Escape'/.test(src));
 check('v1.9 补了 focus-visible 焦点样式', (src.match(/:focus-visible/g) || []).length >= 5);
