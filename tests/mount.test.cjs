@@ -143,6 +143,16 @@ check('v1.2 合取命题与反驳卡源码存在', /合取命题 · 两个闸门
 check('v1.2 页脚声明与租金条源码存在', /不构成任何现实预测/.test(src)
   && /租金压力/.test(src) && /RENT_COLORS/.test(src));
 
+/* ── v1.3：政策沙盒 / 稳健性 / 幽灵轨迹源码存在 ── */
+check('v1.3 政策沙盒卡源码存在', /政策沙盒/.test(src)
+  && /干预年/.test(src) && /清除干预/.test(src) && /validatePolicy|leversPolicyAt/.test(src));
+check('v1.3 窗口徽标源码存在', /winBadge/.test(src)
+  && /干预在分岔窗口内 · 决定性/.test(src) && /sn-policy-mark/.test(src));
+check('v1.3 稳健性卡与反方读法源码存在', /稳健性 · 蒙特卡洛/.test(src)
+  && /反方读法/.test(src) && /branchTabWithRobust/.test(src));
+check('v1.3 相图幽灵轨迹源码存在', /ghostSim/.test(src)
+  && /无政策幽灵轨迹/.test(src) && /robustness\(|reversal\(/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
