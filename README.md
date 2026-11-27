@@ -126,19 +126,17 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 <!-- counts:auto -->
 
 ```bash
-npm run verify                      # 一次性跑全部四项
+npm run verify                      # 一次性跑全部五项
 node scripts\contract-check.cjs     # 60/60  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
-node tests\mount.test.cjs           # 36/36  插件契约与渲染
+node tests\mount.test.cjs           # 42/42  插件契约与渲染
 node tests\deeptab.test.cjs         # 18/18  深层渲染冒烟
 node scripts\preflight.cjs          # 26/26  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（218 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（224 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
-
-以上计数由 `npm run counts` 自动生成（215 项自动化检查），手工编辑无效。
 
 - `contract-check.cjs`：断言 `MODEL-CONTRACT.md` 与引擎区一致——四个闸门常数、
   14 个杠杆（含分组 4/4/3/3）、7 主轨 + 4 旁支阶段、三区阈值、四条引力系数、
