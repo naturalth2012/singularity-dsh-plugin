@@ -228,6 +228,51 @@ console.log('\n=== E. 文案与结构的诚实性 ===');
     socWin > 0 && socWinLowPub === socWin, socWinLowPub + '/' + socWin + '（5000 组）');
 }
 
+/* ══ F. 校准报告一致性（v1.6 T5）══ */
+console.log('\n=== F. 校准报告与实测一致 ===');
+{
+  const calPath = path.join(__dirname, '..', 'docs', 'calibration.json');
+  let cal = null;
+  try { cal = JSON.parse(fs.readFileSync(calPath, 'utf8')); } catch (e) { /* 缺失 */ }
+  check('docs/calibration.json 可读', !!cal, cal ? 'ok' : '运行 node scripts/calibrate.cjs');
+
+  if (cal) {
+    // 用同一批随机参数重算，与报告比对应在容差内
+    const rng = makeRng(cal.seed);
+    const dist = {};
+    for (let k = 0; k < cal.samples; k++) {
+      const t = {};
+      api.LEVERS.forEach((lv) => { t[lv.key] = rng(); });
+      const sim = api.simulate(t);
+      dist[sim.outcome.name] = (dist[sim.outcome.name] || 0) + 1;
+    }
+    const drifted = cal.outcomeDistribution.filter((o) => {
+      const now = dist[o.name] || 0;
+      return Math.abs(now - o.count) > 0;   // 同种子必须逐组相同
+    });
+    check('校准报告与同种子重算逐组一致', drifted.length === 0,
+      drifted.length === 0 ? cal.samples + ' 组全等'
+        : drifted.map((o) => o.name + ' ' + o.count + '→' + (dist[o.name] || 0)).join(', '));
+
+    // 社民路径依赖必须在报告里如实记录
+    check('校准报告记录社民路径依赖结论',
+      cal.asymmetries.socialDemocracy.wins > 0
+      && cal.asymmetries.socialDemocracy.winsWithLowPublicOwnership
+        === cal.asymmetries.socialDemocracy.wins,
+      cal.asymmetries.socialDemocracy.winsWithLowPublicOwnership + '/'
+      + cal.asymmetries.socialDemocracy.wins);
+
+    // 锚点必须与当前引擎一致（防止报告过期）
+    const anchorBad = cal.anchors.filter((a) => {
+      const sim = api.simulate(api.targetOf(a.scenario));
+      return sim.outcome.name !== a.outcome
+        || Math.abs(sim.final.rent - a.rent) > 0.001;
+    });
+    check('校准报告六剧本锚点与当前引擎一致', anchorBad.length === 0,
+      anchorBad.length ? '过期: ' + anchorBad.map((a) => a.scenario).join(',') : '6/6 一致');
+  }
+}
+
 console.log('\n--- 汇总 ---');
 console.log(pass + '/' + (pass + fail) + ' 通过');
 process.exit(fail ? 1 : 0);
