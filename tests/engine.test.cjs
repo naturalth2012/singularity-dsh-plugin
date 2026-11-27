@@ -44,6 +44,7 @@ const build = new Function('require', 'document', 'window',
   + ' diagnose: diagnose, decidePath: decidePath,'
   + ' rentPressure: rentPressure, findCrossing: findCrossing, RENT_BANDS: RENT_BANDS,'
   + ' leversPolicyAt: leversPolicyAt, robustness: robustness, reversal: reversal,'
+  + ' mulberry32: mulberry32,'
   + ' GATE_PEN: GATE_PEN, NOW: NOW };'
   + '})();');
 
@@ -527,6 +528,26 @@ if (loadStart > 0 && saveStart > 0) {
     return r.outcomes.length >= 1 && r.agreement >= 0.5;
   });
   check('六剧本 robustness 形态合法', robOK);
+}
+
+/* ── v1.4：mulberry32 种子随机数 ────────────────────────────── */
+{
+  // 1) 确定性：同种子序列全等
+  const a1 = api.mulberry32(1234), a2 = api.mulberry32(1234);
+  const seqA = Array.from({ length: 12 }, () => a1());
+  const seqB = Array.from({ length: 12 }, () => a2());
+  check('mulberry32 同种子序列确定', seqA.every((v, i) => v === seqB[i]));
+
+  // 2) 值域 [0,1) 且分布合理
+  const r = api.mulberry32(42);
+  let inRange = true, mn = 1, mx = 0;
+  for (let i = 0; i < 5000; i++) { const v = r(); if (!(v >= 0 && v < 1)) inRange = false; mn = Math.min(mn, v); mx = Math.max(mx, v); }
+  check('mulberry32 值域 [0,1)', inRange && mn < 0.05 && mx > 0.95, 'range ' + mn.toFixed(3) + '..' + mx.toFixed(3));
+
+  // 3) 异种子序列不同
+  const s1 = Array.from({ length: 8 }, () => api.mulberry32(1)());
+  const s2 = Array.from({ length: 8 }, () => api.mulberry32(2)());
+  check('mulberry32 异种子序列不同', s1.some((v, i) => v !== s2[i]));
 }
 
 console.log('\n--- 汇总 ---');
