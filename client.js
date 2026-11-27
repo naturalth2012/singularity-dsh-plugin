@@ -1104,7 +1104,14 @@ window.__ModuleLoader__.load({
       const [heatMode, setHeatMode] = React.useState('default');
 
       // 杠杆或场景变化即写回；浏览态与政策态（tab / year / picked / policy）不参与持久化。
-      React.useEffect(() => { savePersisted(target, scenario); }, [target, scenario]);
+      // 审核修复（v1.4 审核）：深链会话（?t=…）不写回 localStorage——否则打开
+      // 别人分享的推演会静默覆盖用户自己保存的状态。用户一旦手动操作
+      // （改滑块/载入剧本），deepLinkLocked 解除，恢复常规持久化。
+      const [deepLinkLocked, setDeepLinkLocked] = React.useState(!!deepLink);
+      React.useEffect(() => {
+        if (deepLinkLocked) return;
+        savePersisted(target, scenario);
+      }, [target, scenario, deepLinkLocked]);
 
       const sim = React.useMemo(() => simulate(target, policy), [target, policy]);
       const sens = React.useMemo(() => sensitivity(target), [target]);
@@ -1129,23 +1136,42 @@ window.__ModuleLoader__.load({
       // （tech 走趋势、制度/社会取 NOW），仅 override 格子的
       // public_ownership × capture —— 与当前滑块无关，只算一次（49 次 simulate）。
       // 邻域模式：以当前 (产权, 捕获) 为中心 ±三档（步长 1/6，clamp [0,1]）重扫。
+      //
+      // 审核修复（v1.4 审核）：行序必须与 SVG 显示轴一致。产权轴在图上自上而下
+      // 是「高→低」（poSteps 降序），而此前构造用升序 steps，导致颜色与点击目标
+      // 上下颠倒。现在统一为降序：row 0 = 最高产权。
       const heatGrid = React.useMemo(() => {
-        const steps = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
+        const ASC = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
+        const DESC = [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0];
         const base = {};
         LEVERS.forEach((lv) => {
           base[lv.key] = TECH_KEYS.indexOf(lv.key) >= 0 ? TECH_TREND[lv.key] : NOW[lv.key];
         });
-        let poAxis = steps, capAxis = steps;
+        let poAxis = DESC, capAxis = ASC;
         if (heatMode === 'neighborhood') {
           const po = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
           const cap = target.capture !== undefined ? target.capture : NOW.capture;
-          const win = (c) => [-3, -2, -1, 0, 1, 2, 3].map((d) => clamp(c + d / 6));
-          poAxis = win(po); capAxis = win(cap);
+          const offsets = [-3, -2, -1, 0, 1, 2, 3];
+          poAxis = offsets.slice().reverse().map((d) => clamp(po + d / 6));  // 高→低
+          capAxis = offsets.map((d) => clamp(cap + d / 6));                  // 低→高
         }
         return poAxis.map((po) => capAxis.map((cap) => {
           const t2 = Object.assign({}, base, { public_ownership: po, capture: cap });
           return simulate(t2).final;
         }));
+      }, [heatMode, target.public_ownership, target.capture]);
+      // 与 heatGrid 同源的轴值（显示与点击都读它，杜绝再次错位）
+      const heatAxis = React.useMemo(() => {
+        const ASC = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
+        const DESC = [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0];
+        if (heatMode !== 'neighborhood') return { po: DESC, cap: ASC };
+        const po = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
+        const cap = target.capture !== undefined ? target.capture : NOW.capture;
+        const offsets = [-3, -2, -1, 0, 1, 2, 3];
+        return {
+          po: offsets.slice().reverse().map((d) => clamp(po + d / 6)),
+          cap: offsets.map((d) => clamp(cap + d / 6)),
+        };
       }, [heatMode, target.public_ownership, target.capture]);
       const rentBand = (v) =>
         v >= RENT_BANDS.formed ? 3 : v >= RENT_BANDS.warn ? 2 : v >= RENT_BANDS.watch ? 1 : 0;
@@ -1158,6 +1184,7 @@ window.__ModuleLoader__.load({
         setYear(2035);
         setPolicy(null);   // v1.3：载入剧本即清空政策（契约 §8c）
         setIoMsg('');
+        setDeepLinkLocked(false);   // 用户主动操作 → 恢复持久化
       };
 
       /* v1.4 B5/B6：分享与存档。显式快照语义：点按钮才生成。 */
@@ -1215,6 +1242,7 @@ window.__ModuleLoader__.load({
               ? { year: data.policy.year, overrides: data.policy.overrides } : null);
             setYear(2035);
             setIoMsg('存档已导入');
+            setDeepLinkLocked(false);
           } catch (e) { setIoMsg('存档解析失败，已忽略'); }
         };
         reader.readAsText(file);
@@ -1305,6 +1333,7 @@ window.__ModuleLoader__.load({
                   onChange: (e) => {
                     const nv = parseInt(e.target.value, 10) / 100;
                     setTarget((t) => { const n = Object.assign({}, t); n[lv.key] = nv; return n; });
+                    setDeepLinkLocked(false);
                   },
                 }),
                 h('div', { className: 'sn-lv-ends' }, h('span', null, lv.low), h('span', null, lv.high)));
@@ -1505,7 +1534,6 @@ window.__ModuleLoader__.load({
           ? ghostSim.years.filter((y) => y.year === year)[0] || ghostSim.final : null;
         const curPo = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
         const curCap = target.capture !== undefined ? target.capture : NOW.capture;
-        const poSteps = [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0];
         // R6：相图 —— 渗透×社会化平面上的历史轨迹；阴影 = 封建稳态域（x≥0.68 且 y<0.48）
         const phaseSvg = h('svg', { viewBox: '0 0 320 244', style: { width: '100%', display: 'block' } },
           h('rect', { x: px(GATE_PEN), y: py(GATE_SOC), width: 308 - px(GATE_PEN), height: 228 - py(GATE_SOC), fill: 'rgba(244,91,104,.13)' }),
@@ -1538,10 +1566,7 @@ window.__ModuleLoader__.load({
           h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '渗透度 →'),
           h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
         // v1.4 B4：热力图 —— 7×7 参数扫描，颜色 = 终局租金档；点击载入两杆。
-        // 邻域模式以当前 (产权, 捕获) 为中心 ±三档；轴值从 heatGrid 推导（居中自适应）。
-        const heatAxis = heatMode === 'neighborhood'
-          ? { po: [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0], cap: poSteps }
-          : { po: poSteps, cap: poSteps };
+        // 审核修复：轴值改用 App 级 heatAxis（与 heatGrid 构造同源，杜绝行序错位）。
         const heatSvg = h('svg', { viewBox: '0 0 296 292', style: { width: '100%', display: 'block' } },
           heatGrid.map((row, r) => row.map((cell, c) => {
             const po = heatAxis.po[r];
@@ -1549,7 +1574,7 @@ window.__ModuleLoader__.load({
             const on = Math.abs(po - curPo) < 0.084 && Math.abs(cap - curCap) < 0.084;
             return h('g', {
               key: r + '-' + c, style: { cursor: 'pointer' },
-              onClick: () => setTarget((t2) => { const n = Object.assign({}, t2); n.public_ownership = po; n.capture = cap; return n; }),
+              onClick: () => { setTarget((t2) => { const n = Object.assign({}, t2); n.public_ownership = po; n.capture = cap; return n; }); setDeepLinkLocked(false); },
             },
               h('title', null, '产权 ' + Math.round(po * 100) + '% × 捕获 ' + Math.round(cap * 100) + '% → ' + RENT_LABELS[rentBand(cell.rent)]),
               h('rect', {
