@@ -220,6 +220,16 @@ check('v1.7 恢复默认按钮存在且清除政策与剧本',
   && /setScenario\('baseline'\)/.test(src)
   && /onClick: resetTarget/.test(src));
 
+/* ── v1.8 P1-3：阶段可达性披露 ── */
+check('v1.8 阶段轨道标注前史', /前史标注：引擎不返回此阶段/.test(src));
+check('v1.8 理论页有阶段局限三条', /STAGE_LIMITS/.test(src)
+  && /阶段 0 不可达/.test(src) && /2024 起点固定/.test(src)
+  && /岔路前阶段由技术单变量决定/.test(src));
+check('v1.8 体检页有阶段可达性卡', /阶段可达性/.test(src)
+  && /结构性不可达/.test(src) && /稀有但可达/.test(src));
+check('v1.8 披露含实测数据而非断言', /20000 组随机参数/.test(src)
+  || /74 万个年份快照/.test(src) || /1625 个样本/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
