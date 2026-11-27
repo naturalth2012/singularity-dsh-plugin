@@ -1,23 +1,21 @@
 /* engine.snapshot.js —— 由 scripts/extract-engine.cjs 自动生成，勿手改。
  * 来源：singularity-dsh-plugin client.js ENGINE 区（ENGINE-BEGIN…ENGINE-END）
- * 生成于客户端版本见 package.json；上游 commit d882bd0。
+ * 生成于客户端版本见 package.json；上游 commit 522e3ad。
  * 契约规范：MODEL-CONTRACT.md（含 §8b 租金压力、§8c 政策干预、§9 已知非对称）。
  * 上游仓库：https://github.com/naturalth2012/singularity-dsh-plugin (MIT)
  * 本文件为衍生作品，携带上游版权声明：Copyright (c) 2026 naturalth2012。
  * 重新生成：node scripts/extract-engine.cjs
+ *
+ * 用法（ESM）：import createEngine from "./engine.snapshot.js";
+ *              const engine = createEngine((name) => { throw new Error(name); });
  */
 /* eslint-disable */
-const requires = (name) => { throw new Error("engine.snapshot.js 是纯引擎切片，不允许 require: " + name); };
 
-module.exports = (factory) => factory(requires);
+export default function createEngine(requires) {
+  void requires;   // 引擎区零依赖；参数保留以便宿主注入（游戏侧可传入受限 require）
 
-/* ──以下为 client.js 引擎区逐字节快照──*/
-
-function __engineFactory__(factoryBodyRunner) {
-  return factoryBodyRunner;
-}
-
-ENGINE-BEGIN  引擎区（第 1–2 节）
+/* ══════════════════════════════════════════════════════════════
+       ENGINE-BEGIN  引擎区（第 1–2 节）
        ------------------------------------------------------------------
        本区是纯预测模型，只依赖 ECMAScript 内置对象（Math / JSON / Object /
        Array）。它不得引用 React、document、window、localStorage 或任何视图
@@ -581,4 +579,22 @@ ENGINE-BEGIN  引擎区（第 1–2 节）
     }
 
     /* ══════════════════════════════════════════════════════════════
-       
+       ENGINE-END  引擎区结束
+       ------------------------------------------------------------------
+       以上符号构成模型契约的完整表面：LEVERS / LEVER_BY_KEY / NOW /
+       SCENARIOS / TECH_TREND / STAGES / EXTRA_STAGES / BRANCHES /
+       DYNAMICS / EVENTS / 三个闸门常数 / simulate / targetOf /
+       sensitivity / diagnose / decidePath / stageOf / branchScores /
+       rentPressure / findCrossing / RENT_BANDS / leversPolicyAt /
+       robustness / reversal / mulberry32（政策干预见契约 §8c）。
+       视图区只消费这些符号，不得反向修改模型状态。
+       ══════════════════════════════════════════════════════════════ */
+
+  return {
+    LEVERS, LEVER_BY_KEY, NOW, SCENARIOS, TECH_TREND, TECH_KEYS,
+    STAGES, EXTRA_STAGES, BRANCHES, DYNAMICS, EVENTS,
+    GATE_PEN, GATE_SOC, COLLAPSE_GAIN, T0, T1, T2,
+    simulate, targetOf, sensitivity, diagnose, decidePath, stageOf, branchScores,
+    rentPressure, findCrossing, RENT_BANDS, leversPolicyAt, robustness, reversal, mulberry32,
+  };
+}
