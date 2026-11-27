@@ -1122,6 +1122,16 @@ window.__ModuleLoader__.load({
       // v1.3 E2/E3：稳健性与最小翻转（240+80 次 simulate，可接受；政策/目标变化才重算）
       const rob = React.useMemo(() => robustness(target, policy), [target, policy]);
       const rev = React.useMemo(() => reversal(target, policy), [target, policy]);
+      // v1.5 T4（P1-1）：晚期反转标注。引擎以 2060 终年引力定案，而「窗口」标记的
+      // 是技术越线至闸门关闭的敏感区间——两者可能不同。实测 578 个有窗口样本中
+      // 至少 6 个满足「窗口末年胜者 ≠ 终年胜者」，所以这不是理论可能性。
+      // 引擎零改动：这里只比较引擎已输出的逐年 path 与终年 path。
+      const lateReversal = React.useMemo(() => {
+        if (!sim.window) return null;
+        const yEnd = sim.years.filter((y) => y.year === sim.window.end)[0];
+        if (!yEnd || yEnd.path === sim.final.path) return null;
+        return { atYear: sim.window.end, from: yEnd.path, to: sim.final.path };
+      }, [sim]);
       // v1.4 B3：reversal 翻转环 —— 反方读法的几何化。箭头两端都是引擎输出
       // 坐标（当前终局 + 按 rev.to 重跑后的终局），不发明任何几何。
       // 必须留在 App 级：metricsTab 按标签条件调用，hooks 不能进 tab 函数体。
@@ -1445,12 +1455,26 @@ window.__ModuleLoader__.load({
                 + (sim.window
                   ? '引力值最高者就是引擎实际走的那条路（两者共用同一裁决函数）。'
                   : '本路径技术渗透未越过 0.68 的裁决线：引力数值仍在计算，但历史尚未进入裁决，处于悬置状态。'),
+                // v1.5 T4（P1-2）：引力上限非对称的明示（契约 §9.1 / §9.2）
+                h('div', { style: { marginTop: 6, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.65 } },
+                  '引力上限并不相等：崩解系数 1.8（正反馈补偿）、共产与封建接近 1.0，'
+                  + '而社民因「改良空间」折减上限约 0.70。四条并排显示会低估社民路径的真实可能性——'
+                  + '这是模型的已知非对称，不是四者等概率。'),
                 sim.window
                   ? h('div', { style: { marginTop: 6, color: sim.window.type === 'passed' ? 'var(--dsw-alias-state-success-primary)' : 'var(--dsw-alias-state-error-primary)', fontWeight: 600 } },
                     sim.window.type === 'passed'
                       ? '本路径于 ' + sim.window.gate_year + ' 年跨过制度闸门。'
                       : '本路径在窗口 ' + sim.window.start + '–' + sim.window.end + ' 内未跨过制度闸门，历史被岔路接管。')
-                  : h('div', { style: { marginTop: 6 } }, '本路径技术渗透始终未达阈值，未进入分岔窗口。')))),
+                  : h('div', { style: { marginTop: 6 } }, '本路径技术渗透始终未达阈值，未进入分岔窗口。'),
+                // v1.5 T4（P1-1）：晚期反转标注 —— 窗口末年胜者 ≠ 终年胜者时明示
+                lateReversal
+                  ? h('div', { style: { marginTop: 6, padding: '5px 8px', borderRadius: 5, background: 'rgba(224,166,58,.12)', color: '#e0a63a', fontSize: 11, lineHeight: 1.6 } },
+                    '晚期反转：窗口末年（' + lateReversal.atYear + '）引力最高者为「'
+                    + (BRANCHES.filter((b) => b.key === lateReversal.from)[0] || {}).name
+                    + '」，但引擎以 2060 终年引力定案，最终走向「'
+                    + (BRANCHES.filter((b) => b.key === lateReversal.to)[0] || {}).name
+                    + '」。窗口标记的是敏感区间，不是裁决时刻。')
+                  : null))),
           h('div', { className: 'sn-branches' },
             BRANCHES.map((b) => {
               const v = sc[b.key];
@@ -1472,7 +1496,7 @@ window.__ModuleLoader__.load({
                 h('tbody', null,
                   [
                     { n: '算力封建制', c: '#f45b68', cond: '寡头俘获国家 · 产权私有放大俘获', m: '算力寡头化 → 数据圈地 → 配额制', e: '生产力极高、自由极低', y: '否' },
-                    { n: '社会民主主义', c: '#4f8cff', cond: '再分配强 · 组织度高 · 产权私有', m: 'AI 税 → 全民分红 → 公共算力', e: '体面的停滞', y: '否（产权未变）' },
+                    { n: '社会民主主义', c: '#4f8cff', cond: '再分配强 · 组织度高 · 产权私有', m: 'AI 税 → 全民分红 → 公共算力', e: '体面的停滞（产权 ≥0.62 时本路径失效）', y: '否（产权未变）' },
                     { n: '共产主义过渡', c: '#22c98a', cond: '产权公有 · 协同高 · 团结与意义充足', m: '生产资料公有化 → 按需分配', e: '自由人联合体', y: '是' },
                     { n: '文明崩解', c: '#8b3a42', cond: '全面对抗 · 高冲击 · 凝聚流失', m: '冲突摧毁有效生产力 → 基础设施失维', e: '低技术均衡', y: '否' },
                   ].map((r, i) => h('tr', { key: i },
@@ -1480,7 +1504,8 @@ window.__ModuleLoader__.load({
                     h('td', { style: { fontSize: 11 } }, r.cond),
                     h('td', { style: { fontSize: 11 } }, r.m),
                     h('td', { style: { fontSize: 11 } }, r.e),
-                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === '是' ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));};
+                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === '是' ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));
+      };
 
       /* v1.3 E2/E3：稳健性卡（蒙特卡洛分布 + 最小翻转反方读法）。
          独立定义、在 dispatcher 处与 branchTab 拼接，避免改动上方的巨型表达式。 */
