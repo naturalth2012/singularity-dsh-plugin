@@ -29,9 +29,11 @@ if (!EXPORT_RE.test(body)) throw new Error('找不到工厂的导出 return');
 const patched = body.replace(EXPORT_RE, 'const __exports = { inject:');
 
 const ReactStub = {
+  Component: class { constructor(p) { this.props = p || {}; this.state = {}; } setState(x) { this.state = Object.assign({}, this.state, typeof x === "function" ? x(this.state) : x); } },
   createElement: (type, props, ...children) => ({ type, props, children }),
   useState: (v) => [v, () => {}],
   useMemo: (fn) => fn(),
+  useCallback: (fn) => fn,
   useEffect: () => {},
 };
 const docStub = { createElement: () => ({ setAttribute() {}, remove() {}, textContent: '' }), head: { appendChild() {} } };
