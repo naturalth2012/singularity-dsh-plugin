@@ -45,7 +45,7 @@ if (process.argv.includes('--write-readme')) {
     BEGIN,
     '',
     '```bash',
-    'npm run verify                      # 一次性跑全部四项',
+    'npm run verify                      # 一次性跑全部五项',
     'node scripts\\contract-check.cjs     # ' + counts.contract + '/' + counts.contract + '  契约一致性',
     'node tests\\engine.test.cjs          # ' + counts.engine + '/' + counts.engine + '  模型行为',
     'node tests\\mount.test.cjs           # ' + counts.mount + '/' + counts.mount + '  插件契约与渲染',
