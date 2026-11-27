@@ -153,6 +153,18 @@ check('v1.3 稳健性卡与反方读法源码存在', /稳健性 · 蒙特卡洛
 check('v1.3 相图幽灵轨迹源码存在', /ghostSim/.test(src)
   && /无政策幽灵轨迹/.test(src) && /robustness\(|reversal\(/.test(src));
 
+/* ── v1.4：显示层红利与分享存档 ── */
+check('v1.4 LineChart get 访问器与租金曲线', /const get = s\.get \|\|/.test(src)
+  && /label: '租金压力', get: \(row\) => row\.rent/.test(src));
+check('v1.4 年表租金列与对比页新列', /'不等', '自由', '租金'\]/.test(src)
+  && /'租金', '一致性', '窗口'/.test(src) && /compareStats/.test(src));
+check('v1.4 热力图基准切换', /heatMode === 'neighborhood'/.test(src)
+  && /setHeatMode\('neighborhood'\)/.test(src) && /邻域 ±0\.5/.test(src));
+check('v1.4 分享深链（编码/解析/按钮）', /b64urlEncode/.test(src)
+  && /parseShareUrl/.test(src) && /shareLink/.test(src));
+check('v1.4 JSON 导出导入', /exportJson/.test(src)
+  && /importJson/.test(src) && /singularity-state-/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
