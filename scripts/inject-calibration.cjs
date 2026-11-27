@@ -42,6 +42,8 @@ const slim = {
   seed: report.seed,
   samples: report.samples,
   note: report.note,
+  // v2.2：note 是单字段提取，必须显式带上英文版（其余字段是整体引用，*En 自动带过）
+  noteEn: report.noteEn,
   outcomeDistribution: report.outcomeDistribution,
   winnerDistribution: report.winnerDistribution,
   rentQuantiles: report.rentQuantiles,
