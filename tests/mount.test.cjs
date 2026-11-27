@@ -21,9 +21,11 @@ const check = (name, ok, detail) => {
 // useState 必须与真实 React 语义一致：传函数时惰性调用（init function）。
 // 早期存根直接返回 v，会让 `useState(loadPersisted)` 拿到函数本身而非其结果。
 const ReactStub = {
+  Component: class { constructor(p) { this.props = p || {}; this.state = {}; } setState(x) { this.state = Object.assign({}, this.state, typeof x === "function" ? x(this.state) : x); } },
   createElement: (type, props, ...children) => ({ __el: true, type, props: props || {}, children }),
   useState: (v) => [typeof v === 'function' ? v() : v, () => {}],
   useMemo: (fn) => fn(),
+  useCallback: (fn) => fn,
   useEffect: () => {},
   useRef: () => ({ current: null }),
 };
@@ -201,6 +203,22 @@ check('v1.6 体检页展示契约 §9 质疑', /§9\.1 崩解系数偏高/.test(
   && /§9\.2\/9\.3/.test(src) && /§9\.4/.test(src));
 check('v1.6 体检数据为构建期内联（非运行时计算）',
   /const HEALTH_DATA = \{/.test(src) && !/HEALTH_DATA[\s\S]{0,200}for \(let k = 0; k < 2000/.test(src));
+
+/* ── v1.7 T-A1/A4：错误边界与恢复默认 ── */
+check('v1.7 存在 ErrorBoundary 且实现 getDerivedStateFromError',
+  /class SnErrorBoundary extends React\.Component/.test(src)
+  && /static getDerivedStateFromError/.test(src)
+  && /componentDidCatch/.test(src));
+check('v1.7 boundary 只包内容区（标签栏存活）',
+  /className: 'sn-body' \},\s*\n\s*h\(SnErrorBoundary/.test(src));
+check('v1.7 boundary 用 key={tab} 实现切页自动恢复', /key: tab,[\s\S]{0,80}tabLabel:/.test(src));
+check('v1.7 降级 UI 不隐藏错误（含重试与复制）',
+  /插件自身的缺陷/.test(src) && /'重试'/.test(src) && /'复制错误详情'/.test(src));
+check('v1.7 恢复默认按钮存在且清除政策与剧本',
+  /const resetTarget = React\.useCallback/.test(src)
+  && /setTarget\(\{\}\)/.test(src) && /setPolicy\(null\)/.test(src)
+  && /setScenario\('baseline'\)/.test(src)
+  && /onClick: resetTarget/.test(src));
 
 let iconError = null;
 let icon = null;
