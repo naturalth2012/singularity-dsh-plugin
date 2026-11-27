@@ -123,14 +123,22 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ## 自检
 
+<!-- counts:auto -->
+
 ```bash
 npm run verify                      # 一次性跑全部四项
-node scripts\contract-check.cjs     # 57/57  契约一致性
-node tests\engine.test.cjs          # 75/75  模型行为
-node tests\mount.test.cjs           # 31/31  插件契约与渲染
-node tests\deeptab.test.cjs         # 15/15  指标矩阵/理论底座/引擎/三岔深层渲染
+node scripts\contract-check.cjs     # 60/60  契约一致性
+node tests\engine.test.cjs          # 78/78  模型行为
+node tests\mount.test.cjs           # 36/36  插件契约与渲染
+node tests\deeptab.test.cjs         # 18/18  深层渲染冒烟
 node scripts\preflight.cjs          # 26/26  发布一致性
 ```
+
+以上计数由 `npm run counts` 自动生成（218 项自动化检查），手工编辑无效。
+
+<!-- /counts:auto -->
+
+以上计数由 `npm run counts` 自动生成（215 项自动化检查），手工编辑无效。
 
 - `contract-check.cjs`：断言 `MODEL-CONTRACT.md` 与引擎区一致——四个闸门常数、
   14 个杠杆（含分组 4/4/3/3）、7 主轨 + 4 旁支阶段、三区阈值、四条引力系数、
@@ -225,6 +233,22 @@ node scripts\preflight.cjs          # 26/26  发布一致性
 - **契约与测试**：MODEL-CONTRACT.md 新增 §8c 政策干预与稳健性节（含
   「政策不持久化」声明）；单一裁决函数断言扩展至 policy 符号。
   自动化检查 173 → **204 项**。
+
+## v1.4 显示层红利与工程健康（2026-11-27）
+
+引擎零语义改动（唯一新增纯函数 `mulberry32`），把 v1.3 已有输出的呈现面补齐：
+
+- **租金曲线进时间轴**：LineChart 支持 `get` 行访问器；年表加租金列（≥0.60 染色）。
+- **对比页两新列**：六剧本租金终值 + 种子化一致性（±8%×240，种子=剧本键哈希，
+  刷新可复算——「显示即引擎输出」的延伸）。
+- **相图反方翻转点**：`reversal` 几何化——当前终局 → 翻转终局的虚线箭头
+  与黄虚环，两端坐标均为引擎真算输出。
+- **热力图全域/邻域切换**：邻域以当前产权×捕获为中心 ±0.5 重扫 49 格。
+- **分享深链**：`?t=…&p=…` base64url 显式快照；**JSON 存档导出/导入**；
+  二者构成完整分享闭环（政策可分享但不持久化，语义与契约 §8c 一致）。
+- **工程健康**：测试计数全自动（`npm run counts`，市场条目与 README 数字不再手改）、
+  引擎快照 `engine.snapshot.js` + 逐字节同步断言（游戏仓库 M2 门槛的前置）、
+  CHANGELOG.md（Keep a Changelog 格式）。自动化检查 204 → **215 项**。
 
 ## 卸载
 
