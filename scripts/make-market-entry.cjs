@@ -8,14 +8,23 @@
  *  - 不要在 yml 里手写 npm: 字段（会被校验拒绝，映射从 registry 自动采集）
  *  - 仓库需声明 dsh.bundle（本插件已满足）、建满 1 天、加 dsh-plugin topic
  *
+ * v1.4 C1：测试计数不再手写——运行 scripts/collect-counts.cjs 实测取数，
+ * 套件未全绿即中止（数字永不撒谎）。
+ *
  * 用法: node scripts/make-market-entry.cjs
  */
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+
+// ── 实测计数（C1）──
+const counts = JSON.parse(execFileSync('node',
+  [path.join(__dirname, 'collect-counts.cjs')], { cwd: ROOT, encoding: 'utf8' }));
+const totalChecks = counts.total;
 
 const repoUrl = (pkg.repository && pkg.repository.url || '')
   .replace(/^git\+/, '').replace(/\.git$/, '');
@@ -45,7 +54,7 @@ const en = 'An interactive foresight panel simulating social-form evolution in t
   + 'the smallest lever change that would flip the conclusion, a rent-pressure gauge with '
   + 'crossing years, a penetration-by-socialisation phase diagram with the feudal basin shaded, '
   + 'a rent heatmap over the ownership-by-capture plane, and a published model contract enforced '
-  + 'by 204 automated checks.';
+  + 'by ' + totalChecks + ' automated checks.';
 
 const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠杆（AI 认知、算力、自动化、能源、再分配、'
   + '公共产权、全球协同、劳动者组织度、意义供给、教育、团结度、转型冲击、阶级对抗、资本俘获）'
@@ -55,7 +64,7 @@ const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠�
   + '附分岔窗口徽标与无政策幽灵轨迹对照）、蒙特卡洛稳健性（240 次扰动输出结局分布与一致性）、'
   + '反方读法（给出翻转结论所需的最小杠杆干预）；v1.2 租金压力仪表（含越线年份）、'
   + '渗透×社会化相图（封建稳态域阴影）与产权×捕获租金热力图；'
-  + '引擎纯 JS 离线运行，无 Host RPC、无网络请求、零运行时依赖，模型契约由 204 项自动化检查守护。';
+  + '引擎纯 JS 离线运行，无 Host RPC、无网络请求、零运行时依赖，模型契约由 ' + totalChecks + ' 项自动化检查守护。';
 
 // 目录规范要求 icon 为 GitHub 托管的 raster 位图（storefront tile）；
 // 优先用 assets/icon-180.png，其次根 icon.svg（SVG 不符合 raster 建议但可作回退）。
@@ -92,8 +101,8 @@ ${zh}
 
 - [x] \`package.json\` 声明了 \`dsh.bundle\`（\`{ bundle: { patch: "./cordis.patch.yml" } }\`），
       同目录有 \`cordis.patch.yml\`
-- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；75 项引擎测试、31 项挂载契约测试
-      与 15 项深层渲染测试，合计 204 项自动化检查全绿）
+- [x] 真实可运行代码（客户端面板 + 纯 JS 引擎；${counts.engine} 项引擎测试、${counts.mount}
+      项挂载契约测试与 ${counts.deeptab} 项深层渲染测试，合计 ${totalChecks} 项自动化检查全绿）
 - [x] 仓库已有内容（非占位/纯 README）
 - [x] 仅新增一个文件，未改动任何既有条目
 - [x] 未在 yml 中手写 \`npm:\` 字段
