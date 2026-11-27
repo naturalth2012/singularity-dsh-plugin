@@ -546,6 +546,60 @@ console.log('\n=== 7m. i18n 分层（v2.0）===');
     /ctx\.get\('locale'\)/.test(client) && /catch \(e\) \{ localeSvc = null; \}/.test(client));
 }
 
+/* ── 7o. v2.1 i18n B2/B3 完成度 ── */
+console.log('\n=== 7o. i18n B2/B3（v2.1）===');
+{
+  const fsx = require('fs');
+  const pathx = require('path');
+  const zh = JSON.parse(fsx.readFileSync(pathx.join(ROOT, 'locale', 'zh.json'), 'utf8'));
+  const en = JSON.parse(fsx.readFileSync(pathx.join(ROOT, 'locale', 'en.json'), 'utf8'));
+  const zk = Object.keys(zh).filter((k) => k !== 'meta');
+  const ek = Object.keys(en).filter((k) => k !== 'meta');
+
+  check('视图键数 ≥300（B1+B2a+B2b+B2c+B3）', zk.length >= 300, zk.length + ' 个');
+  check('zh/en 键集完全一致', JSON.stringify(zk.sort()) === JSON.stringify(ek.sort()));
+  check('英文无中文残留', ek.every((k) => !/[\u4e00-\u9fa5]/.test(en[k])));
+
+  // 所有 t('...') 引用的 key 必须在字典里存在（防漏翻露出 key）
+  const ZH_FB = (() => {
+    const fi = client.indexOf('const ZH_FALLBACK = {');
+    if (fi < 0) return null;
+    let d = 0, k = client.indexOf('{', fi);
+    for (; k < client.length; k++) {
+      if (client[k] === '{') d++;
+      else if (client[k] === '}') { d--; if (d === 0) break; }
+    }
+    try { return new Function('return ' + client.slice(client.indexOf('{', fi), k + 1))(); }
+    catch (e) { return null; }
+  })();
+  check('ZH_FALLBACK 可解析', ZH_FB !== null);
+  if (ZH_FB) {
+    const used = new Set([...client.matchAll(/t\('(b[0-9a-z.]+)'\)/g)].map((m) => m[1]));
+    const lacking = [...used].filter((k) => ZH_FB[k] === undefined);
+    check('所有 t() 引用的 key 都在字典里', lacking.length === 0,
+      lacking.length ? '缺 ' + lacking.length + ': ' + lacking.slice(0, 5).join(',') : used.size + ' 个引用全有');
+    // 字典值不能是自引用（'x': t('x') 会无限退化）
+    const selfRef = Object.keys(ZH_FB).filter((k) => typeof ZH_FB[k] !== 'string');
+    check('字典值全为字符串（无自引用）', selfRef.length === 0, selfRef.join(',') || 'ok');
+  }
+
+  // 指标名已改为渲染时查翻译（METRIC_META.name 不再被直接使用）
+  check('指标名走翻译而非常量直用',
+    !/METRIC_META\[\w+\]\.name/.test(client) && /t\('metric\.' \+ k\)/.test(client));
+  check('指标名 13 个键齐全',
+    ['development', 'productivity', 'replacement', 'labor_share', 'socialization',
+      'abundance', 'penetration', 'inequality', 'freedom', 'cohesion', 'shock',
+      'collapse_risk', 'feudalism_risk'].every((k) => en['metric.' + k]),
+    '13/13');
+
+  // 拼接片段已模板化：诊断文案用 {var} 而非 + 拼接
+  check('拼接片段已模板化（{var} 插值）',
+    /t\('b2b\.\d+', \{/.test(client) && client.includes('{') && /replace\(\/\\{\(\\w\+\)\\}\/g/.test(client));
+  // 引擎语义仍不翻译
+  check('引擎语义仍未翻译（结局名仍是中文）',
+    /'算力封建制'/.test(client) && /'文明崩解'/.test(client));
+}
+
 /* ── 7n. 回归审计加固（v2.0 审计报告 §7）── */
 console.log('\n=== 7n. 回归加固（审计报告 §7）===');
 {
