@@ -97,7 +97,7 @@
   "b2a.050": "Productivity very high, freedom very low",
   "b2a.051": "No (ownership unchanged)",
   "b2a.052": "Robustness · Monte Carlo",
-  "b2a.053": "Taking “",
+  "b2a.053": "moving “",
   "b2a.054": "Feudal steady-state region",
   "b2a.055": "Penetration →",
   "b2a.056": "Socialization →",
@@ -218,7 +218,7 @@
   "b2b.18": "Late reversal: in the final window year ({y}) the strongest gravity is “",
   "b2b.19": "Consistency {v}%",
   "b2b.20": "Counterfactual: ",
-  "b2b.22": "” moved from {from}% to {to}% (Δ{d}) flips the outcome to “",
+  "b2b.22": "{from}% to {to}% (Δ{d}) flips the outcome to “",
   "b2b.23": "If flipped: {v}",
   "b2b.24": "Ownership {po}% × capture {cap}% → {band}",
   "b2b.25": "Peak {peak}% ({y}) | first alert {warn}",
@@ -273,7 +273,7 @@
   "b2c.11": "±8% perturbation × 240 runs · a distribution, not a point",
   "b2c.12": "Neither ±8% perturbation nor extremizing any single institutional lever flips this conclusion — within the current parameter domain it is robust.",
   "b2c.13": "Counterfactual: ",
-  "b2c.14": "Gate 0.68",
+  "b2c.14": "”",
   "b2c.15": "Gate 0.48",
   "b2c.16": "Public ownership (neighborhood ±0.5) →",
   "b2c.17": "Capital capture (neighborhood ±0.5) →",
@@ -310,5 +310,5 @@
   "b2c.01": "This tab failed to render",
   "b2c.02": "Copy error details",
   "b2c.45": "prehistory",
-  "b2b.21": " from "
+  "b2b.21": "” from "
 }

@@ -14,3 +14,8 @@ tests/*.local.*
 # 编辑器
 .vscode/
 .idea/
+
+# i18n 工具中间产物（由 scripts/i18n-extract.cjs 生成，译文已固化进
+# scripts/translate-*.cjs，无需入库）
+locale/pending-zh.json
+scripts/.i18n-coverage.json

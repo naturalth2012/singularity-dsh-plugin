@@ -98,11 +98,22 @@ const block = [
 const lineStart = src.lastIndexOf('\n', bi) + 1;
 const indent = src.slice(lineStart, bi);
 let tail = ei + END.length;
-const oldDecl = /\n[ \t]*const I18N_DICTS = [\s\S]*?;\n/.exec(src.slice(tail));
-if (oldDecl && oldDecl.index === 0) tail += oldDecl[0].length - 1;
+// 幂等：吃掉 END 后所有旧声明行（占位空声明 + 上次注入的完整声明）
+for (;;) {
+  const m = /\n[ \t]*const I18N_DICTS = [\s\S]*?;\n/.exec(src.slice(tail));
+  if (!m || m.index !== 0) break;
+  tail += m[0].length - 1;
+}
 
 fs.writeFileSync(clientPath,
   src.slice(0, lineStart) + indent + block + src.slice(tail), 'utf8');
+
+// 强制 LF 行尾：契约用 /...\});\n/ 提取数据，CRLF 会让行尾变 \r\n 而误报缺失。
+const written = fs.readFileSync(clientPath, 'utf8');
+if (written.includes('\r\n')) {
+  fs.writeFileSync(clientPath, written.replace(/\r\n/g, '\n'), 'utf8');
+  console.log('（已修正 CRLF → LF）');
+}
 
 console.log(JSON.stringify({
   zhFixed,
