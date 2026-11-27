@@ -581,6 +581,101 @@ window.__ModuleLoader__.load({
        ══════════════════════════════════════════════════════════════ */
 
     /* ══════════════════════════════════════════════════════════════
+       2.5 i18n（v2.0）
+       ------------------------------------------------------------------
+       分层策略：引擎区的 275 条中文串**不翻译**——它们是模型语义
+       （杠杆名、阶段名、结局名），且 47 条被契约与测试硬引用
+       （如 engine.test 断言 outcome.name === '算力封建制'）。
+       翻译它们等于破坏契约。这是正确的耦合。
+
+       视图区的标签、按钮、提示才翻译。zh.json 的视图键值 = 现有中文原文，
+       所以中文环境下行为完全不变。
+       ══════════════════════════════════════════════════════════════ */
+    const I18N_NS = 'singularity-dsh-plugin';
+
+    /** 视图层中文原文表（= zh.json 的视图键）。作为翻译失败时的兜底。 */
+    const ZH_FALLBACK = {
+      'tab.timeline': '历史长河',
+      'tab.engine': '演化引擎',
+      'tab.branch': '三岔路口',
+      'tab.metrics': '指标矩阵',
+      'tab.compare': '情景对比',
+      'tab.theory': '理论底座',
+      'tab.health': '模型体检',
+      'app.title': 'Singularity',
+      'app.subtitle': 'AI 时代的社会形态演化模拟',
+      'btn.share': '分享',
+      'btn.export': '导出',
+      'btn.import': '导入',
+      'btn.reset': '恢复默认',
+      'btn.apply': '应用并演化 →',
+      'btn.close': '关闭',
+      'btn.retry': '重试',
+      'btn.copyError': '复制错误详情',
+      'btn.fullScan': '全域',
+      'btn.neighborScan': '邻域',
+      'title.scanHeat': '参数扫描',
+      'title.samplingReport': '模型体检 · 采样报告',
+      'title.stageReach': '阶段可达性',
+      'title.anchors': '六剧本锚点',
+      'title.outcomeDist': '结局分布',
+      'title.winnerDist': '引力胜者分布',
+      'title.rentDist': '租金压力分布',
+      'title.asymmetry': '已知非对称（契约 §9 的自查）',
+      'title.stageLimits': '已知局限 · 阶段语义',
+      'hint.clickCell': '点击格子载入该组合',
+      'hint.uniformRandom': '均匀随机参数空间',
+      'hint.sameSamples': '同一批样本',
+      'hint.finalRent': '终年租金 · 分位数与四档占比',
+      'hint.forCrossCheck': '用于核对面板与报告是否一致',
+      'hint.covenant': '契约 §7.1–§7.3',
+      'label.generatedAt': '生成于 ',
+      'label.version': '版本 ',
+      'label.commit': 'commit ',
+      'label.seed': '种子 ',
+      'label.curTab': '当前标签页：',
+      'err.heading': '这一页渲染出错了',
+      'err.body': '这是插件自身的缺陷，不是你的操作问题。模型引擎没有受影响——'
+        + '切到其他标签页可以继续使用，或者点下面的按钮重试。',
+    };
+
+    /** 读当前语言：locale 服务 → navigator.language → 'en'。 */
+    function activeLocaleId(locale) {
+      try {
+        const snap = locale && typeof locale.getLocale === 'function' ? locale.getLocale() : null;
+        if (snap && snap.active) return String(snap.active);
+      } catch (e) { /* 忽略 */ }
+      try {
+        if (typeof navigator !== 'undefined' && navigator.language) return String(navigator.language);
+      } catch (e) { /* 忽略 */ }
+      return 'en';
+    }
+
+    /**
+     * 造一个翻译函数：locale.bind(NS) 优先，其次 fallback 字典，最后返回 key。
+     * 支持 {name} 插值。任何异常都静默回退——翻译永远不该让面板崩掉。
+     */
+    function makeTranslator(locale, fallback) {
+      let bound = null;
+      if (locale && typeof locale.bind === 'function') {
+        try { bound = locale.bind(I18N_NS); } catch (e) { bound = null; }
+      }
+      return (key, vars) => {
+        let text = null;
+        if (bound) {
+          try {
+            const v = bound(key);
+            if (typeof v === 'string' && v && v !== key) text = v;
+          } catch (e) { /* 落到 fallback */ }
+        }
+        if (text === null) text = fallback[key] !== undefined ? fallback[key] : key;
+        if (vars === undefined || vars === null) return text;
+        return text.replace(/\{(\w+)\}/g, (m, name) =>
+          (vars[name] === undefined || vars[name] === null ? m : String(vars[name])));
+      };
+    }
+
+    /* ══════════════════════════════════════════════════════════════
        3. 样式（仅用主题 token，数据色视为图示用色）
        ══════════════════════════════════════════════════════════════ */
     const CSS = `
@@ -1179,11 +1274,11 @@ window.__ModuleLoader__.load({
               h('button', {
                 type: 'button', className: 'sn-btn', onClick: this.handleReset,
                 'aria-label': '重试渲染当前标签页',
-              }, '重试'),
+              }, t('btn.retry')),
               h('button', {
                 type: 'button', className: 'sn-btn', onClick: this.handleCopy,
                 'aria-label': '复制错误详情',
-              }, '复制错误详情'),
+              }, t('btn.copyError')),
               h('span', {
                 style: {
                   fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)',
@@ -1194,7 +1289,11 @@ window.__ModuleLoader__.load({
     }
 
     /* ── 主组件 ── */
-    function SingularityApp() {
+    function SingularityApp(props) {
+      // v2.0 i18n：语言跟随宿主（locale 服务），不自己做切换器。
+      // t() 在中文环境下返回 ZH_FALLBACK 的原值，所以行为与之前完全一致。
+      const localeSvc = props && props.locale ? props.locale : null;
+      const t = makeTranslator(localeSvc, ZH_FALLBACK);
       // v1.4 B5：深链恢复优先级 URL > localStorage > 默认（坏数据静默忽略）
       const [deepLink] = React.useState(() => {
         try { return parseShareUrl(typeof window !== 'undefined' ? window.location.search : ''); }
@@ -1458,8 +1557,8 @@ window.__ModuleLoader__.load({
                 className: 'sn-btn', type: 'button', onClick: resetTarget,
                 title: '清空所有杠杆改写与政策干预，回到剧本默认值',
                 'aria-label': '恢复默认杠杆与政策',
-              }, '恢复默认'),
-              h('button', { className: 'sn-btn sn-btn-primary', onClick: () => { setYear(2035); setTab('timeline'); } }, '应用并演化 →')))),
+              }, t('btn.reset')),
+              h('button', { className: 'sn-btn sn-btn-primary', onClick: () => { setYear(2035); setTab('timeline'); } }, t('btn.apply'))))),
         ['技术', '制度', '社会', '摩擦'].map((g) => h('div', { key: g },
           h('div', { className: 'sn-group-title', style: { color: GROUP_COLOR[g] } }, g),
           h('div', { className: 'sn-levers' },
@@ -1835,17 +1934,17 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-card' },
               h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获',
                 h('span', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
-                  h('span', { className: 'sn-hint' }, '点击格子载入该组合'),
+                  h('span', { className: 'sn-hint' }, t('hint.clickCell')),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'default' ? ' sn-btn-primary' : ''),
                     type: 'button', 'aria-pressed': heatMode === 'default',
                     onClick: () => setHeatMode('default'), title: '全域扫描（其余杠杆取默认值）',
-                  }, '全域'),
+                  }, t('btn.fullScan')),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'neighborhood' ? ' sn-btn-primary' : ''),
                     type: 'button', 'aria-pressed': heatMode === 'neighborhood',
                     onClick: () => setHeatMode('neighborhood'), title: '以当前产权×捕获为中心 ±0.5 重扫',
-                  }, '邻域'))),
+                  }, t('btn.neighborScan')))),
               h('div', { className: 'sn-pad' }, heatSvg))),
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, '逐年数据', h('span', { className: 'sn-hint' }, '点击行跳到该年')),
@@ -1978,7 +2077,7 @@ window.__ModuleLoader__.load({
           // 元信息条：诚实性的第一道
           h('div', { className: 'sn-card', style: { marginBottom: 12 } },
             h('div', { className: 'sn-pad' },
-              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '模型体检 · 采样报告'),
+              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, t('title.samplingReport')),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
                 d.note || '构建期生成的采样报告。'),
               h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 7, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } },
@@ -1990,8 +2089,8 @@ window.__ModuleLoader__.load({
           h('div', { className: 'sn-grid2' },
             // 结局分布
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '结局分布',
-                h('span', { className: 'sn-hint' }, '均匀随机参数空间')),
+              h('div', { className: 'sn-card-head' }, t('title.outcomeDist'),
+                h('span', { className: 'sn-hint' }, t('hint.uniformRandom'))),
               h('div', { className: 'sn-pad' },
                 d.outcomeDistribution.map((o) => barRow(o.name, o.pct, OUT_COLORS[o.name] || '#7b8ba3', o.count + ' 组')),
                 h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
@@ -1999,8 +2098,8 @@ window.__ModuleLoader__.load({
                   + '若你认为现实中制度演化更快，这个比例就是你该反驳的地方。'))),
             // 引力分布
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '引力胜者分布',
-                h('span', { className: 'sn-hint' }, '同一批样本')),
+              h('div', { className: 'sn-card-head' }, t('title.winnerDist'),
+                h('span', { className: 'sn-hint' }, t('hint.sameSamples'))),
               h('div', { className: 'sn-pad' },
                 d.winnerDistribution.map((w) => barRow(WIN_NAMES[w.key] || w.key, w.pct,
                   BRANCHES.filter((b) => b.key === w.key)[0] ? BRANCHES.filter((b) => b.key === w.key)[0].color : '#7b8ba3', w.count + ' 组')),
@@ -2010,8 +2109,8 @@ window.__ModuleLoader__.load({
                   + '它是本模型最该被质疑的设定。')))),
 
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '租金压力分布',
-              h('span', { className: 'sn-hint' }, '终年租金 · 分位数与四档占比')),
+            h('div', { className: 'sn-card-head' }, t('title.rentDist'),
+              h('span', { className: 'sn-hint' }, t('hint.finalRent'))),
             h('div', { className: 'sn-pad' },
               rentTrack,
               h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--dsw-alias-label-secondary)', marginBottom: 10 } },
@@ -2026,7 +2125,7 @@ window.__ModuleLoader__.load({
                 + '不要把越线年份当作动力学预测。'))),
 
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '已知非对称（契约 §9 的自查）'),
+            h('div', { className: 'sn-card-head' }, t('title.asymmetry')),
             h('div', { className: 'sn-pad' },
               h('div', { style: { display: 'grid', gap: 10 } },
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
@@ -2049,7 +2148,7 @@ window.__ModuleLoader__.load({
 
           // v1.8：阶段可达性 —— 区分「结构性不可达」与「稀有但可达」
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '阶段可达性',
+            h('div', { className: 'sn-card-head' }, t('title.stageReach'),
               h('span', { className: 'sn-hint' }, d.stageReachability.samples + ' 组 × 37 年 = '
                 + (d.stageReachability.yearSnapshots / 10000).toFixed(0) + ' 万年份快照')),
             h('div', { className: 'sn-pad' },
@@ -2087,8 +2186,8 @@ window.__ModuleLoader__.load({
 
           // 六剧本锚点：读者可核对面板显示与采样报告是否一致
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '六剧本锚点',
-              h('span', { className: 'sn-hint' }, '用于核对面板与报告是否一致')),
+            h('div', { className: 'sn-card-head' }, t('title.anchors'),
+              h('span', { className: 'sn-hint' }, t('hint.forCrossCheck'))),
             h('div', { style: { overflowX: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null, ['剧本', '结局', '终年租金', '发展 D'].map((t, i) => h('th', { key: i }, t)))),
@@ -2166,8 +2265,8 @@ window.__ModuleLoader__.load({
                 h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '模型回应：'), rb.reply))))),
         // v1.8：阶段语义的已知局限 —— 实测确认，非推测
         h('div', { className: 'sn-card', style: { marginBottom: 12 } },
-          h('div', { className: 'sn-card-head' }, '已知局限 · 阶段语义',
-            h('span', { className: 'sn-hint' }, '契约 §7.1–§7.3')),
+          h('div', { className: 'sn-card-head' }, t('title.stageLimits'),
+            h('span', { className: 'sn-hint' }, t('hint.covenant'))),
           h('div', { className: 'sn-pad', style: { display: 'grid', gap: 10 } },
             STAGE_LIMITS.map((lim) => h('div', {
               key: lim.id,
@@ -2199,35 +2298,35 @@ window.__ModuleLoader__.load({
       };
 
       const TABS = [
-        { id: 'timeline', label: '历史长河' },
-        { id: 'engine', label: '演化引擎' },
-        { id: 'branch', label: '三岔路口' },
-        { id: 'metrics', label: '指标矩阵' },
-        { id: 'compare', label: '情景对比' },
-        { id: 'theory', label: '理论底座' },
-        { id: 'health', label: '模型体检' },
+        { id: 'timeline', label: t('tab.timeline') },
+        { id: 'engine', label: t('tab.engine') },
+        { id: 'branch', label: t('tab.branch') },
+        { id: 'metrics', label: t('tab.metrics') },
+        { id: 'compare', label: t('tab.compare') },
+        { id: 'theory', label: t('tab.theory') },
+        { id: 'health', label: t('tab.health') },
       ];
 
       return h('div', { className: 'sn-root' },
         h('div', { className: 'sn-head' },
           h('div', { style: { minWidth: 0 } },
-            h('h1', { className: 'sn-title' }, 'Singularity'),
-            h('div', { className: 'sn-sub' }, 'AI 时代的社会形态演化模拟')),
+            h('h1', { className: 'sn-title' }, t('app.title')),
+            h('div', { className: 'sn-sub' }, t('app.subtitle'))),
           h('div', { className: 'sn-tabs' },
             TABS.map((t) => h('button', {
               key: t.id, className: 'sn-tab' + (tab === t.id ? ' sn-tab-on' : ''),
               onClick: () => setTab(t.id),
             }, t.label))),
           h('div', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
-            h('button', { className: 'sn-btn', onClick: shareLink, title: '把当前推演编码为链接（显式快照）' }, '分享'),
-            h('button', { className: 'sn-btn', onClick: exportJson, title: '导出 JSON 存档' }, '导出'),
+            h('button', { className: 'sn-btn', onClick: shareLink, title: '把当前推演编码为链接（显式快照）' }, t('btn.share')),
+            h('button', { className: 'sn-btn', onClick: exportJson, title: '导出 JSON 存档' }, t('btn.export')),
             h('button', {
               className: 'sn-btn', title: '导入 JSON 存档',
               onClick: () => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
                 inp.onchange = () => { if (inp.files && inp.files[0]) importJson(inp.files[0]); };
                 inp.click();
               },
-            }, '导入')),
+            }, t('btn.import'))),
           ioMsg ? h('div', { style: { flexBasis: '100%', fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } }, ioMsg) : null),
         h('div', { className: 'sn-body' },
           h(SnErrorBoundary, {
@@ -2269,7 +2368,7 @@ window.__ModuleLoader__.load({
           h('div', { style: { fontSize: 12, lineHeight: 1.8, color: 'var(--dsw-alias-label-secondary)', marginBottom: 13 } }, picked.detail),
           h('div', { className: 'sn-keys' }, picked.keys.map((k, i) => h('span', { className: 'sn-key', key: i }, k))),
           h('div', { style: { textAlign: 'right', marginTop: 15 } },
-            h('button', { className: 'sn-btn', onClick: () => setPicked(null) }, '关闭')))) : null);
+            h('button', { className: 'sn-btn', onClick: () => setPicked(null) }, t('btn.close'))))) : null);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -2310,9 +2409,16 @@ window.__ModuleLoader__.load({
         document.head.appendChild(styleEl);
         ctx.effect(() => () => { styleEl.remove(); }, 'singularity: stylesheet');
 
+        // v2.0 i18n：可选注入 locale 服务。拿不到就退化为中文原文
+        // （makeTranslator 的 fallback 兜底），绝不让面板因缺服务而失败。
+        let localeSvc = null;
+        try {
+          if (ctx.get) localeSvc = ctx.get('locale') || null;
+        } catch (e) { localeSvc = null; }
+
         ctx.slots.inject('main', () => ctx.slots.register({
           name: 'main', key: PANEL_ID,
-        }, SingularityApp));
+        }, (props) => SingularityApp(Object.assign({}, props, { locale: localeSvc }))));
 
         ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
           name: 'sidebar.panellist', id: PANEL_ID, order: 30,
