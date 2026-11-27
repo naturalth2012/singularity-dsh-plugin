@@ -127,14 +127,14 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部五项
-node scripts\contract-check.cjs     # 60/60  契约一致性
+node scripts\contract-check.cjs     # 64/64  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
 node tests\mount.test.cjs           # 42/42  插件契约与渲染
 node tests\deeptab.test.cjs         # 18/18  深层渲染冒烟
 node scripts\preflight.cjs          # 26/26  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（224 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（228 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
