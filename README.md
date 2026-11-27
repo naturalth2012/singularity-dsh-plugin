@@ -129,15 +129,15 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部六项
-node scripts\contract-check.cjs     # 111/111  契约一致性
+node scripts\contract-check.cjs     # 119/119  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
 node tests\adversarial.test.cjs     # 29/29  对抗回归
-node tests\mount.test.cjs           # 68/68  插件契约与渲染
+node tests\mount.test.cjs           # 72/72  插件契约与渲染
 node tests\deeptab.test.cjs         # 38/38  深层渲染冒烟
-node scripts\preflight.cjs          # 37/37  发布一致性
+node scripts\preflight.cjs          # 41/41  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（361 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（377 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -343,6 +343,26 @@ v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANG
 
 改动前 6 处「可点击的非 button 元素」，改动后 0。测试 340 → **361 项**，
 其中「无裸 div 可点击」的回退守卫在本次改动中真的抓到 6 处遗漏。
+
+## v2.0 i18n 分层（2026-11-27）
+
+做了 i18n，但**只翻了该翻的一半**。594 条中文串里 275 条在引擎区——它们是模型
+语义，翻译等于破坏契约。引擎仍零改动。
+
+| 区域 | 条数 | 处理 |
+|---|---|---|
+| 引擎区 | 275 | **不翻**（47 条被契约/测试硬引用） |
+| 视图区 | 319 | 翻（本版做 B1 骨架 41 键） |
+
+**为什么不翻引擎串**：`engine.test.cjs` 断言 `outcome.name === '算力封建制'`。
+翻译会让 377 项断言集体变红。模型语义是契约的一部分，不是界面文案。
+
+- **语言跟随宿主**（`locale.getLocale()`），不自己做切换器。
+- **中文环境行为逐字不变**：`zh.json` 的值 = 改动前的中文原文，i18n 是纯增量。
+- **locale 服务缺失时静默退化**为中文，面板照常工作。
+
+测试 361 → **377 项**。三种环境实测：无服务 → 中文、`zh-CN` → 中文、
+`en-US` → 英文（`Model health` / `Stage reachability` / `Timeline` 均正确）。
 
 ## 卸载
 
