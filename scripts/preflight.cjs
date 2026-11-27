@@ -79,6 +79,15 @@ console.log('\n=== 文档一致性（v1.5 T3）===');
   check('README 含自动计数标记', read('README.md').includes('<!-- counts:auto -->'));
 }
 
+console.log('\n=== v1.6 工具与校准（T1/T5）===');
+{
+  check('files 含 engine.snapshot.js', (pkg.files || []).includes('engine.snapshot.js'));
+  check('index.js 声明 tools 注入', /ctx\.inject\(\['tools'\]/.test(read('index.js')));
+  const calExists = (() => { try { return !!read('docs/calibration.json'); } catch (e) { return false; } })();
+  check('docs/calibration.json 存在（npm run calibrate 生成）', calExists);
+  check('package.json 有 calibrate 脚本', !!(pkg.scripts || {}).calibrate);
+}
+
 console.log('\n--- 汇总 ---');
 console.log(`${pass}/${pass + fail} 通过`);
 if (fail) {
