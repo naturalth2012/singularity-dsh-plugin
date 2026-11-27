@@ -230,6 +230,26 @@ check('v1.8 体检页有阶段可达性卡', /阶段可达性/.test(src)
 check('v1.8 披露含实测数据而非断言', /20000 组随机参数/.test(src)
   || /74 万个年份快照/.test(src) || /1625 个样本/.test(src));
 
+/* ── v1.9 a11y：键盘可达性 ── */
+check('v1.9 阶段轨道节点是 button 且有 aria',
+  /return h\('button', \{[\s\S]{0,300}'aria-pressed': on/.test(src)
+  && /'aria-label': '阶段 ' \+/.test(src));
+check('v1.9 剧本按钮有 aria-pressed', /'aria-pressed': scenario === k/.test(src));
+check('v1.9 热力图有 grid/gridcell 语义', /role: 'grid'/.test(src) && /role: 'gridcell'/.test(src));
+check('v1.9 热力图用 roving tabindex（只有 1 个停靠点）',
+  /tabIndex: isFocus \? 0 : -1/.test(src));
+check('v1.9 热力图支持方向键 + 回车载入',
+  /ArrowUp/.test(src) && /ArrowDown/.test(src) && /ArrowLeft/.test(src) && /ArrowRight/.test(src)
+  && /key === 'Enter' \|\| key === ' '/.test(src));
+check('v1.9 年份行 role=button 且可键盘触发',
+  /role: 'button', tabIndex: 0/.test(src) && /跳到 ' \+ y\.year/.test(src));
+check('v1.9 弹窗有 dialog 语义 + Esc 关闭',
+  /role: 'dialog', 'aria-modal': 'true'/.test(src) && /e\.key === 'Escape'/.test(src));
+check('v1.9 补了 focus-visible 焦点样式', (src.match(/:focus-visible/g) || []).length >= 5);
+check('v1.9 扫描模式按钮有 aria-pressed',
+  /'aria-pressed': heatMode === 'default'/.test(src)
+  && /'aria-pressed': heatMode === 'neighborhood'/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
