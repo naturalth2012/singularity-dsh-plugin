@@ -148,11 +148,23 @@ const pen2024Zero = api.simulate(zeroTarget).years[0].metrics.penetration;
 const pen2024Full = api.simulate(fullTarget).years[0].metrics.penetration;
 
 /* ── 7. 六剧本锚点（供面板核对）── */
+// v2.2：剧本显示名的英文版。引擎 SCENARIOS[k].name 不能改（零漂移硬门），
+// 所以在这里建独立映射表；漏 key 时条件展开省略字段，client 的 pick 回退中文。
+const SCENARIO_NAME_EN = {
+  baseline: 'Baseline · technology races, institutions lag',
+  social_democracy: 'Social democracy · universal dividend',
+  techno_feudalism: 'Compute feudalism · oligarchic capture',
+  planned_transition: 'Planned transition · organized passage',
+  collapse: 'Collapse · high shock + high confrontation',
+  commons: 'Universal commons · post-scarcity communism',
+};
 const anchors = Object.keys(api.SCENARIOS).map((k) => {
   const sim = api.simulate(api.targetOf(k));
+  const nameEn = SCENARIO_NAME_EN[k];
   return {
     scenario: k,
     name: api.SCENARIOS[k].name,
+    ...(nameEn ? { nameEn } : {}),
     outcome: sim.outcome.name,
     rent: Math.round(sim.final.rent * 1000) / 1000,
     development: Math.round(sim.final.metrics.development * 1000) / 1000,
@@ -170,6 +182,7 @@ const report = {
   seed: 42,
   samples: N,
   note: '构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。',
+  noteEn: 'A sampling report generated at build time. Fixed seed, same output for the same version. This is the result of one sampling run, not "model truth".',
   outcomeDistribution: Object.keys(outcomeDist)
     .sort((a, b) => outcomeDist[b] - outcomeDist[a])
     .map((k) => ({ name: k, count: outcomeDist[k], pct: pct(outcomeDist[k] / N) })),
@@ -195,6 +208,9 @@ const report = {
       winRatePct: collapseWinRate,
       caveat: '该系数是编译期常量，本脚本无法从外部扫描不同取值。'
         + '此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。',
+      caveatEn: 'The coefficient is a compile-time constant; this script cannot scan other values from outside. '
+        + 'The win rate here is measured under the current coefficient; the contract §9.1 objection '
+        + '(no independent empirical basis) still stands.',
     },
     socialDemocracy: {
       totalSamples: socTotal,
@@ -202,12 +218,16 @@ const report = {
       winsWithLowPublicOwnership: socWinLowPub,
       pathDependencyConfirmed: socWin > 0 && socWinLowPub === socWin,
       caveat: 'reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。',
+      caveatEn: 'The reformRoom discount disables this path at public_ownership ≥ 0.62 — '
+        + 'this is not sampling noise but a necessary consequence of the formula.',
     },
     chattering: {
       samples: 300,
       maxFlips,
       histogram: flipsHist,
       caveat: '前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。',
+      caveatEn: 'A feed-forward model has no endogenous tipping point; path flips only occur near '
+        + 'the two artificial gates, so chattering is naturally bounded.',
     },
   },
   stageReachability: {
@@ -218,14 +238,20 @@ const report = {
     // stage 6 只是条件严苛（20000 组里出现 4 次）。混为一谈会误导。
     structurallyUnreachable: [
       { id: 0, name: '商业资本主义', groups: stage0Groups,
-        reason: 'stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。' },
+        reason: 'stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。',
+        reasonEn: 'stageOf only ever returns STAGE_BY_ID[1] at its lowest (pen<0.38 → algorithmic capitalism); '
+          + 'there is no branch returning stage 0.' },
     ],
     rareButReachable: [
       { id: 6, name: '自由人联合体', groups: stage6Groups,
         note: '需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。'
           + '六剧本中「全域共享」可稳定到达；随机空间里极罕见'
           + '（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 '
-          + stage6Groups + ' 组）。' },
+          + stage6Groups + ' 组）。',
+        noteEn: 'Requires pen≥0.68, communism winning on gravity, soc≥0.72, abu≥0.78 and meaning≥0.46 '
+          + 'simultaneously. The "universal commons" scenario reaches it reliably; in random space it is '
+          + 'extremely rare (4 groups in a separate unseeded sample of 20000, about 0.02%; '
+          + stage6Groups + ' groups in this fixed-seed batch).' },
     ],
     start2024: {
       penetrationWhenLeversZero: Math.round(pen2024Zero * 10000) / 10000,
@@ -234,12 +260,19 @@ const report = {
       caveat: '2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。'
         + '这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段'
         + '恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。',
+      caveatEn: 'In 2024, u=0, so all levers take their NOW baseline values and first-year penetration is '
+        + 'independent of the levers. This follows from the interpolation start point and is not a bug; '
+        + 'but it means that with the timeline parked at 2024 the stage shown is always "polarized capitalism", '
+        + 'whereas narratively 2024 should be the transition from prehistory to algorithmic capitalism.',
     },
     techOnlyBeforeGate: {
       samples: 1625,
       verified: true,
       caveat: 'pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——'
         + '制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。',
+      caveatEn: 'When pen < GATE_PEN, sweeping the entire institutional/social/meaning grid at fixed '
+        + 'penetration leaves the stage unchanged — institutional levers play no part in stage determination '
+        + 'before the fork. This is the core of P1-3 and one of the most questionable simplifications in the model.',
     },
   },
   anchors,
