@@ -314,6 +314,108 @@ check('PUBLISHING 无过时计数 26/26',
   !/26\/26/.test(publishingSrc), /26\/26/.test(publishingSrc) ? '仍含旧计数' : 'ok');
 check('README 链接 CHANGELOG', /\[CHANGELOG\]\(CHANGELOG\.md\)|CHANGELOG\.md/.test(readmeSrc));
 
+/* ── 7g. v1.6 T1：agent 工具（真实装载 index.js 并调用）── */
+console.log('\n=== 7g. agent 工具（T1）===');
+{
+  const idxSrc = read('index.js');
+  check('index.js 从快照装载引擎', /import createEngine from '\.\/engine\.snapshot\.js'/.test(idxSrc));
+  check('index.js 不做第二份切片', !/ENGINE-BEGIN/.test(idxSrc) && !/factory\(require\)/.test(idxSrc));
+  check('index.js 声明 tools 注入', /ctx\.inject\(\['tools'\]/.test(idxSrc));
+
+  // 真实装载：写临时 mjs，import apply，配 stub ctx，断言三工具注册且可执行
+  const probePath = path.join(ROOT, 'scripts', '.tools-probe.mjs');
+  const probe = [
+    'import { apply } from ' + JSON.stringify('file:///' + path.join(ROOT, 'index.js').replace(/\\/g, '/')) + ';',
+    'const regs = [];',
+    'apply({ inject(d, cb) { cb({ effect(fn) { fn(); return () => {}; },',
+    '  tools: { register(def) { regs.push(def); return () => {}; } } }); } });',
+    'const names = regs.map((r) => r.name).sort().join(",");',
+    'if (names !== "singularity_compare,singularity_sensitivity,singularity_simulate") throw new Error("工具名不符: " + names);',
+    'for (const r of regs) {',
+    '  if (!r.description || r.description.length < 40) throw new Error(r.name + " 描述过短");',
+    '  if (!r.parameters || r.parameters.type !== "object") throw new Error(r.name + " 参数 schema 缺失");',
+    '  if (!r.output || typeof r.output.render !== "function") throw new Error(r.name + " output.render 缺失");',
+    '}',
+    'const sim = regs.filter((r) => r.name === "singularity_simulate")[0];',
+    'const out = await sim.execute({ scenario: "baseline" });',
+    'if (out.outcome !== "算力封建制") throw new Error("simulate 结果不符: " + out.outcome);',
+    'if (Math.abs(out.rent - 0.59) > 0.005) throw new Error("rent 不符: " + out.rent);',
+    'if (typeof out.text !== "string" || out.text.length < 100) throw new Error("text 缺失");',
+    'const rendered = sim.output.render({}, out);',
+    'if (!Array.isArray(rendered) || rendered[0].type !== "text") throw new Error("render 输出不符");',
+    'const sens = regs.filter((r) => r.name === "singularity_sensitivity")[0];',
+    'const s2 = await sens.execute({ scenario: "commons" });',
+    'if (!Array.isArray(s2.items) || s2.items.length < 10) throw new Error("sensitivity items 过少: " + (s2.items || []).length);',
+    'const cmp = regs.filter((r) => r.name === "singularity_compare")[0];',
+    'const c2 = await cmp.execute({});',
+    'if (!Array.isArray(c2.rows) || c2.rows.length !== 6) throw new Error("compare rows 应为 6");',
+    'console.log("TOOLS OK");',
+  ].join('\n');
+  fs.writeFileSync(probePath, probe, 'utf8');
+  let toolsOk = false, toolsDetail = '';
+  try {
+    const out = execFileSync(process.execPath, [probePath], { encoding: 'utf8', stdio: 'pipe' });
+    toolsOk = /TOOLS OK/.test(out);
+    toolsDetail = toolsOk ? '三工具注册并执行通过' : '未打印 TOOLS OK';
+  } catch (e) {
+    toolsDetail = String(e.stderr || e.message).split('\n')[0];
+  } finally {
+    try { fs.unlinkSync(probePath); } catch (e) { /* 已删除 */ }
+  }
+  check('三工具可装载、注册、执行且结果正确', toolsOk, toolsDetail);
+  check('工具描述声明边界（非预言/非因果）',
+    /不回答哪一年会发生什么|条件推演而非预言/.test(idxSrc)
+    && /不是社会对政策的反应|前馈插值/.test(idxSrc));
+}
+
+/* ── 7h. v1.6 T5：校准报告与面板数据一致 ── */
+console.log('\n=== 7h. 校准报告（T5）===');
+{
+  const calPath = path.join(ROOT, 'docs', 'calibration.json');
+  if (!fs.existsSync(calPath)) {
+    check('docs/calibration.json 存在', false, '运行 node scripts/calibrate.cjs');
+  } else {
+    const cal = JSON.parse(fs.readFileSync(calPath, 'utf8'));
+    check('校准报告含必需字段',
+      cal.outcomeDistribution && cal.winnerDistribution && cal.rentQuantiles
+      && cal.asymmetries && cal.anchors && typeof cal.seed === 'number');
+    check('校准报告记录生成时间/版本/种子',
+      /^\d{4}-\d{2}-\d{2}T/.test(cal.generatedAt) && !!cal.version && typeof cal.seed === 'number');
+    check('校准报告结局分布覆盖七种结局', cal.outcomeDistribution.length === 7,
+      cal.outcomeDistribution.length + ' 种');
+    check('校准报告六剧本锚点完整', cal.anchors.length === 6);
+    // 面板内联数据必须与报告一致（防止注入后忘记重跑脚本）
+    const m = /const HEALTH_DATA = (\{[\s\S]*?\});\n/.exec(client);
+    let inlineOk = false, inlineDetail = '';
+    if (!m) inlineDetail = '未找到 HEALTH_DATA';
+    else {
+      try {
+        const inline = JSON.parse(m[1]);
+        inlineOk = inline.outcomeDistribution.length === cal.outcomeDistribution.length
+          && inline.winnerDistribution.length === cal.winnerDistribution.length
+          && inline.seed === cal.seed
+          && inline.samples === cal.samples
+          && inline.anchors.length === cal.anchors.length
+          && inline.rentQuantiles.p50 === cal.rentQuantiles.p50;
+        inlineDetail = inlineOk ? '面板内联 == 报告' : '漂移！重跑 node scripts/inject-calibration.cjs';
+      } catch (e) { inlineDetail = 'HEALTH_DATA 解析失败: ' + e.message; }
+    }
+    check('面板内联校准数据与报告一致', inlineOk, inlineDetail);
+    check('校准报告含契约 §9 三条非对称', !!cal.asymmetries.collapseGain
+      && !!cal.asymmetries.socialDemocracy && !!cal.asymmetries.chattering);
+  }
+}
+
+/* ── 7i. v1.6 文档：接口与校准章节 ── */
+console.log('\n=== 7i. 契约 v1.6 章节 ===');
+check('契约 §11 列三个工具', doc.includes('singularity_simulate')
+  && doc.includes('singularity_sensitivity') && doc.includes('singularity_compare'));
+check('契约声明工具边界（非预言/非因果）', doc.includes('条件推演而非预言'));
+check('契约 §12 声明校准一致性约束', doc.includes('docs/calibration.json')
+  && doc.includes('逐组相同'));
+check('契约核对方式含 adversarial', doc.includes('tests/adversarial.test.cjs'));
+check('契约核对方式含 deeptab', doc.includes('tests/deeptab.test.cjs'));
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
