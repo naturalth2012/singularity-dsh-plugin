@@ -510,6 +510,42 @@ console.log('\n=== 7l. 键盘可达性（v1.9）===');
     badClickable.length ? '仍有 ' + badClickable.length + ' 处: ' + badClickable.join(',') : 'ok');
 }
 
+/* ── 7m. v2.0 i18n 分层 ── */
+console.log('\n=== 7m. i18n 分层（v2.0）===');
+{
+  const fsx = require('fs');
+  const pathx = require('path');
+  const zhPath = pathx.join(ROOT, 'locale', 'zh.json');
+  const enPath = pathx.join(ROOT, 'locale', 'en.json');
+  const zh = JSON.parse(fsx.readFileSync(zhPath, 'utf8'));
+  const en = JSON.parse(fsx.readFileSync(enPath, 'utf8'));
+
+  check('locale/zh.json 与 en.json 都存在', true);
+  // 键集必须完全一致（缺一个就会在英文环境下露出中文或 key）
+  const zhKeys = Object.keys(zh).filter((k) => k !== 'meta').sort();
+  const enKeys = Object.keys(en).filter((k) => k !== 'meta').sort();
+  check('zh/en 视图键集完全一致',
+    JSON.stringify(zhKeys) === JSON.stringify(enKeys),
+    'zh=' + zhKeys.length + ' en=' + enKeys.length);
+  check('视图键无空值', zhKeys.every((k) => typeof zh[k] === 'string' && zh[k]
+    && typeof en[k] === 'string' && en[k]));
+  check('meta 三字段齐全（title/description/detail）',
+    ['title', 'description', 'detail'].every((k) => zh.meta[k] && en.meta[k]));
+
+  // 引擎语义不得被翻译：契约里定义的结局名必须仍是中文
+  check('引擎语义未被翻译（结局名仍为中文）',
+    /'算力封建制'/.test(client) && /'文明崩解'/.test(client)
+    && /'停滞的资本主义'/.test(client));
+  check('ZH_FALLBACK 存在且键数与 locale 一致',
+    /const ZH_FALLBACK = \{/.test(client)
+    && (client.match(/'[a-z]+\.[a-zA-Z]+':/g) || []).length >= 30);
+  check('makeTranslator 有 fallback 兜底',
+    /function makeTranslator\(locale, fallback\)/.test(client)
+    && /fallback\[key\] !== undefined \? fallback\[key\] : key/.test(client));
+  check('locale 服务缺失时不崩（try/catch 兜底）',
+    /ctx\.get\('locale'\)/.test(client) && /catch \(e\) \{ localeSvc = null; \}/.test(client));
+}
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
