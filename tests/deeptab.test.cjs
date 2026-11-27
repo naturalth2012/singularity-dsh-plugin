@@ -82,6 +82,27 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare', 'health']
     check('metrics 含相图（封建稳态域 + 闸门虚线）', joined.includes('封建稳态域') && joined.includes('闸门 0.68'));
     check('metrics 含热力图（点击格子载入该组合）', joined.includes('点击格子载入该组合'));
     check('metrics 相图/热力图为 svg 元素', (out.tags.svg || 0) >= 2, 'svg × ' + (out.tags.svg || 0));
+    // v1.9 a11y：热力图与年份行的键盘可达性（直接在渲染树上验证）
+    const cells = [];
+    const krows = [];
+    (function collect(n) {
+      if (Array.isArray(n)) { n.forEach(collect); return; }
+      if (!n || !n.__el) return;
+      if (n.props && n.props.role === 'gridcell') cells.push(n);
+      if (n.type === 'tr' && n.props && n.props.role === 'button') krows.push(n);
+      const k = Array.isArray(n.children) ? n.children : [n.children];
+      k.forEach(collect);
+    })(tree);
+    check('metrics 热力图有 49 个 gridcell', cells.length === 49, cells.length + ' 个');
+    check('metrics 热力图只有 1 个 tab 停靠点（roving）',
+      cells.filter((c) => c.props.tabIndex === 0).length === 1);
+    check('metrics 热力图每格都有 aria-label',
+      cells.length > 0 && cells.every((c) => !!c.props['aria-label']));
+    check('metrics 热力图每格可键盘触发',
+      cells.length > 0 && cells.every((c) => typeof c.props.onKeyDown === 'function'));
+    check('metrics 年份行可键盘触发',
+      krows.length > 0 && krows.every((r) => r.props.tabIndex === 0
+        && typeof r.props.onKeyDown === 'function'));
   } else if (tab === 'engine') {
     check('engine 含政策沙盒卡与干预年控件', joined.includes('政策沙盒') && joined.includes('干预年'));
     check('engine 含政策不持久化声明', joined.includes('不持久化'));
