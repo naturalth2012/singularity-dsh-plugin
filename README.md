@@ -129,15 +129,15 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部六项
-node scripts\contract-check.cjs     # 73/73  契约一致性
+node scripts\contract-check.cjs     # 89/89  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
-node tests\adversarial.test.cjs     # 20/20  对抗回归
-node tests\mount.test.cjs           # 46/46  插件契约与渲染
-node tests\deeptab.test.cjs         # 20/20  深层渲染冒烟
-node scripts\preflight.cjs          # 29/29  发布一致性
+node tests\adversarial.test.cjs     # 24/24  对抗回归
+node tests\mount.test.cjs           # 50/50  插件契约与渲染
+node tests\deeptab.test.cjs         # 25/25  深层渲染冒烟
+node scripts\preflight.cjs          # 33/33  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（266 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（299 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -279,6 +279,23 @@ v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANG
   契约 §7 同步写明「窗口标记的是敏感区间，不是裁决时刻」。
 
 测试 228 → **266 项**（新增对抗套件 20 项）。
+
+## v1.6 工具化与模型体检（2026-11-27）
+
+引擎仍零改动。这一版把模型从「面板」变成**可对话的推演器**，并把它对自己的
+批评变成**可查证据**：
+
+- **三个 agent 工具**：`singularity_simulate`（假如 X 会怎样）、
+  `singularity_sensitivity`（该动哪个杠杆）、`singularity_compare`（六条路的对照）。
+  工具从 `engine.snapshot.js` 装载引擎——不再做第二份切片，三份副本必然漂移。
+  对话里直接问「把公共产权拉到 0.9 还会封建吗」，agent 调引擎代答。
+- **模型体检标签页**：`npm run calibrate` 扫描 2000 组随机参数，生成
+  `docs/calibration.json` 并内联进面板。体检页展示结局/引力分布、租金分位、
+  三条已知非对称的实测值，每条配一句「它在质疑什么」——把契约 §9 的自我批评
+  从文字变成可查数据。页面明示**生成时间 / 版本 / commit / 种子**，
+  提醒读者这是某次采样的结果，不是模型真理。
+
+测试 266 → **290 项**。
 
 ## 卸载
 
