@@ -165,6 +165,23 @@ check('v1.4 分享深链（编码/解析/按钮）', /b64urlEncode/.test(src)
 check('v1.4 JSON 导出导入', /exportJson/.test(src)
   && /importJson/.test(src) && /singularity-state-/.test(src));
 
+/* ── v1.4 审核回归（三处已修缺陷，防止回潮）── */
+// 1) 热力图行序：构造轴与显示轴必须同源（否则颜色与点击目标上下颠倒）
+check('审核: 热力图构造与显示轴同源同序', /poAxis = DESC, capAxis = ASC/.test(src)
+  && /po: DESC, cap: ASC/.test(src) && /const heatAxis = React.useMemo/.test(src));
+check('审核: 热力图无残留局部 poSteps 变量', !/const poSteps = \[/.test(src));
+// 2) 深链会话不得静默覆盖用户存档
+check('审核: 深链会话不写回 localStorage', /deepLinkLocked/.test(src)
+  && /if \(deepLinkLocked\) return;/.test(src));
+check('审核: 用户主动操作解除深链锁定', (src.match(/setDeepLinkLocked\(false\)/g) || []).length >= 4);
+// 3) README 计数块唯一且无手写残留
+const readme = require('fs').readFileSync(require('path').join(__dirname, '..', 'README.md'), 'utf8');
+check('审核: README 计数标记成对且唯一',
+  (readme.match(/<!-- counts:auto -->/g) || []).length === 1
+  && (readme.match(/<!-- \/counts:auto -->/g) || []).length === 1);
+check('审核: README 无重复的计数说明行',
+  (readme.match(/项自动化检查），手工编辑无效/g) || []).length === 1);
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
