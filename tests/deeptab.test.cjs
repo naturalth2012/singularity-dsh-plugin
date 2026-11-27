@@ -20,6 +20,7 @@ new Function('window', 'document', src)(windowStub, documentStub);
 
 function renderWithTab(tabValue) {
   const ReactStub = {
+  Component: class { constructor(p) { this.props = p || {}; this.state = {}; } setState(x) { this.state = Object.assign({}, this.state, typeof x === "function" ? x(this.state) : x); } },
     createElement: (type, props, ...children) => ({ __el: true, type, props: props || {}, children }),
     // 顶初始值为 'timeline' 的 useState（即 tab）到指定标签；其余沿用默认语义。
     // 按初值识别而非调用序位——hook 顺序变化（如 v1.4 新增 deepLink useState）不致错位。
@@ -27,6 +28,7 @@ function renderWithTab(tabValue) {
       ? [tabValue, () => {}]
       : [typeof v === 'function' ? v() : v, () => {}]),
     useMemo: (fn) => fn(),
+    useCallback: (fn) => fn,
     useEffect: () => {},
     useRef: () => ({ current: null }),
   };
@@ -61,6 +63,20 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare', 'health']
   const out = { tags: {}, text: [] };
   walk(tree, out);
   const joined = out.text.join('|');
+  // v1.7 T-A1：每个标签页都必须被 ErrorBoundary 包住，且 key 随 tab 变化
+  if (err.length === 0) {
+    const boundaries = [];
+    (function findBoundary(n) {
+      if (Array.isArray(n)) { n.forEach(findBoundary); return; }
+      if (!n || !n.__el) return;
+      if (n.type && n.type.name === 'SnErrorBoundary') boundaries.push(n);
+      const k = Array.isArray(n.children) ? n.children : [n.children];
+      k.forEach(findBoundary);
+    })(tree);
+    check(tab + ' 被 ErrorBoundary 包裹且 key 正确',
+      boundaries.length === 1 && boundaries[0].props.key === tab,
+      boundaries.length === 1 ? 'key=' + boundaries[0].props.key : '未找到 boundary');
+  }
   if (tab === 'metrics') {
     check('metrics 含租金压力条与预警首年', joined.includes('租金压力') && joined.includes('预警首年'));
     check('metrics 含相图（封建稳态域 + 闸门虚线）', joined.includes('封建稳态域') && joined.includes('闸门 0.68'));
