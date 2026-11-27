@@ -12,12 +12,17 @@ const { execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const src = fs.readFileSync(path.join(ROOT, 'client.js'), 'utf8');
 
-const BEGIN = src.indexOf('ENGINE-BEGIN');
-const END = src.indexOf('ENGINE-END');
-if (BEGIN < 0 || END < 0 || END < BEGIN) {
+const BEGIN_MARK = src.indexOf('ENGINE-BEGIN');
+const END_MARK = src.indexOf('ENGINE-END');
+if (BEGIN_MARK < 0 || END_MARK < 0 || END_MARK < BEGIN_MARK) {
   console.error('找不到 ENGINE-BEGIN/ENGINE-END 标记');
   process.exit(1);
 }
+// 与 contract-check 同一套边界：从标记所在注释块的 `/*` 开始，到注释块的 `*/` 结束。
+// 若直接用 indexOf('ENGINE-BEGIN')，切出的片段会缺开头 `/*` 与结尾 `*/`，
+// 生成的文件是语法错误的废文件（v1.4 审核发现并修复）。
+const BEGIN = src.lastIndexOf('/*', BEGIN_MARK);
+const END = src.indexOf('*/', END_MARK) + 2;
 const region = src.slice(BEGIN, END);
 
 let sha = 'unknown';
@@ -31,19 +36,25 @@ const out = [
   ' * 上游仓库：https://github.com/naturalth2012/singularity-dsh-plugin (MIT)',
   ' * 本文件为衍生作品，携带上游版权声明：Copyright (c) 2026 naturalth2012。',
   ' * 重新生成：node scripts/extract-engine.cjs',
+  ' *',
+  ' * 用法（ESM）：import createEngine from "./engine.snapshot.js";',
+  ' *              const engine = createEngine((name) => { throw new Error(name); });',
   ' */',
   '/* eslint-disable */',
-  'const requires = (name) => { throw new Error("engine.snapshot.js 是纯引擎切片，不允许 require: " + name); };',
   '',
-  'module.exports = (factory) => factory(requires);',
-  '',
-  '/* ──以下为 client.js 引擎区逐字节快照' + '──*/',
-  '',
-  'function __engineFactory__(factoryBodyRunner) {',
-  '  return factoryBodyRunner;',
-  '}',
+  'export default function createEngine(requires) {',
+  '  void requires;   // 引擎区零依赖；参数保留以便宿主注入（游戏侧可传入受限 require）',
   '',
   region,
+  '',
+  '  return {',
+  '    LEVERS, LEVER_BY_KEY, NOW, SCENARIOS, TECH_TREND, TECH_KEYS,',
+  '    STAGES, EXTRA_STAGES, BRANCHES, DYNAMICS, EVENTS,',
+  '    GATE_PEN, GATE_SOC, COLLAPSE_GAIN, T0, T1, T2,',
+  '    simulate, targetOf, sensitivity, diagnose, decidePath, stageOf, branchScores,',
+  '    rentPressure, findCrossing, RENT_BANDS, leversPolicyAt, robustness, reversal, mulberry32,',
+  '  };',
+  '}',
 ].join('\n');
 
 fs.writeFileSync(path.join(ROOT, 'engine.snapshot.js'), out, 'utf8');
