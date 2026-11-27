@@ -182,6 +182,16 @@ check('审核: README 计数标记成对且唯一',
 check('审核: README 无重复的计数说明行',
   (readme.match(/项自动化检查），手工编辑无效/g) || []).length === 1);
 
+/* ── v1.5 T4：诚实性补完 ── */
+check('v1.5 晚期反转标注（窗口末 vs 终年）', /lateReversal/.test(src)
+  && /窗口末年胜者|晚期反转：窗口末年/.test(src)
+  && /不是裁决时刻/.test(src));
+check('v1.5 社民路径依赖补注（产权≥0.62 失效）', /产权 ≥0\.62 时本路径失效/.test(src));
+check('v1.5 引力上限非对称脚注', /引力上限并不相等/.test(src)
+  && /社民因「改良空间」折减上限约 0\.70/.test(src));
+check('v1.5 晚期反转不新增引擎符号', !/function lateReversal/.test(src)
+  && /const lateReversal = React\.useMemo/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
