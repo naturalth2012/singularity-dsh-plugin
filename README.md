@@ -129,15 +129,15 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部六项
-node scripts\contract-check.cjs     # 89/89  契约一致性
+node scripts\contract-check.cjs     # 97/97  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
 node tests\adversarial.test.cjs     # 24/24  对抗回归
-node tests\mount.test.cjs           # 50/50  插件契约与渲染
-node tests\deeptab.test.cjs         # 25/25  深层渲染冒烟
-node scripts\preflight.cjs          # 33/33  发布一致性
+node tests\mount.test.cjs           # 55/55  插件契约与渲染
+node tests\deeptab.test.cjs         # 31/31  深层渲染冒烟
+node scripts\preflight.cjs          # 37/37  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（299 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（322 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -296,6 +296,21 @@ v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANG
   提醒读者这是某次采样的结果，不是模型真理。
 
 测试 266 → **290 项**。
+
+## v1.7 稳定性与发布质量（2026-11-27）
+
+引擎仍零改动。这一版修的是**唯一会让面板完全不可用的缺陷**，以及两处发布质量问题：
+
+- **错误边界**：任一标签页渲染抛异常时，不再整面板白屏，而是降级为一张可读的错误卡片
+  （错误信息 + 重试 + 复制详情）。**只包内容区**——标签栏存活，用户可切到其他页继续用。
+  这不是假想风险：v1.5 插入 `h(...)` 时括号算错就导致过分岔点卡整体不渲染。
+- **插件详情文档**：`docs/DETAIL.md` 面向用户而非开发者——七个标签页、十四个杠杆、
+  对话工具示例、**七条已知局限**、明确不做什么。插件详情页从此不再回退到 README。
+- **恢复默认**：演化引擎页一键清空杠杆改写与政策干预。
+- **审计文档校准**：`AUDIT-FIXES.md` 三项过期状态修正（实际 v1.5 已完成），
+  并加自动化断言防止再次过期。
+
+测试 290 → **322 项**。
 
 ## 卸载
 
