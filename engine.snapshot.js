@@ -1,6 +1,6 @@
 /* engine.snapshot.js —— 由 scripts/extract-engine.cjs 自动生成，勿手改。
  * 来源：singularity-dsh-plugin client.js ENGINE 区（ENGINE-BEGIN…ENGINE-END）
- * 生成于客户端版本见 package.json；上游 commit b0babae。
+ * 生成于客户端版本见 package.json；上游 commit d882bd0。
  * 契约规范：MODEL-CONTRACT.md（含 §8b 租金压力、§8c 政策干预、§9 已知非对称）。
  * 上游仓库：https://github.com/naturalth2012/singularity-dsh-plugin (MIT)
  * 本文件为衍生作品，携带上游版权声明：Copyright (c) 2026 naturalth2012。
