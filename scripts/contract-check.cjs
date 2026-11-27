@@ -238,6 +238,23 @@ check('契约含 §8c 与政策不持久化声明',
   doc.includes('8c. 政策干预与稳健性') && doc.includes('政策不持久化'));
 check('契约 §9 含政策重定向前馈声明', doc.includes('政策重定向仍是前馈插值'));
 
+/* ── 7d. 引擎快照同步（v1.4 C3：游戏仓库 M2 门槛的插件侧前置）── */
+console.log('\n=== 7d. 引擎快照同步 ===');
+const SNAP = path.join(__dirname, '..', 'engine.snapshot.js');
+if (!fs.existsSync(SNAP)) {
+  check('engine.snapshot.js 存在', false, '运行 node scripts/extract-engine.cjs 生成');
+} else {
+  const snap = fs.readFileSync(SNAP, 'utf8');
+  const bi = client.indexOf('ENGINE-BEGIN');
+  const ei = client.indexOf('ENGINE-END');
+  const region = bi >= 0 && ei > bi ? client.slice(bi, ei) : null;
+  const snapHas = region !== null && snap.includes(region);
+  check('快照与引擎区逐字节一致', snapHas,
+    snapHas ? 'ok' : '漂移！运行 node scripts/extract-engine.cjs 重新生成');
+  check('快照含上游 NOTICE 头', snap.includes('naturalth2012') && snap.includes('MIT'));
+}
+check('契约提及 mulberry32', doc.includes('mulberry32'));
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
