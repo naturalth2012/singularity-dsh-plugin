@@ -1,6 +1,6 @@
 # Singularity 模型契约
 
-> 版本 **1.5.0** ｜ 对应代码 `client.js` 引擎区（ENGINE-BEGIN…ENGINE-END）
+> 版本 **1.6.0** ｜ 对应代码 `client.js` 引擎区（ENGINE-BEGIN…ENGINE-END）
 > 本文档是模型假设的**可核对清单**。代码里任何常数或公式的改动，都必须同步更新本文档；
 > `scripts/contract-check.cjs` 在回归中拦截二者的漂移。
 
@@ -359,9 +359,38 @@ agreement }`。`rng` 可注入，测试用种子保证确定性。
 ```bash
 node scripts/contract-check.cjs    # 文档与代码一致性
 node tests/engine.test.cjs         # 模型行为
+node tests/adversarial.test.cjs    # 对抗回归（分布/一致性/稳定性/诚实性）
 node tests/mount.test.cjs          # 插件契约与渲染
+node tests/deeptab.test.cjs        # 深层渲染冒烟
 node scripts/preflight.cjs         # 发布一致性
 ```
+
+## 11. 对外接口（v1.6）
+
+引擎除了面板，还通过三个 **agent 工具**暴露（`index.js`，Host 侧）：
+
+| 工具 | 入参 | 用途 |
+|---|---|---|
+| `singularity_simulate` | `scenario` 或 `levers`（+ 可选 `policy`） | 跑一次推演，返回结局与读数 |
+| `singularity_sensitivity` | `scenario` 或 `levers` | ±10% 敏感度排名 |
+| `singularity_compare` | 可选 `includeRobustness` | 六剧本对照 |
+
+**实现约束**：工具从 `engine.snapshot.js` 装载引擎（不做第二份切片——三份副本必然漂移），
+只读、无状态。契约核对脚本会**真实装载 index.js 并执行三个工具**，断言结果与
+`simulate` 直调一致。
+
+**边界**（也写在工具描述里）：工具是条件推演而非预言，不回答「哪一年会发生什么」；
+政策是前馈插值（§9.10），不提供因果估计。
+
+## 12. 校准报告（v1.6）
+
+`docs/calibration.json` 由 `npm run calibrate` 生成，记录：随机参数空间的结局/引力分布、
+租金分位、三条已知非对称的实测值、六剧本锚点。面板「模型体检」页只读展示它。
+
+**两条一致性约束**（由测试守护）：
+1. 报告与同种子重算必须**逐组相同**（`tests/adversarial.test.cjs` F 组）
+2. 面板内联的 `HEALTH_DATA` 必须与报告一致（`contract-check` §7h）——
+   注入后忘记重跑 `npm run calibrate` 会被抓到
 
 `contract-check.cjs` 断言：本文档声明的杠杆数、阶段数、四个闸门常数、三区阈值
 与代码一致；引擎区不含 React/DOM 引用；每个杠杆 key 在本文档中都被提及。
