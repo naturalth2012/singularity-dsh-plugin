@@ -168,6 +168,41 @@ window.__ModuleLoader__.load({
       return out;
     }
 
+    /* v1.3 E1a：政策干预 —— 干预年前后分段插值（纯函数）。
+       干预年前与 leversAt 完全一致；从干预年起，从「干预年的原轨迹值」
+       无缝衔接向政策目标重插值（无跳变），组指数沿用 0.78/1.90/1.45。
+       未被 override 的杠杆沿原轨迹；override 值钳制到 [0,1]。 */
+    function validatePolicy(policy) {
+      if (!Number.isInteger(policy.year) || policy.year <= T0 || policy.year > T2) {
+        throw new Error('政策干预年必须是 (' + T0 + ', ' + T2 + '] 的整数，收到 ' + policy.year);
+      }
+      if (!policy.overrides || typeof policy.overrides !== 'object') {
+        throw new Error('政策 overrides 必须是对象');
+      }
+      const bad = Object.keys(policy.overrides).filter((k) => !LEVER_BY_KEY[k]);
+      if (bad.length) throw new Error('政策 override 含未知杠杆键: ' + bad.join(', '));
+    }
+
+    function leversPolicyAt(year, tgt, policy) {
+      const base = leversAt(year, tgt);
+      if (year < policy.year) return base;
+      const span = T2 - policy.year;
+      const u = span > 0 ? clamp((year - policy.year) / span) : 1;
+      const out = {};
+      LEVERS.forEach((lv) => {
+        const k = lv.key;
+        const ov = policy.overrides[k];
+        if (ov === undefined || ov === null) { out[k] = base[k]; return; }
+        let t;
+        if (TECH_KEYS.indexOf(k) >= 0) t = Math.pow(u, 0.78);
+        else if (INST_KEYS.indexOf(k) >= 0) t = Math.pow(u, 1.90);
+        else if (SOCIAL_KEYS.indexOf(k) >= 0) t = Math.pow(u, 1.45);
+        else t = u;
+        out[k] = clamp(lerp(base[k], clamp(ov), smooth(t)));
+      });
+      return out;
+    }
+
     function derive(s, prev) {
       const tech = 0.30 * s.cognition + 0.25 * s.compute + 0.25 * s.automation + 0.20 * s.energy;
       const potential = 0.20 + 0.80 * tech;   // 技术潜力（知识不会因战争消失）
@@ -337,18 +372,24 @@ window.__ModuleLoader__.load({
       return out;
     }
 
-    function simulate(target) {
+    function simulate(target, policy) {
       const tgt = target || {};
+      // v1.3 E1b：第二可选参 policy = { year, overrides }。
+      // 不传时与 v1.2 行为逐字节一致（结果指标层面；行新增 policyActive 标记，
+      // 同 v1.2 rent 字段先例）。
+      const pol = (policy && policy.overrides) ? policy : null;
+      if (pol) validatePolicy(pol);
       const years = [];
       let prev = null;
       for (let year = T0; year <= T2; year++) {
-        const s = leversAt(year, tgt);
+        const s = pol ? leversPolicyAt(year, tgt, pol) : leversAt(year, tgt);
         const m = derive(s, prev);
         const scores = branchScores(s, m);        // 唯一的路径判定输入
         const info = stageOf(m, s, scores);
         years.push({
           year: year, levers: s, metrics: m,
           rent: rentPressure(s),
+          policyActive: !!(pol && year >= pol.year),
           stage: info.stage, branchStage: info.branch, branchKey: info.branchKey || null,
           path: decidePath(scores),
           branches: scores,
@@ -410,6 +451,79 @@ window.__ModuleLoader__.load({
       return { baseline: base, delta: delta, items: rows.slice(0, 8), all: rows };
     }
 
+    /* v1.3 E2：蒙特卡洛稳健性 —— 输出统计分布而非单一确定性结果
+       （吸收自理论文档 §3.2）。默认 240 次：target 各杠杆 ±0.08 均匀扰动，
+       政策 override ±0.04；rng 可注入（测试用种子保证确定性）。
+       纯统计函数，不改模型状态。 */
+    function robustness(target, policy, rng) {
+      const rand = rng || Math.random;
+      const fill = (t) => {
+        const out = {};
+        LEVERS.forEach((lv) => {
+          out[lv.key] = t[lv.key] !== undefined ? t[lv.key]
+            : (TECH_KEYS.indexOf(lv.key) >= 0 ? TECH_TREND[lv.key] : NOW[lv.key]);
+        });
+        return out;
+      };
+      const jitter = (t, amp) => {
+        const out = {};
+        LEVERS.forEach((lv) => { out[lv.key] = clamp(t[lv.key] + (rand() * 2 - 1) * amp); });
+        return out;
+      };
+      const RUNS = 240;
+      const base = fill(target || {});
+      const counts = {};
+      for (let i = 0; i < RUNS; i++) {
+        const t2 = jitter(base, 0.08);
+        let pol2 = null;
+        if (policy && policy.overrides) {
+          const ov = {};
+          Object.keys(policy.overrides).forEach((k) => {
+            ov[k] = clamp(base[k] + (policy.overrides[k] - base[k]) + (rand() * 2 - 1) * 0.04);
+          });
+          pol2 = { year: policy.year, overrides: ov };
+        }
+        const name = simulate(t2, pol2).outcome.name;
+        counts[name] = (counts[name] || 0) + 1;
+      }
+      const outcomes = Object.keys(counts)
+        .map((name) => ({ name: name, count: counts[name], pct: counts[name] / RUNS }))
+        .sort((a, b) => b.count - a.count);
+      return { runs: RUNS, outcomes: outcomes, dominant: outcomes[0].name, agreement: outcomes[0].pct };
+    }
+
+    /* v1.3 E3：反方读法 —— 找出翻转当前结局所需的最小单杠杆干预。
+       对四个制度杠杆做 ±0.05 步进扫描（至多 ±1.0），返回
+       { lever, from, to, outcome, delta }；任何单杠杆极端化都无法翻转
+       时返回 null（结论稳健的强信号）。 */
+    function reversal(target, policy) {
+      const tgt = {};
+      LEVERS.forEach((lv) => {
+        tgt[lv.key] = target && target[lv.key] !== undefined ? target[lv.key]
+          : (TECH_KEYS.indexOf(lv.key) >= 0 ? TECH_TREND[lv.key] : NOW[lv.key]);
+      });
+      const baseName = simulate(tgt, policy).outcome.name;
+      const SCAN = ['public_ownership', 'redistribution', 'coordination', 'capture'];
+      let best = null;
+      SCAN.forEach((k) => {
+        for (let step = 1; step <= 20; step++) {
+          const d = step * 0.05;
+          const up = Object.assign({}, tgt); up[k] = clamp(tgt[k] + d);
+          let found = null;
+          if (simulate(up, policy).outcome.name !== baseName) {
+            found = { lever: k, from: tgt[k], to: up[k], outcome: simulate(up, policy).outcome.name, delta: d };
+          } else {
+            const dn = Object.assign({}, tgt); dn[k] = clamp(tgt[k] - d);
+            if (simulate(dn, policy).outcome.name !== baseName) {
+              found = { lever: k, from: tgt[k], to: dn[k], outcome: simulate(dn, policy).outcome.name, delta: d };
+            }
+          }
+          if (found) { if (!best || found.delta < best.delta) best = found; break; }
+        }
+      });
+      return best;
+    }
+
     function diagnose(sim) {
       const m = sim.final.metrics;
       const sc = sim.branchScores;
@@ -448,7 +562,8 @@ window.__ModuleLoader__.load({
        SCENARIOS / TECH_TREND / STAGES / EXTRA_STAGES / BRANCHES /
        DYNAMICS / EVENTS / 三个闸门常数 / simulate / targetOf /
        sensitivity / diagnose / decidePath / stageOf / branchScores /
-       rentPressure / findCrossing / RENT_BANDS。
+       rentPressure / findCrossing / RENT_BANDS / leversPolicyAt /
+       robustness / reversal（政策干预见契约 §8c）。
        视图区只消费这些符号，不得反向修改模型状态。
        ══════════════════════════════════════════════════════════════ */
 
@@ -515,6 +630,10 @@ window.__ModuleLoader__.load({
     .sn-rail{position:relative;height:34px;margin-top:14px}
     .sn-rail-bg,.sn-rail-fill{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:3px;overflow:hidden;display:flex}
     .sn-rail-bg{background:var(--dsw-alias-bg-layer-2)}
+    .sn-policy-mark{position:absolute;top:-2px;width:0;height:0;
+      border-left:5px solid transparent;border-right:5px solid transparent;
+      border-top:7px solid var(--dsw-alias-state-warning-primary,#e0a63a);
+      transform:translateX(-5px)}
     .sn-rail-fill{background:var(--dsw-alias-bg-layer-2)}
     .sn-seg{height:100%;flex:none}
     .sn-range{-webkit-appearance:none;appearance:none;position:absolute;left:0;right:0;top:3px;
@@ -866,7 +985,10 @@ window.__ModuleLoader__.load({
             segs.map((s, i) => h('div', {
               key: i, className: 'sn-seg',
               style: { width: ((s.end - s.start + 1) / (b - a + 1) * 100) + '%', background: s.color, opacity: 0.75 },
-            }))),
+            })),
+            p.policyYear && p.policyYear >= a && p.policyYear <= b
+              ? h('div', { className: 'sn-policy-mark', style: { left: ((p.policyYear - a) / (b - a + 1) * 100) + '%' }, title: '政策干预年 ' + p.policyYear })
+              : null),
           h('input', {
             className: 'sn-range', type: 'range', min: a, max: b, step: 1, value: p.year,
             'aria-label': '年份', onChange: (e) => p.onYear(parseInt(e.target.value, 10)),
@@ -899,13 +1021,22 @@ window.__ModuleLoader__.load({
       const [target, setTarget] = React.useState(restored.target);
       const [year, setYear] = React.useState(2035);
       const [picked, setPicked] = React.useState(null);
+      // v1.3 E1：政策沙盒状态。政策是实验不是世界观 —— 不入持久化，
+      // 载入剧本即清空（契约 §8c）。
+      const [policy, setPolicy] = React.useState(null);
 
-      // 杠杆或场景变化即写回；浏览态（tab / year / picked）不参与持久化。
+      // 杠杆或场景变化即写回；浏览态与政策态（tab / year / picked / policy）不参与持久化。
       React.useEffect(() => { savePersisted(target, scenario); }, [target, scenario]);
 
-      const sim = React.useMemo(() => simulate(target), [target]);
+      const sim = React.useMemo(() => simulate(target, policy), [target, policy]);
       const sens = React.useMemo(() => sensitivity(target), [target]);
       const drivers = React.useMemo(() => diagnose(sim), [sim]);
+      // v1.3 X2：无政策幽灵轨迹（政策激活时才有意义，否则不计算）
+      const ghostSim = React.useMemo(
+        () => (policy && policy.overrides ? simulate(target) : null), [target, policy]);
+      // v1.3 E2/E3：稳健性与最小翻转（240+80 次 simulate，可接受；政策/目标变化才重算）
+      const rob = React.useMemo(() => robustness(target, policy), [target, policy]);
+      const rev = React.useMemo(() => reversal(target, policy), [target, policy]);
 
       // v1.2 R7：租金热力图参数扫描。每格 = 其余杠杆取默认值（tech 走趋势、
       // 制度/社会取 NOW），仅 override 格子的 public_ownership × capture，
@@ -930,6 +1061,7 @@ window.__ModuleLoader__.load({
         setScenario(key);
         setTarget(targetOf(key));
         setYear(2035);
+        setPolicy(null);   // v1.3：载入剧本即清空政策（契约 §8c）
       };
 
       const curYear = sim.years.filter((y) => y.year === year)[0] || sim.years[0];
@@ -974,14 +1106,23 @@ window.__ModuleLoader__.load({
 
         return h('div', null,
           h(Hero, { outcome: sim.outcome, final: sim.final }),
-          h(Scrubber, { years: sim.years, year: year, window: sim.window, onYear: setYear }),
+          h(Scrubber, { years: sim.years, year: year, window: sim.window, onYear: setYear, policyYear: policy ? policy.year : null }),
           h(StageTrack, { currentId: curYear.stage.id, onPick: setPicked }),
           h('div', { className: 'sn-metrics' }, metricCards),
           h('div', { className: 'sn-grid2' }, chartCard, eventCard));
       };
 
       /* ── 引擎 ── */
-      const engineTab = () => h('div', null,
+      const engineTab = () => {
+        // E1-UI：干预点 vs 闸门窗口（「机会窗口」徽标）
+        const POLICY_KEYS = ['public_ownership', 'redistribution', 'coordination', 'capture'];
+        const POLICY_LEVERS = POLICY_KEYS.map((k) => LEVER_BY_KEY[k]);
+        const winBadge = !policy ? null
+          : !sim.window ? { t: '窗口未开', c: 'var(--dsw-alias-label-secondary)' }
+            : policy.year < sim.window.start ? { t: '干预在分岔窗口前 · 预防性', c: '#4f8cff' }
+              : policy.year <= sim.window.end ? { t: '干预在分岔窗口内 · 决定性', c: '#e0a63a' }
+                : { t: '干预在分岔窗口后 · 补救性', c: 'var(--dsw-alias-label-secondary)' };
+        return h('div', null,
         h('div', { className: 'sn-card', style: { marginBottom: 12 } },
           h('div', { className: 'sn-pad', style: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' } },
             h('div', { style: { flex: '1 1 260px', minWidth: 0 } },
@@ -1011,6 +1152,63 @@ window.__ModuleLoader__.load({
                 }),
                 h('div', { className: 'sn-lv-ends' }, h('span', null, lv.low), h('span', null, lv.high)));
             })))),
+        h('div', { className: 'sn-card', style: { marginTop: 14 } },
+          h('div', { className: 'sn-card-head' },
+            '政策沙盒',
+            h('span', { className: 'sn-hint' }, '从干预年起重定向制度杠杆 · 不持久化'),
+            policy ? h('button', { className: 'sn-btn', onClick: () => setPolicy(null) }, '清除干预') : null),
+          h('div', { className: 'sn-pad' },
+            policy && winBadge ? h('div', { style: { marginBottom: 10 } },
+              h('span', { className: 'sn-pill', style: { color: winBadge.c, fontSize: 10 } }, winBadge.t))
+              : null,
+            h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' } },
+              h('span', { style: { fontSize: 12, fontWeight: 600 } }, '干预年'),
+              h('input', {
+                type: 'range', min: 2025, max: 2060, step: 1,
+                value: policy ? policy.year : 2040,
+                'aria-label': '政策干预年',
+                style: { flex: '1 1 160px' },
+                onChange: (e) => {
+                  const ny = parseInt(e.target.value, 10);
+                  setPolicy((p) => ({ year: ny, overrides: (p && p.overrides) || {} }));
+                },
+              }),
+              h('span', { className: 'sn-lv-val' }, policy ? policy.year : '未启用')),
+            h('div', { className: 'sn-levers' },
+              POLICY_LEVERS.map((lv) => {
+                const on = policy && policy.overrides[lv.key] !== undefined;
+                const pv = on ? policy.overrides[lv.key] : (target[lv.key] !== undefined ? target[lv.key] : NOW[lv.key]);
+                return h('div', { className: 'sn-lv', key: lv.key },
+                  h('div', { className: 'sn-lv-top' },
+                    h('label', { style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' } },
+                      h('input', {
+                        type: 'checkbox',
+                        checked: !!on,
+                        onChange: (e) => {
+                          const want = e.target.checked;
+                          setPolicy((p) => {
+                            const baseYear = p ? p.year : 2040;
+                            const ov = Object.assign({}, (p && p.overrides) || {});
+                            if (want) ov[lv.key] = target[lv.key] !== undefined ? target[lv.key] : NOW[lv.key];
+                            else delete ov[lv.key];
+                            return Object.keys(ov).length ? { year: baseYear, overrides: ov } : null;
+                          });
+                        },
+                      }),
+                      lv.name,
+                      h('span', { style: { fontSize: 9, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' } }, on ? '干预中' : '未干预')),
+                    h('span', { className: 'sn-lv-val', style: { color: GROUP_COLOR[lv.group] } }, pv.toFixed(2))),
+                  h('input', {
+                    type: 'range', min: 0, max: 100, step: 1, value: Math.round(pv * 100),
+                    disabled: !on, 'aria-label': lv.name + '（政策）',
+                    onChange: (e) => {
+                      const nv = parseInt(e.target.value, 10) / 100;
+                      setPolicy((p) => ({ year: p ? p.year : 2040, overrides: Object.assign({}, p.overrides, (obj => { obj[lv.key] = nv; return obj; })({})) }));
+                    },
+                  }));
+              })),
+            h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8 } },
+              '政策是从干预年起对制度杠杆的重定向（无缝衔接原轨迹），不是社会对政策的反应 —— 见契约 §8c 与 §9。'))),
         h('div', { className: 'sn-grid2', style: { marginTop: 14 } },
           h('div', { className: 'sn-card' },
             h('div', { className: 'sn-card-head' }, '关键变量', h('span', { className: 'sn-hint' }, '±10% 扰动对终点的影响')),
@@ -1046,6 +1244,7 @@ window.__ModuleLoader__.load({
             key: k, className: 'sn-btn' + (scenario === k ? ' sn-btn-primary' : ''),
             onClick: () => applyScenario(k),
           }, SCENARIOS[k].name.split(' · ')[0]))));
+      };
 
       /* ── 三岔路口 ── */
       const branchTab = () => {
@@ -1095,8 +1294,38 @@ window.__ModuleLoader__.load({
                     h('td', { style: { fontSize: 11 } }, r.cond),
                     h('td', { style: { fontSize: 11 } }, r.m),
                     h('td', { style: { fontSize: 11 } }, r.e),
-                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === '是' ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));
-      };
+                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === '是' ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));};
+
+      /* v1.3 E2/E3：稳健性卡（蒙特卡洛分布 + 最小翻转反方读法）。
+         独立定义、在 dispatcher 处与 branchTab 拼接，避免改动上方的巨型表达式。 */
+      const ROB_COLORS = ['#2f9e63', '#e0a63a', '#4f8cff', '#8b3a42', '#7b8ba3', '#f45b68'];
+      const robustCard = h('div', { className: 'sn-card', style: { marginTop: 12 } },
+        h('div', { className: 'sn-card-head' }, '稳健性 · 蒙特卡洛',
+          h('span', { className: 'sn-hint' }, '±8% 扰动 × 240 次 · 分布而非单点')),
+        h('div', { className: 'sn-pad' },
+          h('div', { style: { position: 'relative', height: 16, borderRadius: 8, overflow: 'hidden', display: 'flex', marginBottom: 6 } },
+            rob.outcomes.map((o, i) => h('div', {
+              key: o.name,
+              style: {
+                flex: o.count + ' 1 0',
+                background: ROB_COLORS[i % 6],
+                opacity: 0.85,
+                borderRight: i < rob.outcomes.length - 1 ? '2px solid var(--dsw-alias-bg-base)' : 'none',
+              },
+            }))),
+          h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 11, marginBottom: 8 } },
+            rob.outcomes.map((o, i) => h('span', { key: o.name },
+              h('span', { style: { color: ROB_COLORS[i % 6], fontWeight: 600 } }, '■'),
+              ' ' + o.name + ' ' + Math.round(o.pct * 100) + '%')),
+            h('span', { style: { marginLeft: 'auto', fontWeight: 600 } }, '一致性 ' + Math.round(rob.agreement * 100) + '%')),
+          h('div', { style: { fontSize: 11.5, lineHeight: 1.7 } },
+            rev
+              ? h('span', null,
+                h('b', null, '反方读法：'), '把「', LEVER_BY_KEY[rev.lever].name, '」从 ',
+                Math.round(rev.from * 100) + '% 调到 ' + Math.round(rev.to * 100) + '%（Δ' + Math.round(rev.delta * 100) + '），结局即翻转为「', rev.outcome, '」——本结论对该杠杆敏感。')
+              : h('span', null,
+                h('b', null, '反方读法：'), '±8% 扰动与任何单制度杠杆极端化都无法翻转本结论——在当前参数域内，它是稳健的。'))));
+      const branchTabWithRobust = () => h('div', null, branchTab(), robustCard);
 
       /* ── 指标 ── */
       const metricsTab = () => {
@@ -1109,6 +1338,14 @@ window.__ModuleLoader__.load({
         const py = (v) => 228 - v * 216;
         const cur = sim.years.filter((y) => y.year === year)[0] || sim.final;
         const traj = sim.years.map((y) => px(y.metrics.penetration).toFixed(1) + ',' + py(y.metrics.socialization).toFixed(1)).join(' ');
+        // v1.3 X2：政策激活时叠加无政策幽灵轨迹（灰虚线）+ 干预年圆环 —— 两条
+        // 轨迹的分叉即「制度选择改变历史」的可视化。
+        const ghostActive = !!(policy && policy.overrides && ghostSim);
+        const ghostTraj = ghostActive
+          ? ghostSim.years.map((y) => px(y.metrics.penetration).toFixed(1) + ',' + py(y.metrics.socialization).toFixed(1)).join(' ')
+          : null;
+        const ghostYear = ghostActive
+          ? ghostSim.years.filter((y) => y.year === year)[0] || ghostSim.final : null;
         const curPo = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
         const curCap = target.capture !== undefined ? target.capture : NOW.capture;
         const poSteps = [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0];
@@ -1123,6 +1360,13 @@ window.__ModuleLoader__.load({
           h('text', { x: px(GATE_PEN) + 4, y: 20, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.68'),
           h('text', { x: 42, y: py(GATE_SOC) - 4, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.48'),
           h('polyline', { points: traj, fill: 'none', stroke: '#4f8cff', strokeWidth: 2, strokeLinejoin: 'round' }),
+          ghostActive ? h('polyline', { points: ghostTraj, fill: 'none', stroke: 'rgba(150,158,175,.75)', strokeWidth: 1.5, strokeDasharray: '5 4' }) : null,
+          ghostActive ? h('circle', {
+            cx: px(sim.years.filter((y) => y.year >= policy.year)[0].metrics.penetration),
+            cy: py(sim.years.filter((y) => y.year >= policy.year)[0].metrics.socialization),
+            r: 5, fill: 'none', stroke: '#e0a63a', strokeWidth: 2,
+          }) : null,
+          ghostActive ? h('circle', { cx: px(ghostYear.metrics.penetration), cy: py(ghostYear.metrics.socialization), r: 3.5, fill: 'rgba(150,158,175,.9)' }) : null,
           h('circle', { cx: px(cur.metrics.penetration), cy: py(cur.metrics.socialization), r: 4.5, fill: '#e6edf7', stroke: '#4f8cff', strokeWidth: 2 }),
           h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '渗透度 →'),
           h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
@@ -1177,7 +1421,7 @@ window.__ModuleLoader__.load({
                 h(LineChart, { years: sim.years, series: series, cursorYear: year, window: sim.window, height: 175 }))))),
           h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化', h('span', { className: 'sn-hint' }, '虚线为闸门 0.68 / 0.48')),
+              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化', h('span', { className: 'sn-hint' }, ghostActive ? '灰虚线 = 无政策幽灵轨迹 · 圆环 = 干预年' : '虚线为闸门 0.68 / 0.48')),
               h('div', { className: 'sn-pad' }, phaseSvg)),
             h('div', { className: 'sn-card' },
               h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获', h('span', { className: 'sn-hint' }, '点击格子载入该组合')),
@@ -1325,7 +1569,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'sn-body' },
           tab === 'timeline' ? timelineTab()
             : tab === 'engine' ? engineTab()
-              : tab === 'branch' ? branchTab()
+              : tab === 'branch' ? branchTabWithRobust()
                 : tab === 'metrics' ? metricsTab()
                   : tab === 'compare' ? compareTab()
                     : theoryTab()),
