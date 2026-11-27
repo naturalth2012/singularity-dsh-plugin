@@ -1,6 +1,6 @@
 {
   "name": "singularity-dsh-plugin",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": false,
   "description": "AI 时代的社会形态演化模拟：可交互的历史推演器，作为 DeepSeek Harness 中的一个全宽面板",
   "keywords": [
@@ -42,6 +42,7 @@
     "locale/*.json",
     "icon.svg",
     "assets/*.png",
+    "docs/DETAIL.md",
     "README.md",
     "PUBLISHING.md",
     "MODEL-CONTRACT.md",
