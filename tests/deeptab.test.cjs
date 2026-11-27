@@ -129,6 +129,9 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare', 'health']
       joined.includes('阶段可达性') && joined.includes('结构性不可达')
       && joined.includes('稀有但可达'));
     check('health 含 2024 起点固定说明', joined.includes('2024 起点固定'));
+    // v2.1：i18n 后中文环境必须仍然逐字显示中文
+    check('v2.1 中文环境仍显示中文（无 key 泄漏）',
+      !/b2[abc]\.\d+/.test(joined) && !/metric\.\w+/.test(joined));
   } else {
     check('theory 含合取命题与映射表', joined.includes('合取命题 · 两个闸门缺一不可') && joined.includes('cognition / compute / automation'));
     check('theory 含四张反驳卡', ['技术封建化', '生态天花板', '计算问题', '路径依赖'].every((k) => joined.includes(k)));
