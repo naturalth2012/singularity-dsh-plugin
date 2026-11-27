@@ -1070,14 +1070,30 @@ window.__ModuleLoader__.load({
       return h('div', { className: 'sn-track' },
         STAGES.map((st) => {
           const on = st.id === p.currentId;
+          // v1.8：stage 0 是「前史」——stageOf 不会返回它（契约 §7.1）。
+          // 明确标注，避免读者以为 2024 年引擎会判定为「商业资本主义」。
+          const prehistory = st.id === 0;
           return h('div', {
             key: st.id, className: 'sn-node' + (on ? ' on' : ''),
             style: { color: on ? st.color : 'var(--dsw-alias-label-primary)', opacity: on || st.id <= p.currentId ? 1 : 0.55 },
             onClick: () => p.onPick(st),
-            title: st.thesis,
+            title: prehistory
+              ? st.thesis + '\n\n（前史标注：引擎不返回此阶段，阶段判定最低为「算法资本主义」——契约 §7.1）'
+              : st.thesis,
           },
             h('div', { className: 'i' }, '0' + (st.id + 1)),
-            h('div', { className: 'n', style: on ? { color: st.color } : null }, st.name),
+            h('div', { className: 'n', style: on ? { color: st.color } : null },
+              st.name,
+              prehistory
+                ? h('span', {
+                  style: {
+                    fontSize: 8.5, fontWeight: 500, marginLeft: 4, padding: '1px 4px',
+                    borderRadius: 3, background: 'var(--dsw-alias-bg-layer-2)',
+                    color: 'var(--dsw-alias-label-secondary)', verticalAlign: 'middle',
+                  },
+                  title: '引擎不返回此阶段（契约 §7.1）',
+                }, '前史')
+                : null),
             h('div', { className: 's' }, st.thesis.slice(0, 14) + '…'));
         }));
     }
@@ -1285,7 +1301,7 @@ window.__ModuleLoader__.load({
        docs/calibration.json 注入，勿手改。重跑：npm run calibrate
        （生成 → 注入 → 契约断言三者一致）
        HEALTH-DATA-END */
-    const HEALTH_DATA = {"generatedAt":"2026-11-27T07:53:51.245Z","version":"1.6.0","commit":"d107b19","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
+    const HEALTH_DATA = {"generatedAt":"2026-11-27T08:26:17.972Z","version":"1.8.0","commit":"5534922","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"stageReachability":{"samples":20000,"yearSnapshots":740000,"stages":[{"id":0,"name":"商业资本主义","count":0,"pct":0},{"id":1,"name":"算法资本主义","count":109334,"pct":14.8},{"id":2,"name":"极化资本主义","count":362221,"pct":48.9},{"id":3,"name":"分岔点","count":140068,"pct":18.9},{"id":4,"name":"过渡社会","count":15277,"pct":2.1},{"id":5,"name":"共产主义初级形态","count":2663,"pct":0.4},{"id":6,"name":"自由人联合体","count":0,"pct":0},{"id":7,"name":"算力封建制","count":20795,"pct":2.8},{"id":8,"name":"改良资本主义","count":3222,"pct":0.4},{"id":9,"name":"崩解","count":76150,"pct":10.3},{"id":10,"name":"未竟的过渡","count":10270,"pct":1.4}],"structurallyUnreachable":[{"id":0,"name":"商业资本主义","groups":0,"reason":"stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"}],"rareButReachable":[{"id":6,"name":"自由人联合体","groups":0,"note":"需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"}],"start2024":{"penetrationWhenLeversZero":0.4008,"penetrationWhenLeversFull":0.4008,"fixed":true,"caveat":"2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"},"techOnlyBeforeGate":{"samples":1625,"verified":true,"caveat":"pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
 
       const applyScenario = (key) => {
         setScenario(key);
@@ -1960,6 +1976,44 @@ window.__ModuleLoader__.load({
                     '300 组样本中路径最多翻转 ' + d.asymmetries.chattering.maxFlips + ' 次。'
                     + d.asymmetries.chattering.caveat))))),
 
+          // v1.8：阶段可达性 —— 区分「结构性不可达」与「稀有但可达」
+          h('div', { className: 'sn-card', style: { marginTop: 12 } },
+            h('div', { className: 'sn-card-head' }, '阶段可达性',
+              h('span', { className: 'sn-hint' }, d.stageReachability.samples + ' 组 × 37 年 = '
+                + (d.stageReachability.yearSnapshots / 10000).toFixed(0) + ' 万年份快照')),
+            h('div', { className: 'sn-pad' },
+              h('div', { style: { fontSize: 11, color: 'var(--dsw-alias-label-secondary)', marginBottom: 8, lineHeight: 1.65 } },
+                '七阶段轨道里，有一个阶段引擎从不返回——这不是数据缺失，是判定逻辑的边界。'),
+              (d.stageReachability.structurallyUnreachable || []).map((u) => h('div', {
+                key: 'u' + u.id,
+                style: { padding: '8px 10px', borderRadius: 6, background: 'rgba(214,69,80,.10)', marginBottom: 8 },
+              },
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3, color: '#d64550' } },
+                  '结构性不可达：' + u.name),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, u.reason),
+                h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
+                  '实测：' + d.stageReachability.samples + ' 组随机参数中出现 ' + u.groups + ' 次。'
+                  + '它在阶段轨道上标为「前史」——用于叙事，不是运行时状态。'))),
+              (d.stageReachability.rareButReachable || []).map((r) => h('div', {
+                key: 'r' + r.id,
+                style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', marginBottom: 8 },
+              },
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } },
+                  '稀有但可达：' + r.name),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, r.note))),
+              h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, '2024 起点固定'),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
+                  '杠杆全零时首年渗透度 ' + d.stageReachability.start2024.penetrationWhenLeversZero
+                  + '，全拉满时 ' + d.stageReachability.start2024.penetrationWhenLeversFull
+                  + (d.stageReachability.start2024.fixed ? '——完全相同。' : '——不同。')),
+                h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
+                  d.stageReachability.start2024.caveat)),
+              h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', marginTop: 8 } },
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, '岔路前由技术单变量决定'),
+                h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
+                  d.stageReachability.techOnlyBeforeGate.caveat)))),
+
           // 六剧本锚点：读者可核对面板显示与采样报告是否一致
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, '六剧本锚点',
@@ -1982,6 +2036,30 @@ window.__ModuleLoader__.load({
           { id: 'R2', name: '生态天花板', cond: '位置品与生态容量不可自动化', impact: '丰裕度无法归零，按需分配存在物理上限，「后稀缺」永远不完整。', reply: '契约 §9 声明模型域边界：abundance 只对标准化物质与服务产出成立。' },
           { id: 'R3', name: '计算问题', cond: '算力不等于偏好加总', impact: '计划面临信息与激励双重难题，协调杠杆可能只是纸面能力。', reply: 'meaning / coordination 杠杆是定性 proxies；契约 §9 声明此为模型最强假设之一。' },
           { id: 'R4', name: '路径依赖', cond: '同一技术基础，制度多解', impact: '历史不存在单线宿命，任何「必然论」都会被反例削弱。', reply: '四条引力路径并行竞争的设计本身 —— 引擎从不断言唯一终点。' },
+        ];
+        /* v1.8：阶段语义的已知局限（P1-3 披露）。三条都是实测确认的，
+           不是推测——契约 §7.1–§7.3 有对应声明，模型体检页有数据。 */
+        const STAGE_LIMITS = [
+          {
+            id: 'L1', title: '阶段 0 不可达',
+            fact: 'STAGES[0]「商业资本主义」是前史标注，stageOf 最低只返回「算法资本主义」。'
+              + '20000 组随机参数 × 37 年 = 74 万个年份快照中，它出现 0 次。',
+            why: '它用于叙事与阶段轨道展示（我们从哪来），不是引擎会返回的运行时状态。',
+          },
+          {
+            id: 'L2', title: '2024 起点固定',
+            fact: '2024 年所有杠杆取 NOW 基准值，技术渗透度恒为 0.4008——'
+              + '杠杆全零与全拉满，首年渗透度完全相同。',
+            why: '插值起点的设计使然。副作用是时间轴停在 2024 时显示的阶段恒为「极化资本主义」，'
+              + '而叙事上 2024 应是前史向算法资本主义的过渡。阶段轨道已把 stage 0 标为「前史」。',
+          },
+          {
+            id: 'L3', title: '岔路前阶段由技术单变量决定',
+            fact: '渗透度未越过 0.68 时，stageOf 只看 penetration。'
+              + '固定渗透度、扫遍制度/社会/意义全网格（1625 个样本），阶段恒定不变。',
+            why: '这是本模型最该被质疑的简化之一：一个制度完全崩溃但技术仍在推进的世界，'
+              + '与一个制度健全的世界，在前三阶段看起来一样。制度杠杆只在越线后才开始裁决方向。',
+          },
         ];
         return h('div', null,
         h('div', { className: 'sn-quote' },
@@ -2015,8 +2093,20 @@ window.__ModuleLoader__.load({
               h('div', { style: { fontSize: 11.5, lineHeight: 1.7 } }, rb.impact),
               h('div', { style: { fontSize: 11, lineHeight: 1.7, marginTop: 6, color: 'var(--dsw-alias-label-secondary)' } },
                 h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '模型回应：'), rb.reply))))),
-        h('div', { className: 'sn-card' },
-          h('div', { className: 'sn-card-head' }, '本路径的判定'),
+        // v1.8：阶段语义的已知局限 —— 实测确认，非推测
+        h('div', { className: 'sn-card', style: { marginBottom: 12 } },
+          h('div', { className: 'sn-card-head' }, '已知局限 · 阶段语义',
+            h('span', { className: 'sn-hint' }, '契约 §7.1–§7.3')),
+          h('div', { className: 'sn-pad', style: { display: 'grid', gap: 10 } },
+            STAGE_LIMITS.map((lim) => h('div', {
+              key: lim.id,
+              style: { padding: '9px 11px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' },
+            },
+              h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, lim.id + ' · ' + lim.title),
+              h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, lim.fact),
+              h('div', { style: { fontSize: 11, lineHeight: 1.7, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
+                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '为什么：'), lim.why))))),
+        h('div', { className: 'sn-card' },          h('div', { className: 'sn-card-head' }, '本路径的判定'),
           h('div', { className: 'sn-pad' },
             h('div', { style: { display: 'flex', gap: 9, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' } },
               h('span', { className: 'sn-pill', style: { color: sim.outcome.color } }, sim.outcome.name),
