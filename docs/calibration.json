@@ -1,0 +1,149 @@
+{
+  "generatedAt": "2026-11-27T07:53:51.245Z",
+  "version": "1.6.0",
+  "commit": "d107b19",
+  "seed": 42,
+  "samples": 2000,
+  "note": "构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。",
+  "outcomeDistribution": [
+    {
+      "name": "停滞的资本主义",
+      "count": 1322,
+      "pct": 66.1
+    },
+    {
+      "name": "文明崩解",
+      "count": 455,
+      "pct": 22.8
+    },
+    {
+      "name": "算力封建制",
+      "count": 76,
+      "pct": 3.8
+    },
+    {
+      "name": "过渡社会",
+      "count": 70,
+      "pct": 3.5
+    },
+    {
+      "name": "未竟的过渡",
+      "count": 40,
+      "pct": 2
+    },
+    {
+      "name": "共产主义初级形态",
+      "count": 20,
+      "pct": 1
+    },
+    {
+      "name": "社会民主主义终点",
+      "count": 17,
+      "pct": 0.9
+    }
+  ],
+  "winnerDistribution": [
+    {
+      "key": "communism",
+      "count": 922,
+      "pct": 46.1
+    },
+    {
+      "key": "feudalism",
+      "count": 499,
+      "pct": 25
+    },
+    {
+      "key": "collapse",
+      "count": 476,
+      "pct": 23.8
+    },
+    {
+      "key": "social_democracy",
+      "count": 103,
+      "pct": 5.2
+    }
+  ],
+  "rentQuantiles": {
+    "p10": 0.15,
+    "p25": 0.224,
+    "p50": 0.304,
+    "p75": 0.424,
+    "p90": 0.55,
+    "bands": {
+      "safe": 78.7,
+      "watch": 14.7,
+      "warn": 5,
+      "formed": 1.7
+    }
+  },
+  "asymmetries": {
+    "collapseGain": {
+      "value": 1.8,
+      "winRatePct": 23.8,
+      "caveat": "该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"
+    },
+    "socialDemocracy": {
+      "totalSamples": 5000,
+      "wins": 255,
+      "winsWithLowPublicOwnership": 255,
+      "pathDependencyConfirmed": true,
+      "caveat": "reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"
+    },
+    "chattering": {
+      "samples": 300,
+      "maxFlips": 3,
+      "histogram": {
+        "0": 68,
+        "1": 201,
+        "2": 30,
+        "3": 1
+      },
+      "caveat": "前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"
+    }
+  },
+  "anchors": [
+    {
+      "scenario": "baseline",
+      "name": "基准线 · 技术狂奔，制度滞后",
+      "outcome": "算力封建制",
+      "rent": 0.59,
+      "development": 0.363
+    },
+    {
+      "scenario": "social_democracy",
+      "name": "社会民主主义 · 红利全民分红",
+      "outcome": "社会民主主义终点",
+      "rent": 0.527,
+      "development": 0.516
+    },
+    {
+      "scenario": "techno_feudalism",
+      "name": "算力封建制 · 寡头俘获",
+      "outcome": "算力封建制",
+      "rent": 0.761,
+      "development": 0.267
+    },
+    {
+      "scenario": "planned_transition",
+      "name": "计划性转型 · 有组织的过渡",
+      "outcome": "共产主义初级形态",
+      "rent": 0.322,
+      "development": 0.658
+    },
+    {
+      "scenario": "collapse",
+      "name": "崩解 · 高冲击 + 高对抗",
+      "outcome": "文明崩解",
+      "rent": 0.684,
+      "development": 0.132
+    },
+    {
+      "scenario": "commons",
+      "name": "全域共享 · 后稀缺共产主义",
+      "outcome": "自由人联合体",
+      "rent": 0.076,
+      "development": 0.863
+    }
+  ]
+}
