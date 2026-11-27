@@ -6,6 +6,26 @@
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-11-27
+
+### Fixed
+- **`engine.snapshot.js` 是语法错误的废文件**（v1.4.0 引入，审核发现）：
+  `extract-engine.cjs` 用裸 `indexOf('ENGINE-BEGIN')` 切片，起点落在注释块
+  内部，切掉了开头的 `/*` 与结尾的 `*/`，生成的文件连 `node --check` 都过不了。
+  更糟的是 contract-check 的 7d 断言用**同一段错误切片**做「逐字节一致」比对，
+  自我印证通过——这正是 C3 本应防住的失败模式。
+  修复：切片边界改为 `lastIndexOf('/*', mark)` … `indexOf('*/', mark) + 2`
+  （与契约主体切片同源）；快照改为 ESM `export default createEngine(requires)`
+  （本包 `type: module`，原 `module.exports` 在 Node 下必然抛
+  `module is not defined`）；导出面显式列出 31 个引擎符号。
+- **快照护栏从「字符串包含」升级为「真实可用」**：新增 4 项断言——ESM 导出
+  形态、无 CommonJS 残留、`node --check` 语法可解析、**子进程真实装载并核对
+  契约锚点**（baseline 终年租金 0.59 / reversal 存在 / mulberry32 同种子确定）。
+  已回退验证：把切片逻辑改回旧写法，这三项会同时变红。
+
+### Changed
+- 自动化检查 224 → **228 项**（契约 60 → 64）。
+
 ## [1.4.1] - 2026-11-27
 
 ### Fixed
