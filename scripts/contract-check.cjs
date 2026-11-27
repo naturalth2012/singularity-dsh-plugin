@@ -546,6 +546,85 @@ console.log('\n=== 7m. i18n 分层（v2.0）===');
     /ctx\.get\('locale'\)/.test(client) && /catch \(e\) \{ localeSvc = null; \}/.test(client));
 }
 
+/* ── 7n. 回归审计加固（v2.0 审计报告 §7）── */
+console.log('\n=== 7n. 回归加固（审计报告 §7）===');
+{
+  const fsx = require('fs');
+  const pathx = require('path');
+
+  // §7.1 校准版本必须与 package 版本一致（防元信息滞后）
+  const pkg = JSON.parse(fsx.readFileSync(pathx.join(ROOT, 'package.json'), 'utf8'));
+  const cal = JSON.parse(fsx.readFileSync(pathx.join(ROOT, 'docs', 'calibration.json'), 'utf8'));
+  check('校准版本与 package 版本一致', cal.version === pkg.version,
+    'calibration=' + cal.version + ' package=' + pkg.version);
+  // 注入到 client 的 HEALTH_DATA 也必须同版本
+  const hm = /const HEALTH_DATA = (\{[\s\S]*?\});\n/.exec(client);
+  let injectedVersion = null;
+  try { injectedVersion = hm ? JSON.parse(hm[1]).version : null; } catch (e) { injectedVersion = null; }
+  check('注入的 HEALTH_DATA 版本与 package 一致',
+    injectedVersion === pkg.version,
+    'injected=' + injectedVersion + ' package=' + pkg.version);
+
+  // §7.2 六剧本基线硬编码期望（不依赖「引擎区 hash 不变」间接保证）。
+  // anchors 是数组，每项含 scenario / outcome / rent / development。
+  const BASELINE = {
+    baseline: '算力封建制',
+    social_democracy: '社会民主主义终点',
+    techno_feudalism: '算力封建制',
+    planned_transition: '共产主义初级形态',
+    collapse: '文明崩解',
+    commons: '自由人联合体',
+  };
+  const anchorList = Array.isArray(cal.anchors) ? cal.anchors : [];
+  const byScenario = {};
+  anchorList.forEach((a) => { if (a && a.scenario) byScenario[a.scenario] = a; });
+  check('校准锚点含六个剧本', Object.keys(BASELINE).every((k) => byScenario[k]),
+    Object.keys(byScenario).length + '/6');
+  const anchorMismatch = [];
+  Object.keys(BASELINE).forEach((k) => {
+    const a = byScenario[k];
+    if (!a) { anchorMismatch.push(k + ':缺失'); return; }
+    if (a.outcome !== BASELINE[k]) anchorMismatch.push(k + '=' + a.outcome);
+  });
+  check('六剧本结局与硬编码期望一致', anchorMismatch.length === 0,
+    anchorMismatch.length ? anchorMismatch.join(', ') : '6/6');
+  // 租金与开发度必须落在合理区间（防止采样漂移没被发现）
+  const rentBad = Object.keys(BASELINE).filter((k) => {
+    const a = byScenario[k];
+    return !a || !(a.rent >= 0 && a.rent <= 1.2) || !(a.development >= 0 && a.development <= 1);
+  });
+  check('六剧本租金/开发度数值合理', rentBad.length === 0,
+    rentBad.length ? rentBad.join(',') : 'ok');
+
+  // §7.3 七标签页渲染片段数下界（防括号错位吞卡片）
+  // 这些数字来自 v2.0 实测；下界留 5% 余量，防止正常微调误报。
+  const RENDER_FLOOR = {
+    timeline: 20, engine: 140, branch: 75, metrics: 250,
+    compare: 80, theory: 90, health: 110,
+  };
+  const probePath = pathx.join(ROOT, 'scripts', 'render-probe.cjs');
+  check('渲染探针存在（供 §7.3 使用）', fsx.existsSync(probePath));
+  if (fsx.existsSync(probePath)) {
+    const { execFileSync } = require('child_process');
+    let probeOut = null;
+    try {
+      probeOut = execFileSync(process.execPath, [probePath], {
+        encoding: 'utf8', timeout: 120000, cwd: ROOT,
+      });
+    } catch (e) { probeOut = null; }
+    let counts = null;
+    try { counts = probeOut ? JSON.parse(probeOut.trim().split('\n').pop()) : null; } catch (e) { counts = null; }
+    check('渲染探针可运行', counts !== null);
+    if (counts) {
+      const below = Object.keys(RENDER_FLOOR).filter((k) => !(counts[k] >= RENDER_FLOOR[k]));
+      check('七标签页渲染片段数均不低于下界', below.length === 0,
+        below.length
+          ? below.map((k) => k + '=' + counts[k] + '<' + RENDER_FLOOR[k]).join(', ')
+          : Object.keys(RENDER_FLOOR).map((k) => k + '=' + counts[k]).join(' '));
+    }
+  }
+}
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
