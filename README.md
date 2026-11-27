@@ -129,15 +129,15 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部六项
-node scripts\contract-check.cjs     # 104/104  契约一致性
+node scripts\contract-check.cjs     # 111/111  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
 node tests\adversarial.test.cjs     # 29/29  对抗回归
-node tests\mount.test.cjs           # 59/59  插件契约与渲染
-node tests\deeptab.test.cjs         # 33/33  深层渲染冒烟
+node tests\mount.test.cjs           # 68/68  插件契约与渲染
+node tests\deeptab.test.cjs         # 38/38  深层渲染冒烟
 node scripts\preflight.cjs          # 37/37  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（340 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（361 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -329,6 +329,20 @@ v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANG
 可达，不能因小样本零出现就误判为缺陷。理论页、体检页、详情文档三处都已披露。
 
 测试 322 → **340 项**。
+
+## v1.9 键盘可达性（2026-11-27）
+
+审计发现**核心交互全在 div 上**——键盘用户完全无法使用面板。引擎仍零改动，
+鼠标交互行为完全不变。
+
+- **阶段轨道节点改 `<button>`**：原生语义 + Enter/Space + 焦点环。
+- **热力图键盘导航**：49 个 SVG 单元格用 **roving tabindex**（只有当前格可 Tab 到，
+  方向键在网格内移动，回车/空格载入）——避免 49 个 Tab 停靠点。
+- **时间轴年份行、弹窗**：`role="button"` / `role="dialog"` + Esc 关闭 + 焦点移入。
+- **`:focus-visible` 焦点样式**（8 条）：键盘导航才显示焦点环，鼠标点击不显示。
+
+改动前 6 处「可点击的非 button 元素」，改动后 0。测试 340 → **361 项**，
+其中「无裸 div 可点击」的回退守卫在本次改动中真的抓到 6 处遗漏。
 
 ## 卸载
 
