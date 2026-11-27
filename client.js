@@ -1082,6 +1082,87 @@ window.__ModuleLoader__.load({
         }));
     }
 
+    /* ── 错误边界（v1.7 T-A1）──
+       为什么需要：7 个标签页各是几百行 JSX 三元表达式，任一页运行时抛异常，
+       React 18 会卸载整棵树 → 白屏，用户连切换标签的机会都没有。
+       这不是假想风险：v1.5 插入 h(...) 时括号算错就导致分岔点卡整体不渲染。
+
+       设计决策：
+       1) 只包内容区（sn-body），不包整棵树 —— 标签栏存活，用户可切到别的页
+       2) key={tab} 强制切页时重建 boundary，实现「切页自动恢复」
+       3) 不隐藏错误：明确说是插件缺陷，给堆栈与复制按钮，便于反馈 */
+    class SnErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { error: null, info: null };
+        this.handleReset = this.handleReset.bind(this);
+        this.handleCopy = this.handleCopy.bind(this);
+      }
+
+      static getDerivedStateFromError(error) {
+        return { error: error };
+      }
+
+      componentDidCatch(error, info) {
+        this.setState({ info: info });
+      }
+
+      handleReset() {
+        this.setState({ error: null, info: null });
+      }
+
+      handleCopy() {
+        const err = this.state.error;
+        const detail = [
+          'Singularity 面板渲染异常',
+          '标签页: ' + this.props.tabLabel,
+          '错误: ' + (err && err.message ? err.message : String(err)),
+          '堆栈: ' + (err && err.stack ? err.stack : '（无）'),
+          '组件栈: ' + (this.state.info && this.state.info.componentStack
+            ? this.state.info.componentStack.slice(0, 1200) : '（无）'),
+        ].join('\n');
+        try {
+          if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(detail);
+          }
+        } catch (e) { /* 剪贴板不可用时静默 —— 用户仍可手动选中文本 */ }
+      }
+
+      render() {
+        if (!this.state.error) return this.props.children;
+        const err = this.state.error;
+        return h('div', { className: 'sn-card', style: { margin: 12 } },
+          h('div', { className: 'sn-card-head', style: { color: '#d64550' } }, '这一页渲染出错了'),
+          h('div', { className: 'sn-pad' },
+            h('div', { style: { fontSize: 12.5, lineHeight: 1.8, marginBottom: 10 } },
+              '这是插件自身的缺陷，不是你的操作问题。模型引擎没有受影响——'
+              + '切到其他标签页可以继续使用，或者点下面的按钮重试。'),
+            h('div', {
+              style: {
+                padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)',
+                fontFamily: 'ui-monospace, monospace', fontSize: 11, lineHeight: 1.6,
+                whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: 10,
+                maxHeight: 160, overflowY: 'auto',
+              },
+            }, String(err && err.message ? err.message : err)),
+            h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+              h('button', {
+                type: 'button', className: 'sn-btn', onClick: this.handleReset,
+                'aria-label': '重试渲染当前标签页',
+              }, '重试'),
+              h('button', {
+                type: 'button', className: 'sn-btn', onClick: this.handleCopy,
+                'aria-label': '复制错误详情',
+              }, '复制错误详情'),
+              h('span', {
+                style: {
+                  fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)',
+                  alignSelf: 'center', lineHeight: 1.5,
+                },
+              }, '当前标签页：' + (this.props.tabLabel || '未知')))));
+      }
+    }
+
     /* ── 主组件 ── */
     function SingularityApp() {
       // v1.4 B5：深链恢复优先级 URL > localStorage > 默认（坏数据静默忽略）
@@ -1112,6 +1193,17 @@ window.__ModuleLoader__.load({
         if (deepLinkLocked) return;
         savePersisted(target, scenario);
       }, [target, scenario, deepLinkLocked]);
+
+      /* v1.7 T-A4：恢复默认 —— 清空杠杆改写、政策干预与剧本选择，
+         回到「未改写」状态。不弹确认框：拨杠杆是低风险操作，
+         弹框反而烦人；按钮文案已明确说明作用范围。
+         同时解锁 deep link：用户主动重置后，URL 参数不该再压着状态。 */
+      const resetTarget = React.useCallback(() => {
+        setTarget({});
+        setPolicy(null);
+        setScenario('baseline');
+        setDeepLinkLocked(false);
+      }, []);
 
       const sim = React.useMemo(() => simulate(target, policy), [target, policy]);
       const sens = React.useMemo(() => sensitivity(target), [target]);
@@ -1330,7 +1422,14 @@ window.__ModuleLoader__.load({
             h('div', { style: { flex: '1 1 260px', minWidth: 0 } },
               h('div', { style: { fontSize: 13, fontWeight: 650, marginBottom: 3 } }, '制度选择 · 2024 → 2050'),
               h('div', { className: 'sn-sub' }, '技术杠杆有自主趋势（无论怎么选，AI 都会前进）；制度与社会杠杆由你设定。')),
-            h('button', { className: 'sn-btn sn-btn-primary', onClick: () => { setYear(2035); setTab('timeline'); } }, '应用并演化 →'))),
+            h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+              // v1.7 T-A4：恢复默认 —— 拨乱杠杆后不必刷新页面
+              h('button', {
+                className: 'sn-btn', type: 'button', onClick: resetTarget,
+                title: '清空所有杠杆改写与政策干预，回到剧本默认值',
+                'aria-label': '恢复默认杠杆与政策',
+              }, '恢复默认'),
+              h('button', { className: 'sn-btn sn-btn-primary', onClick: () => { setYear(2035); setTab('timeline'); } }, '应用并演化 →')))),
         ['技术', '制度', '社会', '摩擦'].map((g) => h('div', { key: g },
           h('div', { className: 'sn-group-title', style: { color: GROUP_COLOR[g] } }, g),
           h('div', { className: 'sn-levers' },
@@ -1970,13 +2069,17 @@ window.__ModuleLoader__.load({
             }, '导入')),
           ioMsg ? h('div', { style: { flexBasis: '100%', fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } }, ioMsg) : null),
         h('div', { className: 'sn-body' },
+          h(SnErrorBoundary, {
+            key: tab,
+            tabLabel: (TABS.filter((t) => t.id === tab)[0] || {}).label || tab,
+          },
           tab === 'timeline' ? timelineTab()
             : tab === 'engine' ? engineTab()
               : tab === 'branch' ? branchTabWithRobust()
                 : tab === 'metrics' ? metricsTab()
                   : tab === 'compare' ? compareTab()
                   : tab === 'health' ? healthTab()
-                    : theoryTab()),
+                    : theoryTab())),
         picked ? h('div', {
           style: {
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 1000,
