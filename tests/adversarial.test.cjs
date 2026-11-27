@@ -41,7 +41,7 @@ const docStub = { createElement: () => ({ setAttribute() {}, remove() {}, textCo
 const api = new Function('require', 'document', 'window',
   'return (function(){' + patched
   + '\n;return { simulate, targetOf, SCENARIOS, LEVERS, diagnose, decidePath,'
-  + ' branchScores, NOW, TECH_TREND, GATE_PEN, GATE_SOC };'
+  + ' branchScores, NOW, TECH_TREND, GATE_PEN, GATE_SOC, stageOf };'
   + '})();')(
   (name) => (name === 'react' ? ReactStub : {}),
   docStub,
@@ -273,6 +273,54 @@ console.log('\n=== F. 校准报告与实测一致 ===');
     check('校准报告六剧本锚点与当前引擎一致', anchorBad.length === 0,
       anchorBad.length ? '过期: ' + anchorBad.map((a) => a.scenario).join(',') : '6/6 一致');
   }
+}
+
+/* ══ G. 阶段可达性（v1.8）══ */
+console.log('\n=== G. 阶段可达性披露 ===');
+{
+  // G1: stage 0 结构性不可达 —— 大样本必须零出现
+  const rng = makeRng(4242);
+  let stage0 = 0;
+  const N = 3000;
+  for (let k = 0; k < N; k++) {
+    const t = {};
+    api.LEVERS.forEach((lv) => { t[lv.key] = rng(); });
+    const sim = api.simulate(t);
+    if (sim.years.some((y) => y.stage.id === 0)) stage0++;
+  }
+  check('stage 0 在 ' + N + ' 组随机参数中零出现（结构性不可达）', stage0 === 0,
+    stage0 === 0 ? '确认 0 次' : '意外出现 ' + stage0 + ' 次');
+
+  // G2: stage 6 稀有但可达 —— 至少能在某个剧本里到达
+  const commons = api.simulate(api.targetOf('commons'));
+  const has6 = commons.years.some((y) => y.stage.id === 6);
+  check('stage 6 可达（六剧本「全域共享」能到）', has6,
+    has6 ? '终年 ' + commons.years[commons.years.length - 1].stage.name : '不可达');
+
+  // G3: 2024 起点渗透度与杠杆无关（固定 0.4008）
+  const zeroT = {}, fullT = {};
+  api.LEVERS.forEach((lv) => { zeroT[lv.key] = 0; fullT[lv.key] = 1; });
+  const pen0 = api.simulate(zeroT).years[0].metrics.penetration;
+  const pen1 = api.simulate(fullT).years[0].metrics.penetration;
+  check('2024 起点渗透度与杠杆无关', Math.abs(pen0 - pen1) < 1e-9,
+    '零=' + pen0.toFixed(4) + ' 满=' + pen1.toFixed(4));
+  check('2024 起点渗透度为 0.4008（契约 §7.2）', Math.abs(pen0 - 0.4008) < 0.0001,
+    pen0.toFixed(4));
+
+  // G4: 岔路前阶段只由 penetration 决定 —— 固定 pen 扫遍非技术指标，阶段不变
+  const stageIds = new Set();
+  for (let s = 0; s <= 1.0001; s += 0.125) {
+    for (let a = 0; a <= 1.0001; a += 0.125) {
+      for (let m = 0; m <= 1.0001; m += 0.125) {
+        const r = api.stageOf(
+          { penetration: 0.50, socialization: s, abundance: a, meaning: m, devastation: 0 },
+          { meaning: m }, null);
+        stageIds.add(r.stage.id);
+      }
+    }
+  }
+  check('pen=0.50 时非技术指标不影响阶段（P1-3）', stageIds.size === 1,
+    '出现 ' + stageIds.size + ' 种阶段: ' + [...stageIds].join(','));
 }
 
 console.log('\n--- 汇总 ---');
