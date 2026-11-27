@@ -69,6 +69,28 @@ console.log('\n=== locale 元数据 ===');
   }
 });
 
+/* ── v2.0 i18n：视图键 ── */
+console.log('\n=== i18n 视图键（v2.0）===');
+{
+  let zhV = null, enV = null;
+  try { zhV = JSON.parse(read('locale/zh.json')); } catch (e) { /* 上面已断言 */ }
+  try { enV = JSON.parse(read('locale/en.json')); } catch (e) { /* 上面已断言 */ }
+  if (zhV && enV) {
+    const zk = Object.keys(zhV).filter((k) => k !== 'meta').sort();
+    const ek = Object.keys(enV).filter((k) => k !== 'meta').sort();
+    check('zh/en 视图键集一致', JSON.stringify(zk) === JSON.stringify(ek),
+      'zh=' + zk.length + ' en=' + ek.length);
+    check('视图键数量 ≥30', zk.length >= 30, zk.length + ' 个');
+    check('无空视图值',
+      zk.every((k) => typeof zhV[k] === 'string' && zhV[k].trim())
+      && ek.every((k) => typeof enV[k] === 'string' && enV[k].trim()));
+    // 英文不能只是中文的复制（抽样 5 个含中文的键即为漏译）
+    const untranslated = ek.filter((k) => /[\u4e00-\u9fa5]/.test(enV[k]));
+    check('英文视图无中文残留', untranslated.length === 0,
+      untranslated.length ? untranslated.slice(0, 5).join(',') : 'ok');
+  }
+}
+
 console.log('\n=== 文档一致性（v1.5 T3）===');
 {
   const pub = read('PUBLISHING.md');
