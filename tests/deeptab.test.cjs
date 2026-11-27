@@ -50,7 +50,7 @@ function walk(node, out) {
   });
 }
 
-for (const tab of ['metrics', 'theory']) {
+for (const tab of ['metrics', 'theory', 'engine', 'branch']) {
   const err = [];
   let tree = null;
   try { tree = renderWithTab(tab); } catch (e) { err.push(e.message + '\n' + (e.stack || '').split('\n')[1]); }
@@ -63,6 +63,13 @@ for (const tab of ['metrics', 'theory']) {
     check('metrics 含相图（封建稳态域 + 闸门虚线）', joined.includes('封建稳态域') && joined.includes('闸门 0.68'));
     check('metrics 含热力图（点击格子载入该组合）', joined.includes('点击格子载入该组合'));
     check('metrics 相图/热力图为 svg 元素', (out.tags.svg || 0) >= 2, 'svg × ' + (out.tags.svg || 0));
+  } else if (tab === 'engine') {
+    check('engine 含政策沙盒卡与干预年控件', joined.includes('政策沙盒') && joined.includes('干预年'));
+    check('engine 含政策不持久化声明', joined.includes('不持久化'));
+  } else if (tab === 'branch') {
+    check('branch 含分岔橱窗与路径对照', joined.includes('分岔点 · 历史橱窗') && joined.includes('路径对照'));
+    check('branch 含稳健性卡（分布 + 一致性 + 反方读法）',
+      joined.includes('稳健性 · 蒙特卡洛') && joined.includes('一致性') && joined.includes('反方读法'));
   } else {
     check('theory 含合取命题与映射表', joined.includes('合取命题 · 两个闸门缺一不可') && joined.includes('cognition / compute / automation'));
     check('theory 含四张反驳卡', ['技术封建化', '生态天花板', '计算问题', '路径依赖'].every((k) => joined.includes(k)));
