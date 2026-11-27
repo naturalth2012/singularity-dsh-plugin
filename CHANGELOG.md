@@ -6,6 +6,44 @@
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-11-27
+
+**修复：英文界面不生效，切到 English 后仍全是中文。**
+
+根因不在词典内容，而在词典从未进入运行时。`client.js` 只调用了
+`locale.bind(I18N_NS)`，从未调用 `locale.register()`。这两个方法的分工是：
+
+- `register(ns, locale, dict)` —— 把词条交给 locale 服务的注册表
+- `bind(ns)` —— 返回一个「按当前语言查词」的翻译函数
+
+只 bind 不 register，命名空间永远是空的，`bind()` 每次查词都落空，
+`makeTranslator` 只能回落到 `ZH_FALLBACK`（内联中文），于是英文环境
+显示中文。`locale/en.json` 与 `locale/zh.json` 虽然打进了包里，但没有任何
+代码读取它们——它们只服务于 Plugin Manager 的 `meta.title` 展示。
+
+修复分三处：
+
+1. **注入词典**：新增 `scripts/inject-locale.cjs`，把两个 JSON 内联为
+   `client.js` 的 `I18N_DICTS` 常量（浏览器模块无法读文件，必须构建期内联）。
+   沿用 `inject-calibration.cjs` 的既有模式。
+2. **真正注册**：`apply()` 里遍历 `zh`/`en` 调用 `locale.register()`，
+   并用 `ctx.effect` 挂上返回的 disposer，随 Client run 卸载。
+3. **补齐缺失词条**：`zh.json`/`en.json` 各缺 6 个键（`b2c.01` `b2c.02`
+   `b2c.31` `b2c.33` `b2c.45` `b2b.21`）。它们在 `ZH_FALLBACK` 里有中文，
+   却漏在 JSON 里——是历史「补漏」注释的残留。中文下靠 fallback 仍能显示，
+   英文下会直接露出 key。已按上下文补译。
+
+新增两道防线：
+
+- `scripts/i18n-audit.cjs`（`npm run i18n:audit`）——静态断言：
+  代码是否调用 register、注入词典是否与 JSON 一致、键集是否双语对齐。
+- `scripts/i18n-probe.cjs`（`npm run i18n:probe`）——端到端：造一个符合
+  Locale 契约的桩，走真实 `apply()` + 真实 React 渲染，断言英文下出现
+  `Timeline/Engine/Branches…` 且不残留中文标签。已接入 `npm run verify`。
+
+反向验证：把 `register` 调用改为永不执行，探针明确报「词典未注册」；
+恢复后通过。确认这条测试能真正抓住该缺陷。
+
 ## [2.2.1] - 2026-11-27
 
 **修复：面板点开永远空白。** 侧栏图标在、点击无反应——`main` 槽位的
