@@ -416,6 +416,54 @@ check('契约 §12 声明校准一致性约束', doc.includes('docs/calibration.
 check('契约核对方式含 adversarial', doc.includes('tests/adversarial.test.cjs'));
 check('契约核对方式含 deeptab', doc.includes('tests/deeptab.test.cjs'));
 
+/* ── 7j. v1.7 稳定性与发布质量（档 A）── */
+console.log('\n=== 7j. 稳定性与发布质量（v1.7）===');
+check('client.js 有 ErrorBoundary', /class SnErrorBoundary extends React\.Component/.test(client)
+  && /static getDerivedStateFromError/.test(client));
+check('ErrorBoundary 只包内容区而非整棵树',
+  /className: 'sn-body' \},\s*\n\s*h\(SnErrorBoundary/.test(client));
+check('降级 UI 提供重试与复制', /'重试'/.test(client) && /'复制错误详情'/.test(client));
+check('有恢复默认入口', /const resetTarget = React\.useCallback/.test(client)
+  && /onClick: resetTarget/.test(client));
+
+{
+  // 插件详情文档：locale 声明 meta.detail 且文件真实存在非空
+  let detailOk = false, detailMsg = '';
+  try {
+    const zh = JSON.parse(read('locale/zh.json'));
+    const en = JSON.parse(read('locale/en.json'));
+    const rel = zh.meta && zh.meta.detail;
+    detailOk = !!rel && !!en.meta && en.meta.detail === rel;
+    if (!detailOk) detailMsg = 'locale 未声明 meta.detail 或中英不一致';
+    else {
+      const p = path.join(ROOT, rel);
+      const exists = fs.existsSync(p);
+      const size = exists ? fs.statSync(p).size : 0;
+      detailOk = exists && size > 1500;
+      detailMsg = exists ? size + ' 字节' : '文件不存在: ' + rel;
+    }
+  } catch (e) { detailMsg = e.message; }
+  check('插件详情文档 meta.detail 指向真实非空文件', detailOk, detailMsg);
+}
+
+{
+  const pkg = JSON.parse(read('package.json'));
+  check('files 含 docs/DETAIL.md', (pkg.files || []).indexOf('docs/DETAIL.md') >= 0);
+  check('files 含 engine.snapshot.js（工具运行时依赖）',
+    (pkg.files || []).indexOf('engine.snapshot.js') >= 0);
+}
+
+{
+  // AUDIT-FIXES 状态已校准：不应再有已完成的项标「待做」
+  const af = read('AUDIT-FIXES.md');
+  const stale = [];
+  if (/P1-1[^\n]*\[~\]/.test(af)) stale.push('P1-1');
+  if (/P1-2[^\n]*\[~\]/.test(af)) stale.push('P1-2');
+  if (/转正为 `tests\/adversarial\.test\.cjs`[^\n]*\[ \]/.test(af)) stale.push('探针转正');
+  check('AUDIT-FIXES 无过期状态标记', stale.length === 0,
+    stale.length ? '仍标待做: ' + stale.join(', ') : 'ok');
+}
+
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
 const requiredSections = [
