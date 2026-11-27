@@ -6,6 +6,46 @@
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-11-27
+
+**修复：面板点开永远空白。** 侧栏图标在、点击无反应——`main` 槽位的
+`singularity` 占位者被 SlotCore 退位（`active: false`），而其余 16 个插件面板
+全部 `active: true`。
+
+### 根因
+
+`StageTrack` 是模块级组件，却在三处引用了裸 `t(...)`：
+
+```js
+title: prehistory ? st.thesis + t('b2c.46') : st.thesis,   // t 不存在于这个作用域
+```
+
+`t` 只定义在 `SingularityApp` 函数体内，模块级作用域里根本没有它。
+该组件拿到的翻译函数是 `p.t`（调用处传了 `t: t`）。真实 React 首次渲染
+（默认 timeline 页）即抛 `ReferenceError: t is not defined`，
+`SlotErrorBoundary` 捕获 → `onEntryError` 上报 → SlotCore 将条目**退位**。
+此后派发 key `singularity` 时该格已无活条目，渲染为空。
+
+### 为什么既有测试全绿却没拦住
+
+`mount.test.cjs` 与 `render-probe.cjs` 用的都是 **React 桩**：只遍历元素树，
+**从不调用函数型子组件**、也不重渲染。崩溃路径从未被执行过。
+72/72 与 7/7 全通过，而浏览器里 100% 崩——这是测试替身的盲区，不是偶然。
+
+### 连带修复
+
+`SnErrorBoundary` 自身也有 12 处裸 `t(...)`。它平时不渲染，但一旦任何标签页
+崩溃，错误兜底 UI 会再炸一层（边界套边界 → 白屏），「复制错误」按钮也不工作。
+改为经 props 接收 `t`，缺省时用 `makeTranslator(null, ZH_FALLBACK)` 兜底——
+错误兜底 UI 自身绝不能再抛异常。
+
+### 新增回归探针
+
+`scripts/realreact-probe.cjs`（`npm run render:real`）：用**真实 React**
+（react-dom/server）渲染全部七个标签页，专抓桩探针测不出的渲染崩溃。
+React 解析顺序为 `$SINGULARITY_REACT_DIR` → 本包 `node_modules` → 相邻项目；
+都找不到时退出码 3 并打印安装指引（不静默跳过）。
+
 ## [2.2.0] - 2026-11-27
 
 calibration 数据串 i18n。体检页最后 10 条文案双语化，**中文环境逐字不变**，
