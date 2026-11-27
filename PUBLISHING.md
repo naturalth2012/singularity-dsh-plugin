@@ -10,18 +10,32 @@
 `package.json` 里的仓库地址目前是占位符 `CODEOWNER`，**必须先替换**：
 
 ```powershell
-cd D:\AIApp\singularity-plugin
+cd D:\DeepseekAPP\Singularity
 node scripts\set-repo.cjs <你的GitHub用户名>
 ```
 
 然后复核（这一步会检查包名一致性、发布字段、必需文件）：
 
 ```powershell
-node scripts\preflight.cjs      # 应 26/26 全部通过
-node scripts\pack-check.cjs     # 确认打包产物含 8 个运行时文件
-node tests\engine.test.cjs      # 26/26
-node tests\mount.test.cjs       # 20/20
+npm run verify                  # 六套件全绿（见下方自动计数）
+node scripts\pack-check.cjs     # 确认打包产物含 12 个运行时文件
 ```
+
+<!-- counts:auto -->
+
+| 套件 | 结果 |
+|---|---|
+| 契约一致性 | 73/73 |
+| 模型行为 | 78/78 |
+| 对抗回归 | 20/20 |
+| 插件契约与渲染 | 46/46 |
+| 深层渲染冒烟 | 20/20 |
+| 发布一致性 | 29/29 |
+| **合计** | **266/266** |
+
+以上计数由 `npm run counts` 自动生成，手工编辑无效。
+
+<!-- /counts:auto -->
 
 ---
 
@@ -31,7 +45,7 @@ node tests\mount.test.cjs       # 20/20
 `singularity-dsh-plugin`（不要勾选 README / .gitignore / LICENSE），然后：
 
 ```powershell
-cd D:\AIApp\singularity-plugin
+cd D:\DeepseekAPP\Singularity
 git remote add origin https://github.com/<你的用户名>/singularity-dsh-plugin.git
 git push -u origin main
 ```
@@ -77,14 +91,13 @@ node scripts\make-market-entry.cjs
 
 | 文件 | 用途 |
 |------|------|
-| `dist/market-entry.json` | 结构化条目（符合市场 `RegistryPlugin` 结构） |
-| `dist/market-row.md` | Markdown 表格行，多数 awesome 列表直接可用 |
+| `dist/<owner>__<repo>.yml` | 市场条目（按官方 `contributing.md` 规范，一个文件一个插件） |
 | `dist/market-pr.md` | 完整 PR 描述，可直接粘贴 |
 
 然后：
 
 1. Fork [awesome-dsh-plugin/awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)
-2. 按仓库 README 的分类结构，把 `market-row.md` 那行加到 **UI / 可视化** 分类
+2. 只新增 `data/plugins/<owner>__<repo>.yml` 一个文件（**不要**手写 `npm:` 字段，会被校验拒绝）
 3. 提交 PR，描述用 `dist/market-pr.md` 的内容
 4. 合并后通常 **一天内**在 [dshmarket.com](https://dshmarket.com) 与
    [awesome-dsh-plugin.com](https://awesome-dsh-plugin.com) 生效，
@@ -117,13 +130,12 @@ node scripts\make-market-entry.cjs
 
 | 项 | 状态 |
 |---|---|
-| 包名 | `singularity-dsh-plugin`（已从 `@local/singularity` 改名） |
-| 版本 | 1.0.0 |
-| 本地 git | 已初始化，`main` 分支，首个提交完成 |
+| 包名 | `singularity-dsh-plugin` |
+| 版本 | 见 `package.json`（当前 1.5.0） |
+| 本地 git | `main` 分支 |
 | 许可证 | MIT |
 | 运行时依赖 | 0 |
-| 引擎测试 | 26/26 |
-| 挂载契约测试 | 20/20 |
-| 预检 | 25/26（唯一未过项：仓库 URL 仍是 `CODEOWNER`，需第 0 步替换） |
-| 打包产物 | 8 文件 / 90 KB |
+| 打包产物 | 12 文件（`npm run pack-check` 实测） |
 | 已在本机 Harness 安装激活 | 是（槽位 `sidebar.panellist` order 30, active） |
+| 插件市场 | 已收录（awesome-dsh-plugin PR #18788 已合并） |
+| 测试计数 | 见本文件第 0 节的自动计数块 |
