@@ -1,10 +1,11 @@
 {
-  "generatedAt": "2026-11-27T09:34:03.483Z",
-  "version": "2.1.0",
-  "commit": "329fb52",
+  "generatedAt": "2026-11-27T09:47:03.398Z",
+  "version": "2.2.0",
+  "commit": "cf2d7e2",
   "seed": 42,
   "samples": 2000,
   "note": "构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。",
+  "noteEn": "A sampling report generated at build time. Fixed seed, same output for the same version. This is the result of one sampling run, not \"model truth\".",
   "outcomeDistribution": [
     {
       "name": "停滞的资本主义",
@@ -81,14 +82,16 @@
     "collapseGain": {
       "value": 1.8,
       "winRatePct": 23.8,
-      "caveat": "该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"
+      "caveat": "该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。",
+      "caveatEn": "The coefficient is a compile-time constant; this script cannot scan other values from outside. The win rate here is measured under the current coefficient; the contract §9.1 objection (no independent empirical basis) still stands."
     },
     "socialDemocracy": {
       "totalSamples": 5000,
       "wins": 255,
       "winsWithLowPublicOwnership": 255,
       "pathDependencyConfirmed": true,
-      "caveat": "reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"
+      "caveat": "reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。",
+      "caveatEn": "The reformRoom discount disables this path at public_ownership ≥ 0.62 — this is not sampling noise but a necessary consequence of the formula."
     },
     "chattering": {
       "samples": 300,
@@ -99,7 +102,8 @@
         "2": 30,
         "3": 1
       },
-      "caveat": "前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"
+      "caveat": "前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。",
+      "caveatEn": "A feed-forward model has no endogenous tipping point; path flips only occur near the two artificial gates, so chattering is naturally bounded."
     }
   },
   "stageReachability": {
@@ -178,7 +182,8 @@
         "id": 0,
         "name": "商业资本主义",
         "groups": 0,
-        "reason": "stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"
+        "reason": "stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。",
+        "reasonEn": "stageOf only ever returns STAGE_BY_ID[1] at its lowest (pen<0.38 → algorithmic capitalism); there is no branch returning stage 0."
       }
     ],
     "rareButReachable": [
@@ -186,25 +191,29 @@
         "id": 6,
         "name": "自由人联合体",
         "groups": 0,
-        "note": "需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"
+        "note": "需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。",
+        "noteEn": "Requires pen≥0.68, communism winning on gravity, soc≥0.72, abu≥0.78 and meaning≥0.46 simultaneously. The \"universal commons\" scenario reaches it reliably; in random space it is extremely rare (4 groups in a separate unseeded sample of 20000, about 0.02%; 0 groups in this fixed-seed batch)."
       }
     ],
     "start2024": {
       "penetrationWhenLeversZero": 0.4008,
       "penetrationWhenLeversFull": 0.4008,
       "fixed": true,
-      "caveat": "2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"
+      "caveat": "2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。",
+      "caveatEn": "In 2024, u=0, so all levers take their NOW baseline values and first-year penetration is independent of the levers. This follows from the interpolation start point and is not a bug; but it means that with the timeline parked at 2024 the stage shown is always \"polarized capitalism\", whereas narratively 2024 should be the transition from prehistory to algorithmic capitalism."
     },
     "techOnlyBeforeGate": {
       "samples": 1625,
       "verified": true,
-      "caveat": "pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"
+      "caveat": "pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。",
+      "caveatEn": "When pen < GATE_PEN, sweeping the entire institutional/social/meaning grid at fixed penetration leaves the stage unchanged — institutional levers play no part in stage determination before the fork. This is the core of P1-3 and one of the most questionable simplifications in the model."
     }
   },
   "anchors": [
     {
       "scenario": "baseline",
       "name": "基准线 · 技术狂奔，制度滞后",
+      "nameEn": "Baseline · technology races, institutions lag",
       "outcome": "算力封建制",
       "rent": 0.59,
       "development": 0.363
@@ -212,6 +221,7 @@
     {
       "scenario": "social_democracy",
       "name": "社会民主主义 · 红利全民分红",
+      "nameEn": "Social democracy · universal dividend",
       "outcome": "社会民主主义终点",
       "rent": 0.527,
       "development": 0.516
@@ -219,6 +229,7 @@
     {
       "scenario": "techno_feudalism",
       "name": "算力封建制 · 寡头俘获",
+      "nameEn": "Compute feudalism · oligarchic capture",
       "outcome": "算力封建制",
       "rent": 0.761,
       "development": 0.267
@@ -226,6 +237,7 @@
     {
       "scenario": "planned_transition",
       "name": "计划性转型 · 有组织的过渡",
+      "nameEn": "Planned transition · organized passage",
       "outcome": "共产主义初级形态",
       "rent": 0.322,
       "development": 0.658
@@ -233,6 +245,7 @@
     {
       "scenario": "collapse",
       "name": "崩解 · 高冲击 + 高对抗",
+      "nameEn": "Collapse · high shock + high confrontation",
       "outcome": "文明崩解",
       "rent": 0.684,
       "development": 0.132
@@ -240,6 +253,7 @@
     {
       "scenario": "commons",
       "name": "全域共享 · 后稀缺共产主义",
+      "nameEn": "Universal commons · post-scarcity communism",
       "outcome": "自由人联合体",
       "rent": 0.076,
       "development": 0.863
