@@ -142,6 +142,29 @@ const BATCH2 = {
   // ── 第二十二轮 ──
   "2024 起点固定": "2024 baseline fixed",
   "资本俘获度": "Capital capture",
+  // ── 补齐 8 个事件的缺失译文（静态全量核对发现）──
+  "所有人的行为都被采集为训练燃料，而这些人从未被列为「生产者」。": "Every person's behavior is harvested as training fuel, yet none of them were ever counted as \"producers\".",
+  "全民基本收入试点": "Universal basic income pilot",
+  "若干国家以 AI 税为资金来源试点 UBI。它既是缓冲垫，也是把矛盾往后推的止痛药。": "Several countries pilot UBI funded by an AI tax. It is both a cushion and a painkiller that postpones the contradiction.",
+  "「算力即公用事业」立法通过：像电网一样，基础模型与算力向全社会开放。": "\"Compute as a public utility\" is legislated: like the power grid, foundation models and compute are opened to all of society.",
+  "全球 AI 治理协定": "Global AI governance accord",
+  "围墙内的后稀缺": "Post-scarcity behind walls",
+  "生产力早已过剩，但它被产权圈在围墙内：围墙外的人在排队领配额，围墙内在讨论注意力经济。": "Productivity has long been abundant, but property rights fence it in: outside the walls people queue for rations, inside they debate the attention economy.",
+  "食物、住房、医疗、教育、算力实现近乎零边际成本供给，按需分配写入制度。": "Food, housing, healthcare, education and compute reach near-zero marginal cost; distribution by need is written into institutions.",
+  "阶级的经济基础消失": "The economic basis of class disappears",
+  "国家职能收缩为协调与保障；劳动成为自我实现的方式，「每个人自由发展」第一次有了物质前提。": "The state contracts into coordination and security; labor becomes a form of self-realization, and \"the free development of each\" has material preconditions for the first time.",
+  // ── 补齐 STAGES 的 detail 与 keys（静态全量核对发现）──
+  "蒸汽、工厂与流水线把分散的手工业聚合为社会化大生产。生产资料私人占有与生产社会化之间的张力，自此成为历史的主轴。": "Steam, factories and assembly lines gather scattered handicrafts into socialized mass production. The tension between private ownership of the means of production and the social character of production becomes the axis of history from here on.",
+  "推荐、预测与自动化决策渗透进生产调度、信贷、招聘与舆论。数据成为核心生产资料，平台成为新的地理单元：生产率上升，劳动份额下降。": "Recommendation, prediction and automated decisions permeate production scheduling, credit, hiring and public opinion. Data becomes a core means of production and platforms become new geographic units: productivity rises while labor's share falls.",
+  "算法管理": "Algorithmic management",
+  "劳动份额下滑": "Falling labor share",
+  "当 AI 的认知能力越过临界阈值，白领岗位以远快于制度适应的速度消失。收入分布从橄榄形裂为沙漏形；「无用阶级」第一次进入政治议程。这是最危险的一段：制度惰性与技术速度之间的落差本身就是冲击。": "Once AI cognitive capability crosses the critical threshold, white-collar jobs vanish far faster than institutions can adapt. The income distribution splits from an olive into an hourglass; the \"useless class\" enters politics for the first time. This is the most dangerous stretch: the gap between institutional inertia and technological speed is itself the shock.",
+  "分岔点不是一个时刻，而是一个窗口。窗口内四条引力同时作用：寡头俘获 → 算力封建制；再分配改良 → 社会民主主义；公共产权 + 全球协同 → 共产主义过渡；全面对抗 → 文明崩解。引力最高者定义下一个世纪。": "The bifurcation is not a moment but a window. Within it four gravities act at once: oligarchic capture → compute feudalism; redistributive reform → social democracy; public ownership plus global coordination → communist transition; full confrontation → collapse. The strongest gravity defines the next century.",
+  "公共算力与公共数据成为像自来水一样的基础设施；全民分红替代了部分工资。「劳动—工资—消费」的循环被部分解耦，社会开始试验：不靠出卖劳动，也能有尊严地生活。": "Public compute and public data become infrastructure like tap water; a universal dividend replaces part of wages. The work-wages-consumption loop is partly uncoupled, and society begins to experiment: living with dignity without selling one's labor.",
+  "劳动时间下降": "Shorter working hours",
+  "自动化产能与能源过剩，使基本生活品近乎零边际成本。分配不再以劳动时间为中介，阶级的经济基础被抽空，国家的主要职能从统治转向协调。": "Automated capacity and energy surplus bring basic goods to near-zero marginal cost. Distribution no longer passes through labor time, the economic basis of class is hollowed out, and the state's main function shifts from rule to coordination.",
+  "劳动不再是谋生手段，而是自我确证与创造。稀缺被重新定义为注意力、创造力与意义——但这一次，稀缺不再由产权来分配。": "Labor is no longer a means of survival but a form of self-confirmation and creation. Scarcity is redefined as attention, creativity and meaning — but this time scarcity is not allocated by property rights.",
+  "联合体": "Association",
 };
 
 module.exports = { BATCH2 };
