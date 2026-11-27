@@ -129,7 +129,7 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 
 ```bash
 npm run verify                      # 一次性跑全部六项
-node scripts\contract-check.cjs     # 119/119  契约一致性
+node scripts\contract-check.cjs     # 127/127  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
 node tests\adversarial.test.cjs     # 29/29  对抗回归
 node tests\mount.test.cjs           # 72/72  插件契约与渲染
@@ -137,7 +137,7 @@ node tests\deeptab.test.cjs         # 38/38  深层渲染冒烟
 node scripts\preflight.cjs          # 41/41  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（377 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（385 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -363,6 +363,34 @@ v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANG
 
 测试 361 → **377 项**。三种环境实测：无服务 → 中文、`zh-CN` → 中文、
 `en-US` → 英文（`Model health` / `Stage reachability` / `Timeline` 均正确）。
+
+## v2.0.1 跨版本回归审计（2026-11-27）
+
+审计 v1.6.0 → v2.0.0。**结论：四版连推无累积漂移。**
+
+| 维度 | 结果 |
+|---|---|
+| 引擎区字节 | ✅ 五版零漂移（33196 字节，sha1 唯一） |
+| 六剧本基线 | ✅ 五版逐字段零差异 |
+| 引擎行为 | ✅ **v1.6 引擎跑当前 78 项测试全通过** |
+| 工具层输出 | ✅ 五版逐字节一致 |
+| 渲染结构 | ✅ v1.9/v2.0 的 `h()` 调用数零增长 |
+
+「用老引擎跑新测试」比「文件 hash 相同」更强——它证明测试没为迁就代码而放宽。
+
+**修掉的问题**：`calibration.json` 的版本号停在 1.8.0（数据本身正确，但体检页
+会显示错版本）。**新增三项常设断言**，每项都用故障注入验证过能真抓到问题：
+
+| 注入故障 | 断言反应 |
+|---|---|
+| 体检页整卡不渲染（语法合法） | `health=108<110` ✅ |
+| 校准 version 改回 1.8.0 | `calibration=1.8.0 package=2.0.1` ✅ |
+| baseline 结局篡改 | `baseline=文明崩解` ✅ |
+
+新增 `scripts/render-probe.cjs`（`npm run render:probe`）：`node --check` 发现不了
+「括号错位吞卡片」——那种情况语法完全合法。v1.8 曾因此吞掉体检页 4 张卡。
+
+测试 377 → **385 项**。完整报告含**盲区声明**：`docs/AUDIT-REGRESSION-v2.0.md`。
 
 ## 卸载
 
