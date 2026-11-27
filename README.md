@@ -7,6 +7,8 @@ DeepSeek Harness 插件。在 Harness 里增加一个 **Singularity** 面板与�
 > 这不是预言，而是一台**条件显微镜**。它不告诉你哪一年会发生什么，
 > 它把「条件」摊开：同样的技术，不同的制度选择，结局相差数倍。
 
+版本历史见 [CHANGELOG.md](CHANGELOG.md)｜模型契约见 [MODEL-CONTRACT.md](MODEL-CONTRACT.md)
+
 ---
 
 ## 安装
@@ -126,15 +128,16 @@ Client 与 Host 之间**没有** RPC：引擎是纯函数，直接在浏览器�
 <!-- counts:auto -->
 
 ```bash
-npm run verify                      # 一次性跑全部五项
-node scripts\contract-check.cjs     # 64/64  契约一致性
+npm run verify                      # 一次性跑全部六项
+node scripts\contract-check.cjs     # 73/73  契约一致性
 node tests\engine.test.cjs          # 78/78  模型行为
-node tests\mount.test.cjs           # 42/42  插件契约与渲染
-node tests\deeptab.test.cjs         # 18/18  深层渲染冒烟
-node scripts\preflight.cjs          # 26/26  发布一致性
+node tests\adversarial.test.cjs     # 20/20  对抗回归
+node tests\mount.test.cjs           # 46/46  插件契约与渲染
+node tests\deeptab.test.cjs         # 20/20  深层渲染冒烟
+node scripts\preflight.cjs          # 29/29  发布一致性
 ```
 
-以上计数由 `npm run counts` 自动生成（228 项自动化检查），手工编辑无效。
+以上计数由 `npm run counts` 自动生成（266 项自动化检查），手工编辑无效。
 
 <!-- /counts:auto -->
 
@@ -246,7 +249,36 @@ node scripts\preflight.cjs          # 26/26  发布一致性
   二者构成完整分享闭环（政策可分享但不持久化，语义与契约 §8c 一致）。
 - **工程健康**：测试计数全自动（`npm run counts`，市场条目与 README 数字不再手改）、
   引擎快照 `engine.snapshot.js` + 逐字节同步断言（游戏仓库 M2 门槛的前置）、
-  CHANGELOG.md（Keep a Changelog 格式）。自动化检查 204 → **215 项**。
+  CHANGELOG.md（Keep a Changelog 格式）。测试计数见上方「自检」块。
+
+## v1.4.1 / v1.4.2 审核修复（2026-11-27）
+
+v1.4.0 交付后做了独立审核，发现并修复三处缺陷（详见 [CHANGELOG](CHANGELOG.md)）：
+
+- **热力图颜色与点击目标上下颠倒**（v1.2 起潜伏）：构造用升序轴、显示用降序轴，
+  导致「看到的颜色」配的是「另一个产权值」。现构造与显示共用同源轴，
+  并行为级验证 49 格颜色与 title 档位全一致。
+- **深链静默覆盖用户存档**：打开别人分享的 `?t=…` 链接会把你自己的推演写掉。
+  现深链会话锁定持久化，用户一旦手动操作即解锁。
+- **`engine.snapshot.js` 是语法错误的废文件**：切片漏了注释块的 `/*` 与 `*/`，
+  连 `node --check` 都过不了；而契约用同一段错误切片自比，自我印证通过。
+  现快照可真实装载（ESM `createEngine`），护栏从「字符串包含」升级为
+  「语法可解析 + 子进程装载 + 核对契约锚点」。
+
+## v1.5 审核欠账清理（2026-11-27）
+
+**零模型改动**（引擎区逐字节不变）。清理的是「说的」而不是「算的」：
+
+- **对抗测试转正**：`audit-probe*.cjs` 里只打印不断言的取证结论，现在固化为
+  `tests/adversarial.test.cjs`（20 项）并纳入 `npm test`——分布、语义一致性、
+  稳定性、窗口标记、诚实性五组。变异验证过：改一个闸门常数即红 4 条。
+- **文档计数全自动**：`npm run counts` 现在同时重写 README 与 PUBLISHING.md
+  的计数块；PUBLISHING 的错误路径、1.0.0 版本号、26/26 等历史漂移一并修正。
+- **诚实性补完**：三岔路口页新增「晚期反转」标注（窗口末年胜者 ≠ 终年胜者时明示，
+  实测确实存在），路径对照表补社民产权条件，引力卡补上限非对称脚注。
+  契约 §7 同步写明「窗口标记的是敏感区间，不是裁决时刻」。
+
+测试 228 → **266 项**（新增对抗套件 20 项）。
 
 ## 卸载
 
