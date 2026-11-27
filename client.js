@@ -1188,6 +1188,13 @@ window.__ModuleLoader__.load({
       const RENT_COLORS = ['#2f9e63', '#e0a63a', '#e07b39', '#d64550'];
       const RENT_LABELS = ['安全', '关注', '预警', '成形'];
 
+    /* HEALTH-DATA-BEGIN
+       v1.6 T5：模型体检数据 —— 由 scripts/inject-calibration.cjs 从
+       docs/calibration.json 注入，勿手改。重跑：npm run calibrate
+       （生成 → 注入 → 契约断言三者一致）
+       HEALTH-DATA-END */
+    const HEALTH_DATA = {"generatedAt":"2026-11-27T07:53:51.245Z","version":"1.6.0","commit":"d107b19","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
+
       const applyScenario = (key) => {
         setScenario(key);
         setTarget(targetOf(key));
@@ -1747,6 +1754,127 @@ window.__ModuleLoader__.load({
                   })))))));
       };
 
+      /* ── 模型体检（v1.6 T5）──
+         只读展示构建期生成的采样报告（HEALTH_DATA）。设计原则：
+         1) 不在运行时重算 2000 次 simulate（tab 切换会卡）
+         2) 必须显示数据生成时间、版本、commit、种子——读者要知道这是某次采样的
+            结果，不是「模型真理」
+         3) 每条数据配一句「它在质疑什么」，对应契约 §9 条目 */
+      const healthTab = () => {
+        const d = HEALTH_DATA;
+        const barRow = (label, pctVal, color, sub) => h('div', { key: label, style: { marginBottom: 7 } },
+          h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginBottom: 3 } },
+            h('span', null, label, sub ? h('span', { style: { fontSize: 10, color: 'var(--dsw-alias-label-secondary)', marginLeft: 6 } }, sub) : null),
+            h('span', { style: { fontVariantNumeric: 'tabular-nums', fontWeight: 600 } }, pctVal + '%')),
+          h('div', { style: { height: 7, borderRadius: 4, background: 'var(--dsw-alias-bg-layer-2)', overflow: 'hidden' } },
+            h('div', { style: { width: Math.min(100, pctVal) + '%', height: '100%', background: color } })));
+
+        const OUT_COLORS = { '停滞的资本主义': '#7b8ba3', '文明崩解': '#8b3a42', '算力封建制': '#f45b68',
+          '过渡社会': '#4f8cff', '未竟的过渡': '#e0a63a', '共产主义初级形态': '#22c98a', '社会民主主义终点': '#6ba1ff' };
+        const WIN_NAMES = { communism: '共产主义过渡', feudalism: '算力封建制', collapse: '文明崩解', social_democracy: '社会民主主义' };
+
+        // 租金分位带：把 p10–p90 画成一条渐变轨
+        const rq = d.rentQuantiles;
+        const rentTrack = h('div', { style: { position: 'relative', height: 18, borderRadius: 9, overflow: 'hidden', display: 'flex', marginBottom: 5 } },
+          [{ w: 45, c: RENT_COLORS[0], t: '安全 <0.45' }, { w: 15, c: RENT_COLORS[1], t: '关注' },
+            { w: 15, c: RENT_COLORS[2], t: '预警' }, { w: 25, c: RENT_COLORS[3], t: '成形 ≥0.75' }]
+            .map((seg) => h('div', { key: seg.t, title: seg.t, style: { flex: seg.w + ' 1 0', background: seg.c, opacity: 0.8 } })),
+          [rq.p10, rq.p50, rq.p90].map((v, i) => h('div', {
+            key: i, title: ['p10', 'p50', 'p90'][i] + ' = ' + v,
+            style: {
+              position: 'absolute', left: 'calc(' + (v * 100).toFixed(1) + '% - 1px)', top: -2,
+              width: i === 1 ? 2 : 1, height: 22,
+              background: i === 1 ? 'var(--dsw-alias-label-primary)' : 'rgba(255,255,255,.45)',
+            },
+          })));
+
+        return h('div', null,
+          // 元信息条：诚实性的第一道
+          h('div', { className: 'sn-card', style: { marginBottom: 12 } },
+            h('div', { className: 'sn-pad' },
+              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '模型体检 · 采样报告'),
+              h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
+                d.note || '构建期生成的采样报告。'),
+              h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 7, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } },
+                h('span', null, '生成于 ' + (d.generatedAt || '—').slice(0, 19).replace('T', ' ')),
+                h('span', null, '版本 ' + (d.version || '—')),
+                h('span', null, 'commit ' + (d.commit || '—')),
+                h('span', null, '种子 ' + d.seed + ' · ' + d.samples + ' 组随机参数')))),
+
+          h('div', { className: 'sn-grid2' },
+            // 结局分布
+            h('div', { className: 'sn-card' },
+              h('div', { className: 'sn-card-head' }, '结局分布',
+                h('span', { className: 'sn-hint' }, '均匀随机参数空间')),
+              h('div', { className: 'sn-pad' },
+                d.outcomeDistribution.map((o) => barRow(o.name, o.pct, OUT_COLORS[o.name] || '#7b8ba3', o.count + ' 组')),
+                h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
+                  '质疑：停滞占三分之二，说明「技术足够但制度没跟上」是这个模型的默认结局。'
+                  + '若你认为现实中制度演化更快，这个比例就是你该反驳的地方。'))),
+            // 引力分布
+            h('div', { className: 'sn-card' },
+              h('div', { className: 'sn-card-head' }, '引力胜者分布',
+                h('span', { className: 'sn-hint' }, '同一批样本')),
+              h('div', { className: 'sn-pad' },
+                d.winnerDistribution.map((w) => barRow(WIN_NAMES[w.key] || w.key, w.pct,
+                  BRANCHES.filter((b) => b.key === w.key)[0] ? BRANCHES.filter((b) => b.key === w.key)[0].color : '#7b8ba3', w.count + ' 组')),
+                h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
+                  '质疑（契约 §9.1）：崩解引力系数 1.8 高于其余三条的 1.0，实测崩解胜率 '
+                  + d.asymmetries.collapseGain.winRatePct + '%。这个系数没有独立实证依据——'
+                  + '它是本模型最该被质疑的设定。')))),
+
+          h('div', { className: 'sn-card', style: { marginTop: 12 } },
+            h('div', { className: 'sn-card-head' }, '租金压力分布',
+              h('span', { className: 'sn-hint' }, '终年租金 · 分位数与四档占比')),
+            h('div', { className: 'sn-pad' },
+              rentTrack,
+              h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--dsw-alias-label-secondary)', marginBottom: 10 } },
+                h('span', null, '0'), h('span', null, '0.45'), h('span', null, '0.60'), h('span', null, '0.75'), h('span', null, '1')),
+              h('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11.5 } },
+                [['p10', rq.p10], ['p25', rq.p25], ['中位', rq.p50], ['p75', rq.p75], ['p90', rq.p90]].map((kv) =>
+                  h('span', { key: kv[0] }, h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, kv[0] + ' '), h('b', null, kv[1]))),
+                h('span', { style: { marginLeft: 'auto' } },
+                  '四档：安全 ' + rq.bands.safe + '% · 关注 ' + rq.bands.watch + '% · 预警 ' + rq.bands.warn + '% · 成形 ' + rq.bands.formed + '%')),
+              h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
+                '质疑（契约 §9.9）：租金是当期杠杆的即时读数，无存量积累、无对占有结构的反噬回路。'
+                + '不要把越线年份当作动力学预测。'))),
+
+          h('div', { className: 'sn-card', style: { marginTop: 12 } },
+            h('div', { className: 'sn-card-head' }, '已知非对称（契约 §9 的自查）'),
+            h('div', { className: 'sn-pad' },
+              h('div', { style: { display: 'grid', gap: 10 } },
+                h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.1 崩解系数偏高'),
+                  h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
+                    'COLLAPSE_GAIN = ' + d.asymmetries.collapseGain.value + '（其余三条 1.0），实测胜率 '
+                    + d.asymmetries.collapseGain.winRatePct + '%。' + d.asymmetries.collapseGain.caveat)),
+                h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.2/9.3 社民路径依赖'),
+                  h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
+                    '5000 组随机中社民胜出 ' + d.asymmetries.socialDemocracy.wins + ' 次，其中 '
+                    + d.asymmetries.socialDemocracy.winsWithLowPublicOwnership + ' 次伴随产权 <0.62'
+                    + (d.asymmetries.socialDemocracy.pathDependencyConfirmed ? '（100% 路径依赖已确认）' : '') + '。'
+                    + d.asymmetries.socialDemocracy.caveat)),
+                h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.4 前馈而非动力学'),
+                  h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
+                    '300 组样本中路径最多翻转 ' + d.asymmetries.chattering.maxFlips + ' 次。'
+                    + d.asymmetries.chattering.caveat))))),
+
+          // 六剧本锚点：读者可核对面板显示与采样报告是否一致
+          h('div', { className: 'sn-card', style: { marginTop: 12 } },
+            h('div', { className: 'sn-card-head' }, '六剧本锚点',
+              h('span', { className: 'sn-hint' }, '用于核对面板与报告是否一致')),
+            h('div', { style: { overflowX: 'auto' } },
+              h('table', { className: 'sn-table' },
+                h('thead', null, h('tr', null, ['剧本', '结局', '终年租金', '发展 D'].map((t, i) => h('th', { key: i }, t)))),
+                h('tbody', null, d.anchors.map((a) => h('tr', { key: a.scenario },
+                  h('td', { style: { fontSize: 11 } }, a.name),
+                  h('td', null, h('span', { className: 'sn-pill', style: { fontSize: 10 } }, a.outcome)),
+                  h('td', null, Math.round(a.rent * 100) + '%'),
+                  h('td', null, Math.round(a.development * 100) + '%'))))))));
+      };
+
       /* ── 理论 ── */
       const theoryTab = () => {
         // R2：四张反驳卡 —— 每张都可攻击本模型的结论
@@ -1817,6 +1945,7 @@ window.__ModuleLoader__.load({
         { id: 'metrics', label: '指标矩阵' },
         { id: 'compare', label: '情景对比' },
         { id: 'theory', label: '理论底座' },
+        { id: 'health', label: '模型体检' },
       ];
 
       return h('div', { className: 'sn-root' },
@@ -1846,6 +1975,7 @@ window.__ModuleLoader__.load({
               : tab === 'branch' ? branchTabWithRobust()
                 : tab === 'metrics' ? metricsTab()
                   : tab === 'compare' ? compareTab()
+                  : tab === 'health' ? healthTab()
                     : theoryTab()),
         picked ? h('div', {
           style: {
