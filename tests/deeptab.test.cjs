@@ -53,7 +53,7 @@ function walk(node, out) {
   });
 }
 
-for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare']) {
+for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare', 'health']) {
   const err = [];
   let tree = null;
   try { tree = renderWithTab(tab); } catch (e) { err.push(e.message + '\n' + (e.stack || '').split('\n')[1]); }
@@ -79,6 +79,14 @@ for (const tab of ['metrics', 'theory', 'engine', 'branch', 'compare']) {
     check('compare 含六剧本表与租金/一致性列', joined.includes('六种世界')
       && joined.includes('租金') && joined.includes('一致性'));
     check('compare 种子化一致性说明可见', joined.includes('种子化，刷新可复算'));
+  } else if (tab === 'health') {
+    check('health 含采样报告元信息（时间/版本/种子）',
+      joined.includes('模型体检 · 采样报告') && joined.includes('生成于')
+      && joined.includes('种子'));
+    check('health 含结局分布与引力分布', joined.includes('结局分布') && joined.includes('引力胜者分布'));
+    check('health 含租金分位与契约质疑',
+      joined.includes('租金压力分布') && joined.includes('§9.1 崩解系数偏高'));
+    check('health 含六剧本锚点表', joined.includes('六剧本锚点'));
   } else {
     check('theory 含合取命题与映射表', joined.includes('合取命题 · 两个闸门缺一不可') && joined.includes('cognition / compute / automation'));
     check('theory 含四张反驳卡', ['技术封建化', '生态天花板', '计算问题', '路径依赖'].every((k) => joined.includes(k)));
