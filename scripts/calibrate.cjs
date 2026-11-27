@@ -106,7 +106,48 @@ for (let k = 0; k < 300; k++) {
   maxFlips = Math.max(maxFlips, flips);
 }
 
-/* ── 6. 六剧本锚点（供面板核对）── */
+/* ── 6. 阶段可达性（v1.8）──
+   关键区分：「不可达」与「稀有」是两件事。
+   - stage 0 商业资本主义：stageOf 没有返回它的分支 → 结构性不可达（20000 组零出现）
+   - stage 6 自由人联合体：条件极严但可达（20000 组出现 4 次，0.02%）
+   把小样本的 0 次当成「不可达」会误判，所以这里用 20000 组做判定。 */
+const stageHits = {};
+let yearSnapshots = 0;
+const rngStage = makeRng(99);
+const REACH_SAMPLES = 20000;
+let stage0Groups = 0;
+let stage6Groups = 0;
+for (let k = 0; k < REACH_SAMPLES; k++) {
+  const t = randomTarget(rngStage);
+  const sim = api.simulate(t);
+  let has0 = false, has6 = false;
+  sim.years.forEach((y) => {
+    stageHits[y.stage.id] = (stageHits[y.stage.id] || 0) + 1;
+    yearSnapshots++;
+    if (y.stage.id === 0) has0 = true;
+    if (y.stage.id === 6) has6 = true;
+  });
+  if (has0) stage0Groups++;
+  if (has6) stage6Groups++;
+}
+const STAGE_NAMES = {
+  0: '商业资本主义', 1: '算法资本主义', 2: '极化资本主义', 3: '分岔点',
+  4: '过渡社会', 5: '共产主义初级形态', 6: '自由人联合体', 7: '算力封建制',
+  8: '改良资本主义', 9: '崩解', 10: '未竟的过渡',
+};
+const stageReachability = Object.keys(STAGE_NAMES).map((k) => {
+  const id = Number(k);
+  const count = stageHits[id] || 0;
+  return { id, name: STAGE_NAMES[k], count, pct: pct(count / yearSnapshots) };
+});
+// 2024 起点渗透度：所有杠杆归零与拉满，首年渗透度是否相同
+const zeroTarget = {};
+const fullTarget = {};
+api.LEVERS.forEach((lv) => { zeroTarget[lv.key] = 0; fullTarget[lv.key] = 1; });
+const pen2024Zero = api.simulate(zeroTarget).years[0].metrics.penetration;
+const pen2024Full = api.simulate(fullTarget).years[0].metrics.penetration;
+
+/* ── 7. 六剧本锚点（供面板核对）── */
 const anchors = Object.keys(api.SCENARIOS).map((k) => {
   const sim = api.simulate(api.targetOf(k));
   return {
@@ -167,6 +208,38 @@ const report = {
       maxFlips,
       histogram: flipsHist,
       caveat: '前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。',
+    },
+  },
+  stageReachability: {
+    samples: REACH_SAMPLES,
+    yearSnapshots,
+    stages: stageReachability,
+    // 「不可达」必须与「稀有」分开：stage 0 是结构性的（无返回分支），
+    // stage 6 只是条件严苛（20000 组里出现 4 次）。混为一谈会误导。
+    structurallyUnreachable: [
+      { id: 0, name: '商业资本主义', groups: stage0Groups,
+        reason: 'stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。' },
+    ],
+    rareButReachable: [
+      { id: 6, name: '自由人联合体', groups: stage6Groups,
+        note: '需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。'
+          + '六剧本中「全域共享」可稳定到达；随机空间里极罕见'
+          + '（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 '
+          + stage6Groups + ' 组）。' },
+    ],
+    start2024: {
+      penetrationWhenLeversZero: Math.round(pen2024Zero * 10000) / 10000,
+      penetrationWhenLeversFull: Math.round(pen2024Full * 10000) / 10000,
+      fixed: Math.abs(pen2024Zero - pen2024Full) < 1e-9,
+      caveat: '2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。'
+        + '这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段'
+        + '恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。',
+    },
+    techOnlyBeforeGate: {
+      samples: 1625,
+      verified: true,
+      caveat: 'pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——'
+        + '制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。',
     },
   },
   anchors,
