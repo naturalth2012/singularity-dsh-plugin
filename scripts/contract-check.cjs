@@ -600,6 +600,71 @@ console.log('\n=== 7o. i18n B2/B3（v2.1）===');
     /'算力封建制'/.test(client) && /'文明崩解'/.test(client));
 }
 
+/* ── 7p. v2.2 calibration 双语 ── */
+console.log('\n=== 7p. calibration 双语（v2.2）===');
+{
+  const fsx = require('fs');
+  const pathx = require('path');
+  const cal = JSON.parse(fsx.readFileSync(pathx.join(ROOT, 'docs', 'calibration.json'), 'utf8'));
+  const hm = /const HEALTH_DATA = (\{[\s\S]*?\});\n/.exec(client);
+  const hd = hm ? JSON.parse(hm[1]) : null;
+
+  // 收集 calibration.json 里所有 *En 字段
+  const enPaths = [];
+  (function walk(o, p) {
+    if (typeof o === 'string') return;
+    if (Array.isArray(o)) return o.forEach((v, i) => walk(v, p + '[' + i + ']'));
+    if (o && typeof o === 'object') {
+      Object.keys(o).forEach((k) => {
+        if (/En$/.test(k)) enPaths.push(p ? p + '.' + k : k);
+        walk(o[k], p ? p + '.' + k : k);
+      });
+    }
+  })(cal, '');
+
+  check('calibration.json 含 14 个 *En 字段', enPaths.length === 14, enPaths.length + ' 个');
+
+  // 每个 *En 非空且无中文
+  const bad = enPaths.filter((p) => {
+    const parts = p.replace(/\[(\d+)\]/g, '.$1').split('.');
+    let cur = cal;
+    for (const k of parts) { if (cur == null) return true; cur = cur[k]; }
+    return typeof cur !== 'string' || !cur || /[\u4e00-\u9fa5]/.test(cur);
+  });
+  check('所有 *En 非空且无中文残留', bad.length === 0, bad.slice(0, 3).join(',') || '14/14');
+
+  // HEALTH_DATA 必须带上全部 *En（防 slim 漏映射导致静默空白）
+  const hdMissing = enPaths.filter((p) => {
+    const parts = p.replace(/\[(\d+)\]/g, '.$1').split('.');
+    let cur = hd;
+    for (const k of parts) { if (cur == null) return true; cur = cur[k]; }
+    return cur === undefined;
+  });
+  check('HEALTH_DATA 带上全部 *En（防 slim 漏映射）', hdMissing.length === 0,
+    hdMissing.slice(0, 3).join(',') || enPaths.length + '/' + enPaths.length);
+
+  // 渲染层：pick 辅助 + 9 个读取点
+  check('有 pick 辅助且按 activeLocaleId 判定', /const pick = \(zh, en\) =>/.test(client)
+    && /activeLocaleId\(localeSvc\)/.test(client));
+  const picks = ['pick(d.note', 'pick(d.asymmetries.collapseGain', 'pick(d.asymmetries.socialDemocracy',
+    'pick(d.asymmetries.chattering', 'pick(u.reason', 'pick(r.note',
+    'pick(d.stageReachability.start2024', 'pick(d.stageReachability.techOnlyBeforeGate', 'pick(a.name'];
+  const missPick = picks.filter((p) => !client.includes(p));
+  check('9 个 calibration 读取点全走 pick', missPick.length === 0, missPick.join(',') || '9/9');
+
+  // 最关键：A 类语义未被翻译（否则结局色条全部回退灰）
+  check('结局名仍是中文（OUT_COLORS 查找键未破坏）',
+    cal.outcomeDistribution.every((o) => /[\u4e00-\u9fa5]/.test(o.name))
+    && /OUT_COLORS = \{ '停滞的资本主义'/.test(client));
+  check('anchors.outcome 仍是中文（引擎语义）',
+    cal.anchors.every((a) => /[\u4e00-\u9fa5]/.test(a.outcome)));
+  // 剧本名映射表的 key 必须与 SCENARIOS 一致（防将来加剧本忘加英文名）
+  const scenKeys = Object.keys(cal.anchors.reduce((m, a) => { m[a.scenario] = 1; return m; }, {}));
+  const mapped = cal.anchors.filter((a) => a.nameEn).map((a) => a.scenario);
+  check('六个剧本都有 nameEn', mapped.length === scenKeys.length,
+    mapped.length + '/' + scenKeys.length);
+}
+
 /* ── 7n. 回归审计加固（v2.0 审计报告 §7）── */
 console.log('\n=== 7n. 回归加固（审计报告 §7）===');
 {
