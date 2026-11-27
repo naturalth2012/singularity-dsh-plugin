@@ -192,6 +192,16 @@ check('v1.5 引力上限非对称脚注', /引力上限并不相等/.test(src)
 check('v1.5 晚期反转不新增引擎符号', !/function lateReversal/.test(src)
   && /const lateReversal = React\.useMemo/.test(src));
 
+/* ── v1.6 T1/T5：工具化与模型体检 ── */
+check('v1.6 模型体检标签页存在', /\{ id: 'health', label: '模型体检' \}/.test(src)
+  && /const healthTab = \(\)/.test(src));
+check('v1.6 体检页显示数据来源元信息', /生成于 ' \+ \(d\.generatedAt/.test(src)
+  && /种子 ' \+ d\.seed/.test(src) && /d\.commit/.test(src));
+check('v1.6 体检页展示契约 §9 质疑', /§9\.1 崩解系数偏高/.test(src)
+  && /§9\.2\/9\.3/.test(src) && /§9\.4/.test(src));
+check('v1.6 体检数据为构建期内联（非运行时计算）',
+  /const HEALTH_DATA = \{/.test(src) && !/HEALTH_DATA[\s\S]{0,200}for \(let k = 0; k < 2000/.test(src));
+
 let iconError = null;
 let icon = null;
 try { icon = sideReg.component({ size: 18, active: false }); } catch (e) { iconError = e; }
