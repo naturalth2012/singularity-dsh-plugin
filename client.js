@@ -637,6 +637,286 @@ window.__ModuleLoader__.load({
       'err.heading': '这一页渲染出错了',
       'err.body': '这是插件自身的缺陷，不是你的操作问题。模型引擎没有受影响——'
         + '切到其他标签页可以继续使用，或者点下面的按钮重试。',
+    
+      // B2a（v2.1）：完整短句与状态词
+      'b2a.001': "主线结局",
+      'b2a.002': "未完成",
+      'b2a.003': "停滞结局",
+      'b2a.004': "旁支结局",
+      'b2a.005': "（制度跟上）",
+      'b2a.006': "（制度错过）",
+      'b2a.007': "年份",
+      'b2a.008': "←/→ 切换年份",
+      'b2a.009': "（无）",
+      'b2a.010': "重试渲染当前标签页",
+      'b2a.011': "未知",
+      'b2a.012': "安全",
+      'b2a.013': "关注",
+      'b2a.014': "预警",
+      'b2a.015': "成形",
+      'b2a.016': "当前无可分享状态",
+      'b2a.017': "请手动复制地址栏链接",
+      'b2a.018': "存档已导出",
+      'b2a.019': "存档版本不符，已忽略",
+      'b2a.020': "存档已导入",
+      'b2a.021': "存档解析失败，已忽略",
+      'b2a.022': "本路径未触发关键节点。",
+      'b2a.023': "演化轨迹",
+      'b2a.024': "租金压力",
+      'b2a.025': "历史节点",
+      'b2a.026': "按条件触发",
+      'b2a.027': "窗口未开",
+      'b2a.028': "恢复默认杠杆与政策",
+      'b2a.029': "已改写",
+      'b2a.030': "默认",
+      'b2a.031': "政策沙盒",
+      'b2a.032': "清除干预",
+      'b2a.033': "干预年",
+      'b2a.034': "政策干预年",
+      'b2a.035': "未启用",
+      'b2a.036': "干预中",
+      'b2a.037': "未干预",
+      'b2a.038': "（政策）",
+      'b2a.039': "关键变量",
+      'b2a.040': "结构归因",
+      'b2a.041': "为什么是这个结局",
+      'b2a.042': "分岔点 · 历史橱窗",
+      'b2a.043': "% 引力",
+      'b2a.044': "路径对照",
+      'b2a.045': "路径",
+      'b2a.046': "必要条件",
+      'b2a.047': "核心机制",
+      'b2a.048': "终点",
+      'b2a.049': "是否共产主义",
+      'b2a.050': "生产力极高、自由极低",
+      'b2a.051': "否（产权未变）",
+      'b2a.052': "稳健性 · 蒙特卡洛",
+      'b2a.053': "把「",
+      'b2a.054': "封建稳态域",
+      'b2a.055': "渗透度 →",
+      'b2a.056': "社会化度 →",
+      'b2a.057': "公共产权 →",
+      'b2a.058': "资本捕获 →",
+      'b2a.059': "相图 · 渗透×社会化",
+      'b2a.060': "逐年数据",
+      'b2a.061': "点击行跳到该年",
+      'b2a.062': "阶段",
+      'b2a.063': "渗透",
+      'b2a.064': "社会化",
+      'b2a.065': "丰裕",
+      'b2a.066': "替代率",
+      'b2a.067': "不等",
+      'b2a.068': "自由",
+      'b2a.069': "租金",
+      'b2a.070': "六种世界",
+      'b2a.071': "情景",
+      'b2a.072': "结局",
+      'b2a.073': "发展 D",
+      'b2a.074': "一致性",
+      'b2a.075': "窗口",
+      'b2a.076': "载入",
+      'b2a.077': "构建期生成的采样报告。",
+      'b2a.078': "中位",
+      'b2a.079': "——完全相同。",
+      'b2a.080': "——不同。",
+      'b2a.081': "岔路前由技术单变量决定",
+      'b2a.082': "剧本",
+      'b2a.083': "终年租金",
+      'b2a.084': "技术封建化",
+      'b2a.085': "智能化快于公有化",
+      'b2a.086': "生态天花板",
+      'b2a.087': "计算问题",
+      'b2a.088': "算力不等于偏好加总",
+      'b2a.089': "同一技术基础，制度多解",
+      'b2a.090': "来源变量",
+      'b2a.091': "含义",
+      'b2a.092': "引擎杠杆",
+      'b2a.093': "智能化水平",
+      'b2a.094': "物质生产自动化",
+      'b2a.095': "能源与物质丰裕",
+      'b2a.096': "产权公有化",
+      'b2a.097': "资本捕获 / 寡头化",
+      'b2a.098': "组织与协商能力",
+      'b2a.099': "本路径的判定",
+      'b2a.100': "导出 JSON 存档",
+      'b2a.101': "导入 JSON 存档",
+      'b2a.102': "这是插件自身的缺陷，不是你的操作问题。模型引擎没有受影响——",
+      'b2a.103': "切到其他标签页可以继续使用，或者点下面的按钮重试。",
+      'b2a.104': "（前史标注，引擎不返回此阶段）",
+      'b2a.105': "Singularity 面板渲染异常",
+      'b2a.106': "干预在分岔窗口前 · 预防性",
+      'b2a.107': "干预在分岔窗口内 · 决定性",
+      'b2a.108': "干预在分岔窗口后 · 补救性",
+      'b2a.109': "技术杠杆有自主趋势（无论怎么选，AI 都会前进）；制度与社会杠杆由你设定。",
+      'b2a.110': "清空所有杠杆改写与政策干预，回到剧本默认值",
+      'b2a.111': "从干预年起重定向制度杠杆 · 不持久化",
+      'b2a.112': "引力值最高者就是引擎实际走的那条路（两者共用同一裁决函数）。",
+      'b2a.113': "这是模型的已知非对称，不是四者等概率。",
+      'b2a.114': "本路径技术渗透始终未达阈值，未进入分岔窗口。",
+      'b2a.115': "」。窗口标记的是敏感区间，不是裁决时刻。",
+      'b2a.116': "寡头俘获国家 · 产权私有放大俘获",
+      'b2a.117': "算力寡头化 → 数据圈地 → 配额制",
+      'b2a.118': "再分配强 · 组织度高 · 产权私有",
+      'b2a.119': "AI 税 → 全民分红 → 公共算力",
+      'b2a.120': "产权公有 · 协同高 · 团结与意义充足",
+      'b2a.121': "生产资料公有化 → 按需分配",
+      'b2a.122': "全面对抗 · 高冲击 · 凝聚流失",
+      'b2a.123': "冲突摧毁有效生产力 → 基础设施失维",
+      'b2a.124': "」——本结论对该杠杆敏感。",
+      'b2a.125': "参数扫描热力图：公共产权 × 资本捕获，颜色表示终局租金档位。方向键移动，回车载入。",
+      'b2a.126': "灰虚线 = 无政策幽灵轨迹 · 圆环 = 干预年 · 黄虚环 = 反方翻转点",
+      'b2a.127': "黄虚环 = 反方读法翻转点",
+      'b2a.128': "租金热力图 · 产权×捕获",
+      'b2a.129': "全域扫描（其余杠杆取默认值）",
+      'b2a.130': "质疑：停滞占三分之二，说明「技术足够但制度没跟上」是这个模型的默认结局。",
+      'b2a.131': "若你认为现实中制度演化更快，这个比例就是你该反驳的地方。",
+      'b2a.132': "%。这个系数没有独立实证依据——",
+      'b2a.133': "它是本模型最该被质疑的设定。",
+      'b2a.134': "不要把越线年份当作动力学预测。",
+      'b2a.135': "七阶段轨道里，有一个阶段引擎从不返回——这不是数据缺失，是判定逻辑的边界。",
+      'b2a.136': "它在阶段轨道上标为「前史」——用于叙事，不是运行时状态。",
+      'b2a.137': "认知劳动贬值先于产权变革，主线路径被截断，历史滑入算力封建制。",
+      'b2a.138': "位置品与生态容量不可自动化",
+      'b2a.139': "丰裕度无法归零，按需分配存在物理上限，「后稀缺」永远不完整。",
+      'b2a.140': "计划面临信息与激励双重难题，协调杠杆可能只是纸面能力。",
+      'b2a.141': "历史不存在单线宿命，任何「必然论」都会被反例削弱。",
+      'b2a.142': "四条引力路径并行竞争的设计本身 —— 引擎从不断言唯一终点。",
+      'b2a.143': "它用于叙事与阶段轨道展示（我们从哪来），不是引擎会返回的运行时状态。",
+      'b2a.144': "杠杆全零与全拉满，首年渗透度完全相同。",
+      'b2a.145': "岔路前阶段由技术单变量决定",
+      'b2a.146': "与一个制度健全的世界，在前三阶段看起来一样。制度杠杆只在越线后才开始裁决方向。",
+      'b2a.147': "“手推磨产生的是封建主的社会，蒸汽磨产生的是工业资本家的社会。”",
+      'b2a.148': "—— 马克思《哲学的贫困》",
+      'b2a.149': "合取命题 · 两个闸门缺一不可",
+      'b2a.150': "—— 马克思、恩格斯《共产党宣言》",
+      'b2a.151': "这是一个模拟器，不是预言。",
+      'b2a.152': "启发式推演模型 · 参数为机制性定性标定，未经计量估计 · 不构成任何现实预测",
+      'b2a.153': "把当前推演编码为链接（显式快照）",
+    
+      // B2b（v2.1）：拼接片段重构为 {var} 模板
+      'b2b.01': "发展水平 ",
+      'b2b.02': "可及丰裕 ",
+      'b2b.03': "自由实现 ",
+      'b2b.04': "不平等 ",
+      'b2b.05': "技术渗透 {pen} · 社会化度 {soc}",
+      'b2b.06': " · 窗口 {from}–{to}{note}",
+      'b2b.07': "政策干预年 {year}",
+      'b2b.08': "阶段 {n} {name}",
+      'b2b.09': "标签页: {v}",
+      'b2b.10': "错误: {v}",
+      'b2b.11': "堆栈: {v}",
+      'b2b.12': "组件栈: {v}",
+      'b2b.13': "当前标签页：{v}",
+      'b2b.14': "链接已复制：{v}",
+      'b2b.15': "导出失败：{v}",
+      'b2b.16': "本路径于 {y} 年跨过制度闸门。",
+      'b2b.17': "本路径在窗口 {from}–{to} 内未跨过制度闸门，历史被岔路接管。",
+      'b2b.18': "晚期反转：窗口末年（{y}）引力最高者为「",
+      'b2b.19': "一致性 {v}%",
+      'b2b.20': "反方读法：",
+      'b2b.22': "」从 {from}% 调到 {to}%（Δ{d}），结局即翻转为「",
+      'b2b.23': "若翻转：{v}",
+      'b2b.24': "产权 {po}% × 捕获 {cap}% → {band}",
+      'b2b.25': "峰值 {peak}%（{y}）｜ 预警首年 {warn}",
+      'b2b.26': "跳到 {y} 年（{name}）",
+      'b2b.27': "生成于 {v}",
+      'b2b.28': "版本 {v}",
+      'b2b.29': "种子 {seed} · {n} 组随机参数",
+      'b2b.30': "{n} 组",
+      'b2b.31': "四档：安全 {safe}% · 关注 {watch}% · 预警 {warn}% · 成形 {formed}%",
+      'b2b.32': "5000 组随机中社民胜出 {n} 次，其中 ",
+      'b2b.33': "{n} 次伴随产权 <0.62",
+      'b2b.34': "300 组样本中路径最多翻转 {n} 次。",
+      'b2b.35': "{n} 组 × 37 年 = ",
+      'b2b.36': "{n} 万年份快照",
+      'b2b.37': "结构性不可达：{v}",
+      'b2b.38': "实测：{n} 组随机参数中出现 {c} 次。",
+      'b2b.39': "稀有但可达：{v}",
+      'b2b.40': "杠杆全零时首年渗透度 {v}",
+      'b2b.41': "，全拉满时 {v}",
+      'b2b.42': "模型回应：",
+      'b2b.43': "为什么：",
+      'b2b.44': "{v} · 阶段详情",
+    
+      // B3（v2.1）：长叙事
+      'b3.07': "政策是从干预年起对制度杠杆的重定向（无缝衔接原轨迹），不是社会对政策的反应 —— 见契约 §8c 与 §9。",
+      'b3.08': "本路径技术渗透未越过 0.68 的裁决线：引力数值仍在计算，但历史尚未进入裁决，处于悬置状态。",
+      'b3.09': "同样的技术，不同的制度选择。注意：六条路径的技术条件几乎相同，结局却完全相反 —— 这就是「制度决定落在哪一侧」。",
+      'b3.10': "「一致性」= ±8% 扰动 × 240 次中主结局的占比（种子化，刷新可复算）；越低说明该结局越脆弱。",
+      'b3.11': "双闸门 GATE_PEN 0.68 ∧ GATE_SOC 0.48 + feudalism 引力；v1.2 租金压力指标为其显性预警读数。",
+      'b3.12': "meaning / coordination 杠杆是定性 proxies；契约 §9 声明此为模型最强假设之一。",
+      'b3.13': "而叙事上 2024 应是前史向算法资本主义的过渡。阶段轨道已把 stage 0 标为「前史」。",
+      'b3.14': "技术渗透 ≥ 0.68 ∧ 社会化 ≥ 0.48 同时越过闸门，历史才指向共产主义方向；缺任一项，落入其他稳态（算力封建 / 改良停滞 / 崩解）。单凭技术或单凭意愿，都不构成充分条件。",
+      'b3.15': "“代替那存在着阶级和阶级对立的资产阶级旧社会的，将是这样一个联合体，在那里，每个人的自由发展是一切人的自由发展的条件。”",
+      'b3.16': " 它的价值不在于预测哪一年会发生什么，而在于把「条件」摊开：技术提供可能性，制度决定落在哪一侧，而制度不是自动演化的 —— 它由组织起来的人写出来。模型中的每个系数都是一次可辩论的判断，你可以拨动杠杆，看它是否还站得住。",
+    
+      // B2c（v2.1）：指标名 + 剩余 UI 文案
+      'b2c.05': "制度选择 · 2024 → 2050",
+      'b2c.06': "±10% 扰动对终点的影响",
+      'b2c.07': "分岔点不是一个时刻，而是一个窗口。窗口内四条引力同时作用于社会，",
+      'b2c.08': "引力上限并不相等：崩解系数 1.8（正反馈补偿）、共产与封建接近 1.0，",
+      'b2c.09': "而社民因「改良空间」折减上限约 0.70。四条并排显示会低估社民路径的真实可能性——",
+      'b2c.10': "」，但引擎以 2060 终年引力定案，最终走向「",
+      'b2c.11': "±8% 扰动 × 240 次 · 分布而非单点",
+      'b2c.12': "±8% 扰动与任何单制度杠杆极端化都无法翻转本结论——在当前参数域内，它是稳健的。",
+      'b2c.13': "反方读法：",
+      'b2c.14': "闸门 0.68",
+      'b2c.15': "闸门 0.48",
+      'b2c.16': "公共产权（邻域 ±0.5）→",
+      'b2c.17': "资本捕获（邻域 ±0.5）→",
+      'b2c.18': "垄断占有对分配的绑定程度 · 三档 0.45 / 0.60 / 0.75",
+      'b2c.19': "虚线为闸门 0.68 / 0.48",
+      'b2c.20': "以当前产权×捕获为中心 ±0.5 重扫",
+      'b2c.21': "±8% 扰动 ×240 次的主结局占比（种子化可复算）",
+      'b2c.22': "安全 <0.45",
+      'b2c.23': "成形 ≥0.75",
+      'b2c.24': "质疑（契约 §9.1）：崩解引力系数 1.8 高于其余三条的 1.0，实测崩解胜率 ",
+      'b2c.25': "质疑（契约 §9.9）：租金是当期杠杆的即时读数，无存量积累、无对占有结构的反噬回路。",
+      'b2c.26': "§9.1 崩解系数偏高",
+      'b2c.27': "（其余三条 1.0），实测胜率 ",
+      'b2c.28': "§9.2/9.3 社民路径依赖",
+      'b2c.29': "（100% 路径依赖已确认）",
+      'b2c.30': "§9.4 前馈而非动力学",
+      'b2c.32': "契约 §9 声明模型域边界：abundance 只对标准化物质与服务产出成立。",
+      'b2c.34': "阶段 0 不可达",
+      'b2c.35': "STAGES[0]「商业资本主义」是前史标注，stageOf 最低只返回「算法资本主义」。",
+      'b2c.36': "20000 组随机参数 × 37 年 = 74 万个年份快照中，它出现 0 次。",
+      'b2c.37': "2024 年所有杠杆取 NOW 基准值，技术渗透度恒为 0.4008——",
+      'b2c.38': "插值起点的设计使然。副作用是时间轴停在 2024 时显示的阶段恒为「极化资本主义」，",
+      'b2c.39': "渗透度未越过 0.68 时，stageOf 只看 penetration。",
+      'b2c.40': "固定渗透度、扫遍制度/社会/意义全网格（1625 个样本），阶段恒定不变。",
+      'b2c.41': "这是本模型最该被质疑的简化之一：一个制度完全崩溃但技术仍在推进的世界，",
+      'b2c.42': "真实常数 0.68 ∧ 0.48",
+      'b2c.43': "阶段 0",
+      'b2c.44': "引擎不返回此阶段（契约 §7.1）",
+      'b2c.46': "\\n\\n（前史标注：引擎不返回此阶段，阶段判定最低为「算法资本主义」——契约 §7.1）",
+      'metric.abundance': "可及丰裕度",
+      'metric.cohesion': "社会凝聚",
+      'metric.collapse_risk': "崩解风险",
+      'metric.development': "发展水平 D",
+      'metric.feudalism_risk': "封建化风险",
+      'metric.freedom': "自由实现度",
+      'metric.inequality': "不平等",
+      'metric.labor_share': "劳动份额",
+      'metric.penetration': "技术渗透度",
+      'metric.productivity': "生产力",
+      'metric.replacement': "劳动替代率",
+      'metric.shock': "转型冲击",
+      'metric.socialization': "社会化度",
+    
+      // 补漏
+      'b2c.31': "2024 起点固定",
+      'b2c.33': "路径依赖",
+    
+      // 补漏 2
+      'b2c.01': "这一页渲染出错了",
+      'b2c.02': "复制错误详情",
+      'b2c.45': "前史",
+      'b2b.21': "」从 ",
+    
+      // 补漏 3
+      'b2c.47': "否",
+      'b2c.48': "是",
     };
 
     /** 读当前语言：locale 服务 → navigator.language → 'en'。 */
@@ -1124,13 +1404,13 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-thesis' }, o.thesis),
             h('div', { className: 'sn-keys' }, o.keys.map((k, i) => h('span', { className: 'sn-key', key: i }, k)))),
           h('div', { className: 'sn-pill', style: { color: o.color } },
-            o.type === 'main' ? '主线结局' : o.type === 'transition' ? '未完成' : o.type === 'stagnant' ? '停滞结局' : '旁支结局')),
+            o.type === 'main' ? p.t('b2a.001') : o.type === 'transition' ? p.t('b2a.002') : o.type === 'stagnant' ? p.t('b2a.003') : p.t('b2a.004'))),
         h('div', { className: 'sn-verdict' }, o.detail),
         h('div', { style: { display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 11, fontSize: 11, color: 'var(--dsw-alias-label-secondary)' } },
-          h('span', null, '发展水平 ', h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.development))),
-          h('span', null, '可及丰裕 ', h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.abundance))),
-          h('span', null, '自由实现 ', h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.freedom))),
-          h('span', null, '不平等 ', h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.inequality)))));
+          h('span', null, p.t('b2b.01'), h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.development))),
+          h('span', null, p.t('b2b.02'), h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.abundance))),
+          h('span', null, p.t('b2b.03'), h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.freedom))),
+          h('span', null, p.t('b2b.04'), h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, pct(f.inequality)))));
     }
 
     function Scrubber(p) {
@@ -1151,8 +1431,8 @@ window.__ModuleLoader__.load({
           h('div', null,
             h('div', { className: 'sn-year' }, p.year, h('span', null, curYear.stage.name)),
             h('div', { className: 'sn-scrub-note' },
-              '技术渗透 ' + pct(curYear.metrics.penetration) + ' · 社会化度 ' + pct(curYear.metrics.socialization)
-              + (p.window ? ' · 窗口 ' + p.window.start + '–' + p.window.end + (p.window.type === 'passed' ? '（制度跟上）' : '（制度错过）') : ''))),
+              p.t('b2b.05', { pen: pct(curYear.metrics.penetration), soc: pct(curYear.metrics.socialization) })
+              + (p.window ? p.t('b2b.06', { from: p.window.start, to: p.window.end, note: p.window.type === 'passed' ? p.t('b2a.005') : p.t('b2a.006') }) : ''))),
           h('div', { style: { display: 'flex', gap: 6 } },
             h('button', { className: 'sn-btn', onClick: () => p.onYear(Math.max(a, p.year - 1)) }, '◀'),
             h('button', { className: 'sn-btn', onClick: () => p.onYear(Math.min(b, p.year + 1)) }, '▶'))),
@@ -1163,13 +1443,13 @@ window.__ModuleLoader__.load({
               style: { width: ((s.end - s.start + 1) / (b - a + 1) * 100) + '%', background: s.color, opacity: 0.75 },
             })),
             p.policyYear && p.policyYear >= a && p.policyYear <= b
-              ? h('div', { className: 'sn-policy-mark', style: { left: ((p.policyYear - a) / (b - a + 1) * 100) + '%' }, title: '政策干预年 ' + p.policyYear })
+              ? h('div', { className: 'sn-policy-mark', style: { left: ((p.policyYear - a) / (b - a + 1) * 100) + '%' }, title: p.t('b2b.07', { year: p.policyYear }) })
               : null),
           h('input', {
             className: 'sn-range', type: 'range', min: a, max: b, step: 1, value: p.year,
-            'aria-label': '年份', onChange: (e) => p.onYear(parseInt(e.target.value, 10)),
+            'aria-label': p.t('b2a.007'), onChange: (e) => p.onYear(parseInt(e.target.value, 10)),
           })),
-        h('div', { className: 'sn-ends' }, h('span', null, a), h('span', null, '←/→ 切换年份'), h('span', null, b)));
+        h('div', { className: 'sn-ends' }, h('span', null, a), h('span', null, p.t('b2a.008')), h('span', null, b)));
     }
 
     function StageTrack(p) {
@@ -1183,11 +1463,11 @@ window.__ModuleLoader__.load({
           return h('button', {
             key: st.id, type: 'button', className: 'sn-node' + (on ? ' on' : ''),
             'aria-pressed': on,
-            'aria-label': '阶段 ' + (st.id + 1) + ' ' + st.name + (prehistory ? '（前史标注，引擎不返回此阶段）' : ''),
+            'aria-label': p.t('b2b.08', { n: st.id + 1, name: st.name }) + (prehistory ? ' ' + p.t('b2a.104') : ''),
             style: { color: on ? st.color : 'var(--dsw-alias-label-primary)', opacity: on || st.id <= p.currentId ? 1 : 0.55 },
             onClick: () => p.onPick(st),
             title: prehistory
-              ? st.thesis + '\n\n（前史标注：引擎不返回此阶段，阶段判定最低为「算法资本主义」——契约 §7.1）'
+              ? st.thesis + t('b2c.46')
               : st.thesis,
           },
             h('div', { className: 'i' }, '0' + (st.id + 1)),
@@ -1200,8 +1480,8 @@ window.__ModuleLoader__.load({
                     borderRadius: 3, background: 'var(--dsw-alias-bg-layer-2)',
                     color: 'var(--dsw-alias-label-secondary)', verticalAlign: 'middle',
                   },
-                  title: '引擎不返回此阶段（契约 §7.1）',
-                }, '前史')
+                  title: t('b2c.44'),
+                }, t('b2c.45'))
                 : null),
             h('div', { className: 's' }, st.thesis.slice(0, 14) + '…'));
         }));
@@ -1239,12 +1519,12 @@ window.__ModuleLoader__.load({
       handleCopy() {
         const err = this.state.error;
         const detail = [
-          'Singularity 面板渲染异常',
-          '标签页: ' + this.props.tabLabel,
-          '错误: ' + (err && err.message ? err.message : String(err)),
-          '堆栈: ' + (err && err.stack ? err.stack : '（无）'),
-          '组件栈: ' + (this.state.info && this.state.info.componentStack
-            ? this.state.info.componentStack.slice(0, 1200) : '（无）'),
+          t('b2a.105'),
+          t('b2b.09', { v: this.props.tabLabel }),
+          t('b2b.10', { v: err && err.message ? err.message : String(err) }),
+          t('b2b.11', { v: err && err.stack ? err.stack : t('b2a.009') }),
+          t('b2b.12', { v: this.state.info && this.state.info.componentStack
+            ? this.state.info.componentStack.slice(0, 1200) : t('b2a.009') }),
         ].join('\n');
         try {
           if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -1257,11 +1537,11 @@ window.__ModuleLoader__.load({
         if (!this.state.error) return this.props.children;
         const err = this.state.error;
         return h('div', { className: 'sn-card', style: { margin: 12 } },
-          h('div', { className: 'sn-card-head', style: { color: '#d64550' } }, '这一页渲染出错了'),
+          h('div', { className: 'sn-card-head', style: { color: '#d64550' } }, t('b2c.01')),
           h('div', { className: 'sn-pad' },
             h('div', { style: { fontSize: 12.5, lineHeight: 1.8, marginBottom: 10 } },
-              '这是插件自身的缺陷，不是你的操作问题。模型引擎没有受影响——'
-              + '切到其他标签页可以继续使用，或者点下面的按钮重试。'),
+              t('b2a.102')
+              + t('b2a.103')),
             h('div', {
               style: {
                 padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)',
@@ -1273,18 +1553,18 @@ window.__ModuleLoader__.load({
             h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
               h('button', {
                 type: 'button', className: 'sn-btn', onClick: this.handleReset,
-                'aria-label': '重试渲染当前标签页',
+                'aria-label': t('b2a.010'),
               }, t('btn.retry')),
               h('button', {
                 type: 'button', className: 'sn-btn', onClick: this.handleCopy,
-                'aria-label': '复制错误详情',
+                'aria-label': t('b2c.02'),
               }, t('btn.copyError')),
               h('span', {
                 style: {
                   fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)',
                   alignSelf: 'center', lineHeight: 1.5,
                 },
-              }, '当前标签页：' + (this.props.tabLabel || '未知')))));
+              }, t('b2b.13', { v: this.props.tabLabel || t('b2a.011') })))));
       }
     }
 
@@ -1407,14 +1687,14 @@ window.__ModuleLoader__.load({
       const rentBand = (v) =>
         v >= RENT_BANDS.formed ? 3 : v >= RENT_BANDS.warn ? 2 : v >= RENT_BANDS.watch ? 1 : 0;
       const RENT_COLORS = ['#2f9e63', '#e0a63a', '#e07b39', '#d64550'];
-      const RENT_LABELS = ['安全', '关注', '预警', '成形'];
+      const RENT_LABELS = [t('b2a.012'), t('b2a.013'), t('b2a.014'), t('b2a.015')];
 
     /* HEALTH-DATA-BEGIN
        v1.6 T5：模型体检数据 —— 由 scripts/inject-calibration.cjs 从
        docs/calibration.json 注入，勿手改。重跑：npm run calibrate
        （生成 → 注入 → 契约断言三者一致）
        HEALTH-DATA-END */
-    const HEALTH_DATA = {"generatedAt":"2026-11-27T08:53:51.852Z","version":"2.0.1","commit":"e015308","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"stageReachability":{"samples":20000,"yearSnapshots":740000,"stages":[{"id":0,"name":"商业资本主义","count":0,"pct":0},{"id":1,"name":"算法资本主义","count":109334,"pct":14.8},{"id":2,"name":"极化资本主义","count":362221,"pct":48.9},{"id":3,"name":"分岔点","count":140068,"pct":18.9},{"id":4,"name":"过渡社会","count":15277,"pct":2.1},{"id":5,"name":"共产主义初级形态","count":2663,"pct":0.4},{"id":6,"name":"自由人联合体","count":0,"pct":0},{"id":7,"name":"算力封建制","count":20795,"pct":2.8},{"id":8,"name":"改良资本主义","count":3222,"pct":0.4},{"id":9,"name":"崩解","count":76150,"pct":10.3},{"id":10,"name":"未竟的过渡","count":10270,"pct":1.4}],"structurallyUnreachable":[{"id":0,"name":"商业资本主义","groups":0,"reason":"stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"}],"rareButReachable":[{"id":6,"name":"自由人联合体","groups":0,"note":"需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"}],"start2024":{"penetrationWhenLeversZero":0.4008,"penetrationWhenLeversFull":0.4008,"fixed":true,"caveat":"2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"},"techOnlyBeforeGate":{"samples":1625,"verified":true,"caveat":"pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
+    const HEALTH_DATA = {"generatedAt":"2026-11-27T09:34:03.483Z","version":"2.1.0","commit":"329fb52","seed":42,"samples":2000,"note":"构建期生成的采样报告。固定种子，同版本同输出。这是某次采样的结果，不是「模型真理」。","outcomeDistribution":[{"name":"停滞的资本主义","count":1322,"pct":66.1},{"name":"文明崩解","count":455,"pct":22.8},{"name":"算力封建制","count":76,"pct":3.8},{"name":"过渡社会","count":70,"pct":3.5},{"name":"未竟的过渡","count":40,"pct":2},{"name":"共产主义初级形态","count":20,"pct":1},{"name":"社会民主主义终点","count":17,"pct":0.9}],"winnerDistribution":[{"key":"communism","count":922,"pct":46.1},{"key":"feudalism","count":499,"pct":25},{"key":"collapse","count":476,"pct":23.8},{"key":"social_democracy","count":103,"pct":5.2}],"rentQuantiles":{"p10":0.15,"p25":0.224,"p50":0.304,"p75":0.424,"p90":0.55,"bands":{"safe":78.7,"watch":14.7,"warn":5,"formed":1.7}},"asymmetries":{"collapseGain":{"value":1.8,"winRatePct":23.8,"caveat":"该系数是编译期常量，本脚本无法从外部扫描不同取值。此处的胜率是「当前系数下」的实测值；契约 §9.1 的质疑（系数无独立实证依据）依然成立。"},"socialDemocracy":{"totalSamples":5000,"wins":255,"winsWithLowPublicOwnership":255,"pathDependencyConfirmed":true,"caveat":"reformRoom 折减使该路径在 public_ownership ≥ 0.62 时失效——这不是采样噪声，是公式的必然结果。"},"chattering":{"samples":300,"maxFlips":3,"histogram":{"0":68,"1":201,"2":30,"3":1},"caveat":"前馈模型无内生临界点，路径翻转只发生在两个人工闸门附近，因此抖动天然有限。"}},"stageReachability":{"samples":20000,"yearSnapshots":740000,"stages":[{"id":0,"name":"商业资本主义","count":0,"pct":0},{"id":1,"name":"算法资本主义","count":109334,"pct":14.8},{"id":2,"name":"极化资本主义","count":362221,"pct":48.9},{"id":3,"name":"分岔点","count":140068,"pct":18.9},{"id":4,"name":"过渡社会","count":15277,"pct":2.1},{"id":5,"name":"共产主义初级形态","count":2663,"pct":0.4},{"id":6,"name":"自由人联合体","count":0,"pct":0},{"id":7,"name":"算力封建制","count":20795,"pct":2.8},{"id":8,"name":"改良资本主义","count":3222,"pct":0.4},{"id":9,"name":"崩解","count":76150,"pct":10.3},{"id":10,"name":"未竟的过渡","count":10270,"pct":1.4}],"structurallyUnreachable":[{"id":0,"name":"商业资本主义","groups":0,"reason":"stageOf 最低只返回 STAGE_BY_ID[1]（pen<0.38 → 算法资本主义），没有 stage 0 的返回分支。"}],"rareButReachable":[{"id":6,"name":"自由人联合体","groups":0,"note":"需同时满足 pen≥0.68、communism 引力胜、soc≥0.72、abu≥0.78、meaning≥0.46。六剧本中「全域共享」可稳定到达；随机空间里极罕见（另一批 20000 组无种子采样中出现 4 组，约 0.02%；本固定种子批次为 0 组）。"}],"start2024":{"penetrationWhenLeversZero":0.4008,"penetrationWhenLeversFull":0.4008,"fixed":true,"caveat":"2024 年 u=0，所有杠杆取 NOW 基准值，因此首年渗透度与杠杆无关。这是插值起点的设计使然，不是 bug；但它意味着时间轴停在 2024 时显示的阶段恒为「极化资本主义」，而叙事上 2024 应是前史向算法资本主义的过渡。"},"techOnlyBeforeGate":{"samples":1625,"verified":true,"caveat":"pen < GATE_PEN 时，固定渗透度扫遍制度/社会/意义全网格，阶段恒定不变——制度杠杆在岔路前不参与阶段判定。这是 P1-3 的核心，也是模型最该被质疑的简化之一。"}},"anchors":[{"scenario":"baseline","name":"基准线 · 技术狂奔，制度滞后","outcome":"算力封建制","rent":0.59,"development":0.363},{"scenario":"social_democracy","name":"社会民主主义 · 红利全民分红","outcome":"社会民主主义终点","rent":0.527,"development":0.516},{"scenario":"techno_feudalism","name":"算力封建制 · 寡头俘获","outcome":"算力封建制","rent":0.761,"development":0.267},{"scenario":"planned_transition","name":"计划性转型 · 有组织的过渡","outcome":"共产主义初级形态","rent":0.322,"development":0.658},{"scenario":"collapse","name":"崩解 · 高冲击 + 高对抗","outcome":"文明崩解","rent":0.684,"development":0.132},{"scenario":"commons","name":"全域共享 · 后稀缺共产主义","outcome":"自由人联合体","rent":0.076,"development":0.863}]};
 
       const applyScenario = (key) => {
         setScenario(key);
@@ -1435,15 +1715,15 @@ window.__ModuleLoader__.load({
           const pEnc = enc(policy);
           if (pEnc) params.push('p=' + pEnc);
         }
-        if (!params.length) { setIoMsg('当前无可分享状态'); return; }
+        if (!params.length) { setIoMsg(t('b2a.016')); return; }
         const url = (typeof window !== 'undefined' && window.location)
           ? window.location.origin + window.location.pathname + '?' + params.join('&')
           : '?' + params.join('&');
         try { if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', url); } catch (e) { /* 忽略 */ }
-        const done = () => setIoMsg('链接已复制：' + url.slice(0, 60) + (url.length > 60 ? '…' : ''));
+        const done = () => setIoMsg(t('b2b.14', { v: url.slice(0, 60) + (url.length > 60 ? '…' : '') }));
         if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).then(done, () => setIoMsg('请手动复制地址栏链接'));
-        } else { setIoMsg('请手动复制地址栏链接'); }
+          navigator.clipboard.writeText(url).then(done, () => setIoMsg(t('b2a.017')));
+        } else { setIoMsg(t('b2a.017')); }
       };
       const exportJson = () => {
         try {
@@ -1456,8 +1736,8 @@ window.__ModuleLoader__.load({
           a.href = URL.createObjectURL(blob);
           a.download = 'singularity-state-' + payload.date + '.json';
           document.body.appendChild(a); a.click(); a.remove();
-          setIoMsg('存档已导出');
-        } catch (e) { setIoMsg('导出失败：' + e.message); }
+          setIoMsg(t('b2a.018'));
+        } catch (e) { setIoMsg(t('b2b.15', { v: e.message })); }
       };
       const importJson = (file) => {
         const reader = new FileReader();
@@ -1465,7 +1745,7 @@ window.__ModuleLoader__.load({
           try {
             const data = JSON.parse(String(reader.result));
             if (!data || data.app !== 'singularity' || data.v !== STORE_VERSION) {
-              setIoMsg('存档版本不符，已忽略'); return;
+              setIoMsg(t('b2a.019')); return;
             }
             const t = {};
             Object.keys(data.target || {}).forEach((k) => {
@@ -1479,9 +1759,9 @@ window.__ModuleLoader__.load({
             setPolicy(data.policy && data.policy.overrides && Object.keys(data.policy.overrides).length
               ? { year: data.policy.year, overrides: data.policy.overrides } : null);
             setYear(2035);
-            setIoMsg('存档已导入');
+            setIoMsg(t('b2a.020'));
             setDeepLinkLocked(false);
-          } catch (e) { setIoMsg('存档解析失败，已忽略'); }
+          } catch (e) { setIoMsg(t('b2a.021')); }
         };
         reader.readAsText(file);
       };
@@ -1493,14 +1773,14 @@ window.__ModuleLoader__.load({
         const metricCards = ['productivity', 'replacement', 'labor_share', 'abundance',
           'socialization', 'inequality', 'freedom', 'shock'].map((k) => h(Metric, {
           key: k,
-          label: METRIC_META[k].name,
+          label: t('metric.' + k),
           value: curYear.metrics[k],
           color: METRIC_META[k].color,
           danger: (k === 'inequality' || k === 'shock' || k === 'replacement') && curYear.metrics[k] > 0.6,
         }));
 
         const eventRows = sim.events.length === 0
-          ? h('div', { className: 'sn-empty' }, '本路径未触发关键节点。')
+          ? h('div', { className: 'sn-empty' }, t('b2a.022'))
           : sim.events.map((e) => h('div', { className: 'sn-ev', key: e.key },
             h('div', { className: 'y' }, e.year),
             h('div', { className: 'dot' }),
@@ -1509,28 +1789,28 @@ window.__ModuleLoader__.load({
               h('div', { className: 'x' }, e.text))));
 
         const chartCard = h('div', { className: 'sn-card' },
-          h('div', { className: 'sn-card-head' }, '演化轨迹',
+          h('div', { className: 'sn-card-head' }, t('b2a.023'),
             h('span', { className: 'sn-hint' }, '2024 → 2060')),
           h('div', { className: 'sn-pad' },
             h(LineChart, {
               years: sim.years, cursorYear: year, window: sim.window, height: 210,
               series: [
-                { key: 'penetration', label: '技术渗透度' },
-                { key: 'socialization', label: '社会化度' },
-                { key: 'abundance', label: '可及丰裕度' },
-                { key: 'rent', label: '租金压力', get: (row) => row.rent, color: '#e0a63a' },
+                { key: 'penetration', label: t('metric.penetration') },
+                { key: 'socialization', label: t('metric.socialization') },
+                { key: 'abundance', label: t('metric.abundance') },
+                { key: 'rent', label: t('b2a.024'), get: (row) => row.rent, color: '#e0a63a' },
               ],
             })));
 
         const eventCard = h('div', { className: 'sn-card' },
-          h('div', { className: 'sn-card-head' }, '历史节点',
-            h('span', { className: 'sn-hint' }, '按条件触发')),
+          h('div', { className: 'sn-card-head' }, t('b2a.025'),
+            h('span', { className: 'sn-hint' }, t('b2a.026'))),
           h('div', { className: 'sn-events' }, eventRows));
 
         return h('div', null,
-          h(Hero, { outcome: sim.outcome, final: sim.final }),
-          h(Scrubber, { years: sim.years, year: year, window: sim.window, onYear: setYear, policyYear: policy ? policy.year : null }),
-          h(StageTrack, { currentId: curYear.stage.id, onPick: setPicked }),
+          h(Hero, { outcome: sim.outcome, final: sim.final, t: t }),
+          h(Scrubber, { years: sim.years, year: year, window: sim.window, onYear: setYear, policyYear: policy ? policy.year : null, t: t }),
+          h(StageTrack, { currentId: curYear.stage.id, onPick: setPicked, t: t }),
           h('div', { className: 'sn-metrics' }, metricCards),
           h('div', { className: 'sn-grid2' }, chartCard, eventCard));
       };
@@ -1541,22 +1821,22 @@ window.__ModuleLoader__.load({
         const POLICY_KEYS = ['public_ownership', 'redistribution', 'coordination', 'capture'];
         const POLICY_LEVERS = POLICY_KEYS.map((k) => LEVER_BY_KEY[k]);
         const winBadge = !policy ? null
-          : !sim.window ? { t: '窗口未开', c: 'var(--dsw-alias-label-secondary)' }
-            : policy.year < sim.window.start ? { t: '干预在分岔窗口前 · 预防性', c: '#4f8cff' }
-              : policy.year <= sim.window.end ? { t: '干预在分岔窗口内 · 决定性', c: '#e0a63a' }
-                : { t: '干预在分岔窗口后 · 补救性', c: 'var(--dsw-alias-label-secondary)' };
+          : !sim.window ? { t: t('b2a.027'), c: 'var(--dsw-alias-label-secondary)' }
+            : policy.year < sim.window.start ? { t: t('b2a.106'), c: '#4f8cff' }
+              : policy.year <= sim.window.end ? { t: t('b2a.107'), c: '#e0a63a' }
+                : { t: t('b2a.108'), c: 'var(--dsw-alias-label-secondary)' };
         return h('div', null,
         h('div', { className: 'sn-card', style: { marginBottom: 12 } },
           h('div', { className: 'sn-pad', style: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' } },
             h('div', { style: { flex: '1 1 260px', minWidth: 0 } },
-              h('div', { style: { fontSize: 13, fontWeight: 650, marginBottom: 3 } }, '制度选择 · 2024 → 2050'),
-              h('div', { className: 'sn-sub' }, '技术杠杆有自主趋势（无论怎么选，AI 都会前进）；制度与社会杠杆由你设定。')),
+              h('div', { style: { fontSize: 13, fontWeight: 650, marginBottom: 3 } }, t('b2c.05')),
+              h('div', { className: 'sn-sub' }, t('b2a.109'))),
             h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
               // v1.7 T-A4：恢复默认 —— 拨乱杠杆后不必刷新页面
               h('button', {
                 className: 'sn-btn', type: 'button', onClick: resetTarget,
-                title: '清空所有杠杆改写与政策干预，回到剧本默认值',
-                'aria-label': '恢复默认杠杆与政策',
+                title: t('b2a.110'),
+                'aria-label': t('b2a.028'),
               }, t('btn.reset')),
               h('button', { className: 'sn-btn sn-btn-primary', onClick: () => { setYear(2035); setTab('timeline'); } }, t('btn.apply'))))),
         ['技术', '制度', '社会', '摩擦'].map((g) => h('div', { key: g },
@@ -1569,7 +1849,7 @@ window.__ModuleLoader__.load({
                 h('div', { className: 'sn-lv-top' },
                   h('span', { className: 'sn-lv-name' }, lv.name,
                     h('span', { style: { fontSize: 9, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)', marginLeft: 5 } },
-                      overridden ? '已改写' : '默认')),
+                      overridden ? t('b2a.029') : t('b2a.030'))),
                   h('span', { className: 'sn-lv-val', style: { color: GROUP_COLOR[g] } }, v.toFixed(2))),
                 h('div', { className: 'sn-lv-desc' }, lv.desc),
                 h('input', {
@@ -1585,26 +1865,26 @@ window.__ModuleLoader__.load({
             })))),
         h('div', { className: 'sn-card', style: { marginTop: 14 } },
           h('div', { className: 'sn-card-head' },
-            '政策沙盒',
-            h('span', { className: 'sn-hint' }, '从干预年起重定向制度杠杆 · 不持久化'),
-            policy ? h('button', { className: 'sn-btn', onClick: () => setPolicy(null) }, '清除干预') : null),
+            t('b2a.031'),
+            h('span', { className: 'sn-hint' }, t('b2a.111')),
+            policy ? h('button', { className: 'sn-btn', onClick: () => setPolicy(null) }, t('b2a.032')) : null),
           h('div', { className: 'sn-pad' },
             policy && winBadge ? h('div', { style: { marginBottom: 10 } },
               h('span', { className: 'sn-pill', style: { color: winBadge.c, fontSize: 10 } }, winBadge.t))
               : null,
             h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' } },
-              h('span', { style: { fontSize: 12, fontWeight: 600 } }, '干预年'),
+              h('span', { style: { fontSize: 12, fontWeight: 600 } }, t('b2a.033')),
               h('input', {
                 type: 'range', min: 2025, max: 2060, step: 1,
                 value: policy ? policy.year : 2040,
-                'aria-label': '政策干预年',
+                'aria-label': t('b2a.034'),
                 style: { flex: '1 1 160px' },
                 onChange: (e) => {
                   const ny = parseInt(e.target.value, 10);
                   setPolicy((p) => ({ year: ny, overrides: (p && p.overrides) || {} }));
                 },
               }),
-              h('span', { className: 'sn-lv-val' }, policy ? policy.year : '未启用')),
+              h('span', { className: 'sn-lv-val' }, policy ? policy.year : t('b2a.035'))),
             h('div', { className: 'sn-levers' },
               POLICY_LEVERS.map((lv) => {
                 const on = policy && policy.overrides[lv.key] !== undefined;
@@ -1627,11 +1907,11 @@ window.__ModuleLoader__.load({
                         },
                       }),
                       lv.name,
-                      h('span', { style: { fontSize: 9, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' } }, on ? '干预中' : '未干预')),
+                      h('span', { style: { fontSize: 9, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' } }, on ? t('b2a.036') : t('b2a.037'))),
                     h('span', { className: 'sn-lv-val', style: { color: GROUP_COLOR[lv.group] } }, pv.toFixed(2))),
                   h('input', {
                     type: 'range', min: 0, max: 100, step: 1, value: Math.round(pv * 100),
-                    disabled: !on, 'aria-label': lv.name + '（政策）',
+                    disabled: !on, 'aria-label': lv.name + t('b2a.038'),
                     onChange: (e) => {
                       const nv = parseInt(e.target.value, 10) / 100;
                       setPolicy((p) => ({ year: p ? p.year : 2040, overrides: Object.assign({}, p.overrides, (obj => { obj[lv.key] = nv; return obj; })({})) }));
@@ -1639,10 +1919,10 @@ window.__ModuleLoader__.load({
                   }));
               })),
             h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8 } },
-              '政策是从干预年起对制度杠杆的重定向（无缝衔接原轨迹），不是社会对政策的反应 —— 见契约 §8c 与 §9。'))),
+              t('b3.07')))),
         h('div', { className: 'sn-grid2', style: { marginTop: 14 } },
           h('div', { className: 'sn-card' },
-            h('div', { className: 'sn-card-head' }, '关键变量', h('span', { className: 'sn-hint' }, '±10% 扰动对终点的影响')),
+            h('div', { className: 'sn-card-head' }, t('b2a.039'), h('span', { className: 'sn-hint' }, t('b2c.06'))),
             h('div', { className: 'sn-pad' },
               (function () {
                 const max = Math.max.apply(null, sens.items.map((i) => Math.abs(i.effect)).concat([0.01]));
@@ -1664,7 +1944,7 @@ window.__ModuleLoader__.load({
                 });
               })())),
           h('div', { className: 'sn-card' },
-            h('div', { className: 'sn-card-head' }, '结构归因', h('span', { className: 'sn-hint' }, '为什么是这个结局')),
+            h('div', { className: 'sn-card-head' }, t('b2a.040'), h('span', { className: 'sn-hint' }, t('b2a.041'))),
             h('div', { className: 'sn-pad' },
               h('div', { className: 'sn-drivers' },
                 drivers.map((d, i) => h('div', { className: 'sn-drv', key: i },
@@ -1685,31 +1965,31 @@ window.__ModuleLoader__.load({
         return h('div', null,
           h('div', { className: 'sn-card', style: { marginBottom: 12 } },
             h('div', { className: 'sn-pad' },
-              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '分岔点 · 历史橱窗'),
+              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, t('b2a.042')),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 700 } },
-                '分岔点不是一个时刻，而是一个窗口。窗口内四条引力同时作用于社会，'
+                t('b2c.07')
                 + (sim.window
-                  ? '引力值最高者就是引擎实际走的那条路（两者共用同一裁决函数）。'
-                  : '本路径技术渗透未越过 0.68 的裁决线：引力数值仍在计算，但历史尚未进入裁决，处于悬置状态。'),
+                  ? t('b2a.112')
+                  : t('b3.08')),
                 // v1.5 T4（P1-2）：引力上限非对称的明示（契约 §9.1 / §9.2）
                 h('div', { style: { marginTop: 6, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.65 } },
-                  '引力上限并不相等：崩解系数 1.8（正反馈补偿）、共产与封建接近 1.0，'
-                  + '而社民因「改良空间」折减上限约 0.70。四条并排显示会低估社民路径的真实可能性——'
-                  + '这是模型的已知非对称，不是四者等概率。'),
+                  t('b2c.08')
+                  + t('b2c.09')
+                  + t('b2a.113')),
                 sim.window
                   ? h('div', { style: { marginTop: 6, color: sim.window.type === 'passed' ? 'var(--dsw-alias-state-success-primary)' : 'var(--dsw-alias-state-error-primary)', fontWeight: 600 } },
                     sim.window.type === 'passed'
-                      ? '本路径于 ' + sim.window.gate_year + ' 年跨过制度闸门。'
-                      : '本路径在窗口 ' + sim.window.start + '–' + sim.window.end + ' 内未跨过制度闸门，历史被岔路接管。')
-                  : h('div', { style: { marginTop: 6 } }, '本路径技术渗透始终未达阈值，未进入分岔窗口。'),
+                      ? t('b2b.16', { y: sim.window.gate_year })
+                      : t('b2b.17', { from: sim.window.start, to: sim.window.end }))
+                  : h('div', { style: { marginTop: 6 } }, t('b2a.114')),
                 // v1.5 T4（P1-1）：晚期反转标注 —— 窗口末年胜者 ≠ 终年胜者时明示
                 lateReversal
                   ? h('div', { style: { marginTop: 6, padding: '5px 8px', borderRadius: 5, background: 'rgba(224,166,58,.12)', color: '#e0a63a', fontSize: 11, lineHeight: 1.6 } },
-                    '晚期反转：窗口末年（' + lateReversal.atYear + '）引力最高者为「'
+                    t('b2b.18', { y: lateReversal.atYear })
                     + (BRANCHES.filter((b) => b.key === lateReversal.from)[0] || {}).name
-                    + '」，但引擎以 2060 终年引力定案，最终走向「'
+                    + t('b2c.10')
                     + (BRANCHES.filter((b) => b.key === lateReversal.to)[0] || {}).name
-                    + '」。窗口标记的是敏感区间，不是裁决时刻。')
+                    + t('b2a.115'))
                   : null))),
           h('div', { className: 'sn-branches' },
             BRANCHES.map((b) => {
@@ -1718,37 +1998,37 @@ window.__ModuleLoader__.load({
                 h('div', { className: 'sn-br-name', style: { color: b.color } }, b.name),
                 h('div', { className: 'sn-br-cond' }, b.condition),
                 h('div', { className: 'sn-br-num', style: { color: b.color } },
-                  Math.round(v * 100), h('small', null, '% 引力')),
+                  Math.round(v * 100), h('small', null, t('b2a.043'))),
                 h('div', { className: 'sn-br-bar' }, h('div', { style: { width: (v * 100) + '%' } })),
                 h('ul', { className: 'sn-br-path' }, b.path.map((x, i) => h('li', { key: i }, x))),
                 h('div', { className: 'sn-br-out' }, b.outcome));
             })),
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '路径对照'),
+            h('div', { className: 'sn-card-head' }, t('b2a.044')),
             h('div', { style: { overflowX: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null,
-                  ['路径', '必要条件', '核心机制', '终点', '是否共产主义'].map((t, i) => h('th', { key: i }, t)))),
+                  [t('b2a.045'), t('b2a.046'), t('b2a.047'), t('b2a.048'), t('b2a.049')].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null,
                   [
-                    { n: '算力封建制', c: '#f45b68', cond: '寡头俘获国家 · 产权私有放大俘获', m: '算力寡头化 → 数据圈地 → 配额制', e: '生产力极高、自由极低', y: '否' },
-                    { n: '社会民主主义', c: '#4f8cff', cond: '再分配强 · 组织度高 · 产权私有', m: 'AI 税 → 全民分红 → 公共算力', e: '体面的停滞（产权 ≥0.62 时本路径失效）', y: '否（产权未变）' },
-                    { n: '共产主义过渡', c: '#22c98a', cond: '产权公有 · 协同高 · 团结与意义充足', m: '生产资料公有化 → 按需分配', e: '自由人联合体', y: '是' },
-                    { n: '文明崩解', c: '#8b3a42', cond: '全面对抗 · 高冲击 · 凝聚流失', m: '冲突摧毁有效生产力 → 基础设施失维', e: '低技术均衡', y: '否' },
+                    { n: '算力封建制', c: '#f45b68', cond: t('b2a.116'), m: t('b2a.117'), e: t('b2a.050'), y: t('b2c.47') },
+                    { n: '社会民主主义', c: '#4f8cff', cond: t('b2a.118'), m: t('b2a.119'), e: '体面的停滞（产权 ≥0.62 时本路径失效）', y: t('b2a.051') },
+                    { n: '共产主义过渡', c: '#22c98a', cond: t('b2a.120'), m: t('b2a.121'), e: '自由人联合体', y: t('b2c.48') },
+                    { n: '文明崩解', c: '#8b3a42', cond: t('b2a.122'), m: t('b2a.123'), e: '低技术均衡', y: t('b2c.47') },
                   ].map((r, i) => h('tr', { key: i },
                     h('td', { style: { color: r.c, fontWeight: 600 } }, r.n),
                     h('td', { style: { fontSize: 11 } }, r.cond),
                     h('td', { style: { fontSize: 11 } }, r.m),
                     h('td', { style: { fontSize: 11 } }, r.e),
-                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === '是' ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));
+                    h('td', null, h('span', { className: 'sn-pill', style: { color: r.y === t('b2c.48') ? '#22c98a' : 'var(--dsw-alias-label-secondary)', fontSize: 10 } }, r.y)))))))));
       };
 
       /* v1.3 E2/E3：稳健性卡（蒙特卡洛分布 + 最小翻转反方读法）。
          独立定义、在 dispatcher 处与 branchTab 拼接，避免改动上方的巨型表达式。 */
       const ROB_COLORS = ['#2f9e63', '#e0a63a', '#4f8cff', '#8b3a42', '#7b8ba3', '#f45b68'];
       const robustCard = h('div', { className: 'sn-card', style: { marginTop: 12 } },
-        h('div', { className: 'sn-card-head' }, '稳健性 · 蒙特卡洛',
-          h('span', { className: 'sn-hint' }, '±8% 扰动 × 240 次 · 分布而非单点')),
+        h('div', { className: 'sn-card-head' }, t('b2a.052'),
+          h('span', { className: 'sn-hint' }, t('b2c.11'))),
         h('div', { className: 'sn-pad' },
           h('div', { style: { position: 'relative', height: 16, borderRadius: 8, overflow: 'hidden', display: 'flex', marginBottom: 6 } },
             rob.outcomes.map((o, i) => h('div', {
@@ -1764,14 +2044,14 @@ window.__ModuleLoader__.load({
             rob.outcomes.map((o, i) => h('span', { key: o.name },
               h('span', { style: { color: ROB_COLORS[i % 6], fontWeight: 600 } }, '■'),
               ' ' + o.name + ' ' + Math.round(o.pct * 100) + '%')),
-            h('span', { style: { marginLeft: 'auto', fontWeight: 600 } }, '一致性 ' + Math.round(rob.agreement * 100) + '%')),
+            h('span', { style: { marginLeft: 'auto', fontWeight: 600 } }, t('b2b.19', { v: Math.round(rob.agreement * 100) }))),
           h('div', { style: { fontSize: 11.5, lineHeight: 1.7 } },
             rev
               ? h('span', null,
-                h('b', null, '反方读法：'), '把「', LEVER_BY_KEY[rev.lever].name, '」从 ',
-                Math.round(rev.from * 100) + '% 调到 ' + Math.round(rev.to * 100) + '%（Δ' + Math.round(rev.delta * 100) + '），结局即翻转为「', rev.outcome, '」——本结论对该杠杆敏感。')
+                h('b', null, t('b2b.20')), t('b2a.053'), LEVER_BY_KEY[rev.lever].name, t('b2b.21'),
+                t('b2b.22', { from: Math.round(rev.from * 100), to: Math.round(rev.to * 100), d: Math.round(rev.delta * 100) }), rev.outcome, t('b2a.124'))
               : h('span', null,
-                h('b', null, '反方读法：'), '±8% 扰动与任何单制度杠杆极端化都无法翻转本结论——在当前参数域内，它是稳健的。'))));
+                h('b', null, t('b2c.13')), t('b2c.12')))));
       const branchTabWithRobust = () => h('div', null, branchTab(), robustCard);
 
       /* ── 指标 ── */
@@ -1798,13 +2078,13 @@ window.__ModuleLoader__.load({
         // R6：相图 —— 渗透×社会化平面上的历史轨迹；阴影 = 封建稳态域（x≥0.68 且 y<0.48）
         const phaseSvg = h('svg', { viewBox: '0 0 320 244', style: { width: '100%', display: 'block' } },
           h('rect', { x: px(GATE_PEN), y: py(GATE_SOC), width: 308 - px(GATE_PEN), height: 228 - py(GATE_SOC), fill: 'rgba(244,91,104,.13)' }),
-          h('text', { x: px(GATE_PEN) + 6, y: py(GATE_SOC) + 16, fontSize: 9, fill: '#f45b68' }, '封建稳态域'),
+          h('text', { x: px(GATE_PEN) + 6, y: py(GATE_SOC) + 16, fontSize: 9, fill: '#f45b68' }, t('b2a.054')),
           h('line', { x1: 36, y1: 228, x2: 308, y2: 228, stroke: 'rgba(140,150,170,.5)' }),
           h('line', { x1: 36, y1: 12, x2: 36, y2: 228, stroke: 'rgba(140,150,170,.5)' }),
           h('line', { x1: px(GATE_PEN), y1: 12, x2: px(GATE_PEN), y2: 228, stroke: 'rgba(244,91,104,.5)', strokeDasharray: '4 3' }),
           h('line', { x1: 36, y1: py(GATE_SOC), x2: 308, y2: py(GATE_SOC), stroke: 'rgba(46,211,138,.5)', strokeDasharray: '4 3' }),
-          h('text', { x: px(GATE_PEN) + 4, y: 20, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.68'),
-          h('text', { x: 42, y: py(GATE_SOC) - 4, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.48'),
+          h('text', { x: px(GATE_PEN) + 4, y: 20, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, t('b2c.14')),
+          h('text', { x: 42, y: py(GATE_SOC) - 4, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, t('b2c.15')),
           h('polyline', { points: traj, fill: 'none', stroke: '#4f8cff', strokeWidth: 2, strokeLinejoin: 'round' }),
           revPoint ? h('g', { key: 'revArrow' },
             h('line', {
@@ -1815,7 +2095,7 @@ window.__ModuleLoader__.load({
             h('circle', { cx: px(revPoint.x), cy: py(revPoint.y), r: 5, fill: 'none', stroke: '#e0a63a', strokeWidth: 1.5, strokeDasharray: '2 2' }),
             h('text', {
               x: px(revPoint.x) + 7, y: py(revPoint.y) + 3, fontSize: 8.5, fill: '#e0a63a',
-            }, '若翻转：' + revPoint.outcome)) : null,
+            }, t('b2b.23', { v: revPoint.outcome }))) : null,
           ghostActive ? h('polyline', { points: ghostTraj, fill: 'none', stroke: 'rgba(150,158,175,.75)', strokeWidth: 1.5, strokeDasharray: '5 4' }) : null,
           ghostActive ? h('circle', {
             cx: px(sim.years.filter((y) => y.year >= policy.year)[0].metrics.penetration),
@@ -1824,8 +2104,8 @@ window.__ModuleLoader__.load({
           }) : null,
           ghostActive ? h('circle', { cx: px(ghostYear.metrics.penetration), cy: py(ghostYear.metrics.socialization), r: 3.5, fill: 'rgba(150,158,175,.9)' }) : null,
           h('circle', { cx: px(cur.metrics.penetration), cy: py(cur.metrics.socialization), r: 4.5, fill: '#e6edf7', stroke: '#4f8cff', strokeWidth: 2 }),
-          h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '渗透度 →'),
-          h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
+          h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, t('b2a.055')),
+          h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, t('b2a.056')));
         // v1.4 B4：热力图 —— 7×7 参数扫描，颜色 = 终局租金档；点击载入两杆。
         // 审核修复：轴值改用 App 级 heatAxis（与 heatGrid 构造同源，杜绝行序错位）。
         // v1.9 a11y：热力图单元格键盘可达。
@@ -1846,15 +2126,14 @@ window.__ModuleLoader__.load({
         };
         const heatSvg = h('svg', {
           viewBox: '0 0 296 292', style: { width: '100%', display: 'block' },
-          role: 'grid', 'aria-label': '参数扫描热力图：公共产权 × 资本捕获，颜色表示终局租金档位。方向键移动，回车载入。',
+          role: 'grid', 'aria-label': t('b2a.125'),
         },
           heatGrid.map((row, r) => row.map((cell, c) => {
             const po = heatAxis.po[r];
             const cap = heatAxis.cap[c];
             const on = Math.abs(po - curPo) < 0.084 && Math.abs(cap - curCap) < 0.084;
             const isFocus = r === heatSelected.r && c === heatSelected.c;
-            const label = '产权 ' + Math.round(po * 100) + '% × 捕获 ' + Math.round(cap * 100)
-              + '% → ' + RENT_LABELS[rentBand(cell.rent)];
+            const label = t('b2b.24', { po: Math.round(po * 100), cap: Math.round(cap * 100), band: RENT_LABELS[rentBand(cell.rent)] });
             return h('g', {
               key: r + '-' + c, style: { cursor: 'pointer' },
               role: 'gridcell',
@@ -1889,9 +2168,9 @@ window.__ModuleLoader__.load({
               }));
           })),
           h('text', { x: 168, y: 286, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' },
-            heatMode === 'neighborhood' ? '公共产权（邻域 ±0.5）→' : '公共产权 →'),
+            heatMode === 'neighborhood' ? t('b2c.16') : t('b2a.057')),
           h('text', { x: 12, y: 140, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 140)' },
-            heatMode === 'neighborhood' ? '资本捕获（邻域 ±0.5）→' : '资本捕获 →'),
+            heatMode === 'neighborhood' ? t('b2c.17') : t('b2a.058')),
           h('text', { x: 26, y: 28, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' },
             Math.round(Math.max.apply(null, heatAxis.po) * 100) / 100),
           h('text', { x: 26, y: 250, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' },
@@ -1899,11 +2178,11 @@ window.__ModuleLoader__.load({
         return h('div', null,
           h('div', { className: 'sn-metrics' },
             Object.keys(METRIC_META).map((k) => h(Metric, {
-              key: k, label: METRIC_META[k].name, value: m[k], color: METRIC_META[k].color,
+              key: k, label: t('metric.' + k), value: m[k], color: METRIC_META[k].color,
               danger: (k === 'inequality' || k === 'shock' || k === 'replacement' || k === 'collapse_risk' || k === 'feudalism_risk') && m[k] > 0.6,
             }))),
           h('div', { className: 'sn-card', style: { marginBottom: 12 } },
-            h('div', { className: 'sn-card-head' }, '租金压力', h('span', { className: 'sn-hint' }, '垄断占有对分配的绑定程度 · 三档 0.45 / 0.60 / 0.75')),
+            h('div', { className: 'sn-card-head' }, t('b2a.024'), h('span', { className: 'sn-hint' }, t('b2c.18'))),
             h('div', { className: 'sn-pad' },
               h('div', { style: { position: 'relative', height: 16, borderRadius: 8, overflow: 'hidden', display: 'flex', marginBottom: 6 } },
                 [{ w: 45, c: RENT_COLORS[0] }, { w: 15, c: RENT_COLORS[1] }, { w: 15, c: RENT_COLORS[2] }, { w: 25, c: RENT_COLORS[3] }].map((seg, i) =>
@@ -1914,9 +2193,9 @@ window.__ModuleLoader__.load({
               h('div', { style: { fontSize: 12 } },
                 h('span', { className: 'sn-pill', style: { color: RENT_COLORS[rentBandV] } }, RENT_LABELS[rentBandV] + ' · ' + Math.round(rentFinal * 100) + '%'),
                 h('span', { style: { marginLeft: 10, fontSize: 11, color: 'var(--dsw-alias-label-secondary)' } },
-                  '峰值 ' + Math.round(rentPeak.rent * 100) + '%（' + rentPeak.year + '）｜ 预警首年 ' + (rentCross ? rentCross.year : '—')))),
+                  t('b2b.25', { peak: Math.round(rentPeak.rent * 100), y: rentPeak.year, warn: rentCross ? rentCross.year : '—' })))),
           h('div', { className: 'sn-grid2' },
-            [[{ key: 'productivity', label: '生产力' }, { key: 'labor_share', label: '劳动份额' }, { key: 'socialization', label: '社会化度' }],
+            [[{ key: 'productivity', label: '生产力' }, { key: 'labor_share', label: '劳动份额' }, { key: 'socialization', label: t('metric.socialization') }],
               [{ key: 'collapse_risk', label: '崩解风险' }, { key: 'feudalism_risk', label: '封建化风险' }],
               [{ key: 'freedom', label: '自由实现度' }, { key: 'cohesion', label: '社会凝聚' }, { key: 'inequality', label: '不平等' }],
               [{ key: 'replacement', label: '劳动替代率' }, { key: 'shock', label: '转型冲击' }],
@@ -1926,38 +2205,38 @@ window.__ModuleLoader__.load({
                 h(LineChart, { years: sim.years, series: series, cursorYear: year, window: sim.window, height: 175 }))))),
           h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化',
+              h('div', { className: 'sn-card-head' }, t('b2a.059'),
                 h('span', { className: 'sn-hint' },
-                  ghostActive ? '灰虚线 = 无政策幽灵轨迹 · 圆环 = 干预年 · 黄虚环 = 反方翻转点'
-                    : revPoint ? '黄虚环 = 反方读法翻转点' : '虚线为闸门 0.68 / 0.48')),
+                  ghostActive ? t('b2a.126')
+                    : revPoint ? t('b2a.127') : t('b2c.19'))),
               h('div', { className: 'sn-pad' }, phaseSvg)),
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获',
+              h('div', { className: 'sn-card-head' }, t('b2a.128'),
                 h('span', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
                   h('span', { className: 'sn-hint' }, t('hint.clickCell')),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'default' ? ' sn-btn-primary' : ''),
                     type: 'button', 'aria-pressed': heatMode === 'default',
-                    onClick: () => setHeatMode('default'), title: '全域扫描（其余杠杆取默认值）',
+                    onClick: () => setHeatMode('default'), title: t('b2a.129'),
                   }, t('btn.fullScan')),
                   h('button', {
                     className: 'sn-btn' + (heatMode === 'neighborhood' ? ' sn-btn-primary' : ''),
                     type: 'button', 'aria-pressed': heatMode === 'neighborhood',
-                    onClick: () => setHeatMode('neighborhood'), title: '以当前产权×捕获为中心 ±0.5 重扫',
+                    onClick: () => setHeatMode('neighborhood'), title: t('b2c.20'),
                   }, t('btn.neighborScan')))),
               h('div', { className: 'sn-pad' }, heatSvg))),
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
-            h('div', { className: 'sn-card-head' }, '逐年数据', h('span', { className: 'sn-hint' }, '点击行跳到该年')),
+            h('div', { className: 'sn-card-head' }, t('b2a.060'), h('span', { className: 'sn-hint' }, t('b2a.061'))),
             h('div', { style: { overflowX: 'auto', maxHeight: 320, overflowY: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null,
-                  ['年份', '阶段', '渗透', '社会化', '丰裕', '替代率', '劳动份额', '不等', '自由', '租金'].map((t, i) => h('th', { key: i }, t)))),
+                  [t('b2a.007'), t('b2a.062'), t('b2a.063'), t('b2a.064'), t('b2a.065'), t('b2a.066'), '劳动份额', t('b2a.067'), t('b2a.068'), t('b2a.069')].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null,
                   sim.years.filter((y) => y.year % 2 === 0).map((y) => h('tr', {
                     key: y.year, style: { cursor: 'pointer' },
                     // v1.9 a11y：表格行不能是 button，用 role + tabIndex + Enter/Space
                     role: 'button', tabIndex: 0,
-                    'aria-label': '跳到 ' + y.year + ' 年（' + y.stage.name + '）',
+                    'aria-label': t('b2b.26', { y: y.year, name: y.stage.name }),
                     onClick: () => { setYear(y.year); setTab('timeline'); },
                     onKeyDown: (e) => {
                       if (e && (e.key === 'Enter' || e.key === ' ')) {
@@ -2005,16 +2284,16 @@ window.__ModuleLoader__.load({
         return h('div', null,
           h('div', { className: 'sn-card', style: { marginBottom: 12 } },
             h('div', { className: 'sn-pad' },
-              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '六种世界'),
+              h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, t('b2a.070')),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
-                '同样的技术，不同的制度选择。注意：六条路径的技术条件几乎相同，结局却完全相反 —— 这就是「制度决定落在哪一侧」。'),
+                t('b3.09')),
               h('div', { className: 'sn-sub', style: { marginTop: 4 } },
-                '「一致性」= ±8% 扰动 × 240 次中主结局的占比（种子化，刷新可复算）；越低说明该结局越脆弱。')),
+                t('b3.10'))),
           h('div', { className: 'sn-card' },
             h('div', { style: { overflowX: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null,
-                  ['情景', '结局', '发展 D', '丰裕', '自由', '不平等', '租金', '一致性', '窗口', ''].map((t, i) => h('th', { key: i }, t)))),
+                  [t('b2a.071'), t('b2a.072'), t('b2a.073'), t('b2a.065'), t('b2a.068'), '不平等', t('b2a.069'), t('b2a.074'), t('b2a.075'), ''].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null,
                   rows.map((r) => {
                     const f = r.sim.final.metrics;
@@ -2032,10 +2311,10 @@ window.__ModuleLoader__.load({
                         Math.round(f.inequality * 100) + '%'),
                       h('td', { style: { color: st.rent >= RENT_BANDS.warn ? '#e07b39' : undefined } },
                         Math.round(st.rent * 100) + '%'),
-                      h('td', { style: { color: st.agreement < 0.6 ? '#e0a63a' : undefined }, title: '±8% 扰动 ×240 次的主结局占比（种子化可复算）' },
+                      h('td', { style: { color: st.agreement < 0.6 ? '#e0a63a' : undefined }, title: t('b2c.21') },
                         Math.round(st.agreement * 100) + '%'),
                       h('td', { style: { fontSize: 10.5 } }, r.sim.window ? r.sim.window.start + '–' + r.sim.window.end : '—'),
-                      h('td', null, h('button', { className: 'sn-btn', onClick: () => applyScenario(r.key) }, '载入')));
+                      h('td', null, h('button', { className: 'sn-btn', onClick: () => applyScenario(r.key) }, t('b2a.076'))));
                   })))))));
       };
 
@@ -2061,8 +2340,8 @@ window.__ModuleLoader__.load({
         // 租金分位带：把 p10–p90 画成一条渐变轨
         const rq = d.rentQuantiles;
         const rentTrack = h('div', { style: { position: 'relative', height: 18, borderRadius: 9, overflow: 'hidden', display: 'flex', marginBottom: 5 } },
-          [{ w: 45, c: RENT_COLORS[0], t: '安全 <0.45' }, { w: 15, c: RENT_COLORS[1], t: '关注' },
-            { w: 15, c: RENT_COLORS[2], t: '预警' }, { w: 25, c: RENT_COLORS[3], t: '成形 ≥0.75' }]
+          [{ w: 45, c: RENT_COLORS[0], t: t('b2c.22') }, { w: 15, c: RENT_COLORS[1], t: t('b2a.013') },
+            { w: 15, c: RENT_COLORS[2], t: t('b2a.014') }, { w: 25, c: RENT_COLORS[3], t: t('b2c.23') }]
             .map((seg) => h('div', { key: seg.t, title: seg.t, style: { flex: seg.w + ' 1 0', background: seg.c, opacity: 0.8 } })),
           [rq.p10, rq.p50, rq.p90].map((v, i) => h('div', {
             key: i, title: ['p10', 'p50', 'p90'][i] + ' = ' + v,
@@ -2079,12 +2358,12 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-pad' },
               h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, t('title.samplingReport')),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
-                d.note || '构建期生成的采样报告。'),
+                d.note || t('b2a.077')),
               h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 7, fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } },
-                h('span', null, '生成于 ' + (d.generatedAt || '—').slice(0, 19).replace('T', ' ')),
-                h('span', null, '版本 ' + (d.version || '—')),
+                h('span', null, t('b2b.27', { v: (d.generatedAt || '—').slice(0, 19).replace('T', ' ') })),
+                h('span', null, t('b2b.28', { v: d.version || '—' })),
                 h('span', null, 'commit ' + (d.commit || '—')),
-                h('span', null, '种子 ' + d.seed + ' · ' + d.samples + ' 组随机参数')))),
+                h('span', null, t('b2b.29', { seed: d.seed, n: d.samples }))))),
 
           h('div', { className: 'sn-grid2' },
             // 结局分布
@@ -2092,21 +2371,21 @@ window.__ModuleLoader__.load({
               h('div', { className: 'sn-card-head' }, t('title.outcomeDist'),
                 h('span', { className: 'sn-hint' }, t('hint.uniformRandom'))),
               h('div', { className: 'sn-pad' },
-                d.outcomeDistribution.map((o) => barRow(o.name, o.pct, OUT_COLORS[o.name] || '#7b8ba3', o.count + ' 组')),
+                d.outcomeDistribution.map((o) => barRow(o.name, o.pct, OUT_COLORS[o.name] || '#7b8ba3', t('b2b.30', { n: o.count }))),
                 h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
-                  '质疑：停滞占三分之二，说明「技术足够但制度没跟上」是这个模型的默认结局。'
-                  + '若你认为现实中制度演化更快，这个比例就是你该反驳的地方。'))),
+                  t('b2a.130')
+                  + t('b2a.131')))),
             // 引力分布
             h('div', { className: 'sn-card' },
               h('div', { className: 'sn-card-head' }, t('title.winnerDist'),
                 h('span', { className: 'sn-hint' }, t('hint.sameSamples'))),
               h('div', { className: 'sn-pad' },
                 d.winnerDistribution.map((w) => barRow(WIN_NAMES[w.key] || w.key, w.pct,
-                  BRANCHES.filter((b) => b.key === w.key)[0] ? BRANCHES.filter((b) => b.key === w.key)[0].color : '#7b8ba3', w.count + ' 组')),
+                  BRANCHES.filter((b) => b.key === w.key)[0] ? BRANCHES.filter((b) => b.key === w.key)[0].color : '#7b8ba3', t('b2b.30', { n: w.count }))),
                 h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
-                  '质疑（契约 §9.1）：崩解引力系数 1.8 高于其余三条的 1.0，实测崩解胜率 '
-                  + d.asymmetries.collapseGain.winRatePct + '%。这个系数没有独立实证依据——'
-                  + '它是本模型最该被质疑的设定。')))),
+                  t('b2c.24')
+                  + d.asymmetries.collapseGain.winRatePct + t('b2a.132')
+                  + t('b2a.133'))))),
 
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, t('title.rentDist'),
@@ -2116,71 +2395,71 @@ window.__ModuleLoader__.load({
               h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--dsw-alias-label-secondary)', marginBottom: 10 } },
                 h('span', null, '0'), h('span', null, '0.45'), h('span', null, '0.60'), h('span', null, '0.75'), h('span', null, '1')),
               h('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11.5 } },
-                [['p10', rq.p10], ['p25', rq.p25], ['中位', rq.p50], ['p75', rq.p75], ['p90', rq.p90]].map((kv) =>
+                [['p10', rq.p10], ['p25', rq.p25], [t('b2a.078'), rq.p50], ['p75', rq.p75], ['p90', rq.p90]].map((kv) =>
                   h('span', { key: kv[0] }, h('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, kv[0] + ' '), h('b', null, kv[1]))),
                 h('span', { style: { marginLeft: 'auto' } },
-                  '四档：安全 ' + rq.bands.safe + '% · 关注 ' + rq.bands.watch + '% · 预警 ' + rq.bands.warn + '% · 成形 ' + rq.bands.formed + '%')),
+                  t('b2b.31', { safe: rq.bands.safe, watch: rq.bands.watch, warn: rq.bands.warn, formed: rq.bands.formed }))),
               h('div', { style: { fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)', marginTop: 8, lineHeight: 1.65 } },
-                '质疑（契约 §9.9）：租金是当期杠杆的即时读数，无存量积累、无对占有结构的反噬回路。'
-                + '不要把越线年份当作动力学预测。'))),
+                t('b2c.25')
+                + t('b2a.134')))),
 
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, t('title.asymmetry')),
             h('div', { className: 'sn-pad' },
               h('div', { style: { display: 'grid', gap: 10 } },
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
-                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.1 崩解系数偏高'),
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.26')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
-                    'COLLAPSE_GAIN = ' + d.asymmetries.collapseGain.value + '（其余三条 1.0），实测胜率 '
+                    'COLLAPSE_GAIN = ' + d.asymmetries.collapseGain.value + t('b2c.27')
                     + d.asymmetries.collapseGain.winRatePct + '%。' + d.asymmetries.collapseGain.caveat)),
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
-                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.2/9.3 社民路径依赖'),
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.28')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
-                    '5000 组随机中社民胜出 ' + d.asymmetries.socialDemocracy.wins + ' 次，其中 '
-                    + d.asymmetries.socialDemocracy.winsWithLowPublicOwnership + ' 次伴随产权 <0.62'
-                    + (d.asymmetries.socialDemocracy.pathDependencyConfirmed ? '（100% 路径依赖已确认）' : '') + '。'
+                    t('b2b.32', { n: d.asymmetries.socialDemocracy.wins })
+                    + t('b2b.33', { n: d.asymmetries.socialDemocracy.winsWithLowPublicOwnership })
+                    + (d.asymmetries.socialDemocracy.pathDependencyConfirmed ? t('b2c.29') : '') + '。'
                     + d.asymmetries.socialDemocracy.caveat)),
                 h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
-                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '§9.4 前馈而非动力学'),
+                  h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, t('b2c.30')),
                   h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
-                    '300 组样本中路径最多翻转 ' + d.asymmetries.chattering.maxFlips + ' 次。'
+                    t('b2b.34', { n: d.asymmetries.chattering.maxFlips })
                     + d.asymmetries.chattering.caveat))))),
 
           // v1.8：阶段可达性 —— 区分「结构性不可达」与「稀有但可达」
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, t('title.stageReach'),
-              h('span', { className: 'sn-hint' }, d.stageReachability.samples + ' 组 × 37 年 = '
-                + (d.stageReachability.yearSnapshots / 10000).toFixed(0) + ' 万年份快照')),
+              h('span', { className: 'sn-hint' }, t('b2b.35', { n: d.stageReachability.samples }) + ' '
+                + t('b2b.36', { n: (d.stageReachability.yearSnapshots / 10000).toFixed(0) }))),
             h('div', { className: 'sn-pad' },
               h('div', { style: { fontSize: 11, color: 'var(--dsw-alias-label-secondary)', marginBottom: 8, lineHeight: 1.65 } },
-                '七阶段轨道里，有一个阶段引擎从不返回——这不是数据缺失，是判定逻辑的边界。'),
+                t('b2a.135')),
               (d.stageReachability.structurallyUnreachable || []).map((u) => h('div', {
                 key: 'u' + u.id,
                 style: { padding: '8px 10px', borderRadius: 6, background: 'rgba(214,69,80,.10)', marginBottom: 8 },
               },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3, color: '#d64550' } },
-                  '结构性不可达：' + u.name),
+                  t('b2b.37', { v: u.name })),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, u.reason),
                 h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
-                  '实测：' + d.stageReachability.samples + ' 组随机参数中出现 ' + u.groups + ' 次。'
-                  + '它在阶段轨道上标为「前史」——用于叙事，不是运行时状态。'))),
+                  t('b2b.38', { n: d.stageReachability.samples, c: u.groups })
+                  + t('b2a.136')))),
               (d.stageReachability.rareButReachable || []).map((r) => h('div', {
                 key: 'r' + r.id,
                 style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', marginBottom: 8 },
               },
                 h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } },
-                  '稀有但可达：' + r.name),
+                  t('b2b.39', { v: r.name })),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, r.note))),
               h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)' } },
-                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, '2024 起点固定'),
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, t('b2c.31')),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
-                  '杠杆全零时首年渗透度 ' + d.stageReachability.start2024.penetrationWhenLeversZero
-                  + '，全拉满时 ' + d.stageReachability.start2024.penetrationWhenLeversFull
-                  + (d.stageReachability.start2024.fixed ? '——完全相同。' : '——不同。')),
+                  t('b2b.40', { v: d.stageReachability.start2024.penetrationWhenLeversZero })
+                  + t('b2b.41', { v: d.stageReachability.start2024.penetrationWhenLeversFull })
+                  + (d.stageReachability.start2024.fixed ? t('b2a.079') : t('b2a.080'))),
                 h('div', { style: { fontSize: 10.5, lineHeight: 1.6, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
                   d.stageReachability.start2024.caveat)),
               h('div', { style: { padding: '8px 10px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', marginTop: 8 } },
-                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, '岔路前由技术单变量决定'),
+                h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 3 } }, t('b2a.081')),
                 h('div', { style: { fontSize: 11, lineHeight: 1.7 } },
                   d.stageReachability.techOnlyBeforeGate.caveat)))),
 
@@ -2190,7 +2469,7 @@ window.__ModuleLoader__.load({
               h('span', { className: 'sn-hint' }, t('hint.forCrossCheck'))),
             h('div', { style: { overflowX: 'auto' } },
               h('table', { className: 'sn-table' },
-                h('thead', null, h('tr', null, ['剧本', '结局', '终年租金', '发展 D'].map((t, i) => h('th', { key: i }, t)))),
+                h('thead', null, h('tr', null, [t('b2a.082'), t('b2a.072'), t('b2a.083'), t('b2a.073')].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null, d.anchors.map((a) => h('tr', { key: a.scenario },
                   h('td', { style: { fontSize: 11 } }, a.name),
                   h('td', null, h('span', { className: 'sn-pill', style: { fontSize: 10 } }, a.outcome)),
@@ -2202,58 +2481,58 @@ window.__ModuleLoader__.load({
       const theoryTab = () => {
         // R2：四张反驳卡 —— 每张都可攻击本模型的结论
         const REBUTTALS = [
-          { id: 'R1', name: '技术封建化', cond: '智能化快于公有化', impact: '认知劳动贬值先于产权变革，主线路径被截断，历史滑入算力封建制。', reply: '双闸门 GATE_PEN 0.68 ∧ GATE_SOC 0.48 + feudalism 引力；v1.2 租金压力指标为其显性预警读数。' },
-          { id: 'R2', name: '生态天花板', cond: '位置品与生态容量不可自动化', impact: '丰裕度无法归零，按需分配存在物理上限，「后稀缺」永远不完整。', reply: '契约 §9 声明模型域边界：abundance 只对标准化物质与服务产出成立。' },
-          { id: 'R3', name: '计算问题', cond: '算力不等于偏好加总', impact: '计划面临信息与激励双重难题，协调杠杆可能只是纸面能力。', reply: 'meaning / coordination 杠杆是定性 proxies；契约 §9 声明此为模型最强假设之一。' },
-          { id: 'R4', name: '路径依赖', cond: '同一技术基础，制度多解', impact: '历史不存在单线宿命，任何「必然论」都会被反例削弱。', reply: '四条引力路径并行竞争的设计本身 —— 引擎从不断言唯一终点。' },
+          { id: 'R1', name: t('b2a.084'), cond: t('b2a.085'), impact: t('b2a.137'), reply: t('b3.11') },
+          { id: 'R2', name: t('b2a.086'), cond: t('b2a.138'), impact: t('b2a.139'), reply: t('b2c.32') },
+          { id: 'R3', name: t('b2a.087'), cond: t('b2a.088'), impact: t('b2a.140'), reply: t('b3.12') },
+          { id: 'R4', name: t('b2c.33'), cond: t('b2a.089'), impact: t('b2a.141'), reply: t('b2a.142') },
         ];
         /* v1.8：阶段语义的已知局限（P1-3 披露）。三条都是实测确认的，
            不是推测——契约 §7.1–§7.3 有对应声明，模型体检页有数据。 */
         const STAGE_LIMITS = [
           {
-            id: 'L1', title: '阶段 0 不可达',
-            fact: 'STAGES[0]「商业资本主义」是前史标注，stageOf 最低只返回「算法资本主义」。'
-              + '20000 组随机参数 × 37 年 = 74 万个年份快照中，它出现 0 次。',
-            why: '它用于叙事与阶段轨道展示（我们从哪来），不是引擎会返回的运行时状态。',
+            id: 'L1', title: t('b2c.34'),
+            fact: t('b2c.35')
+              + t('b2c.36'),
+            why: t('b2a.143'),
           },
           {
             id: 'L2', title: '2024 起点固定',
-            fact: '2024 年所有杠杆取 NOW 基准值，技术渗透度恒为 0.4008——'
-              + '杠杆全零与全拉满，首年渗透度完全相同。',
-            why: '插值起点的设计使然。副作用是时间轴停在 2024 时显示的阶段恒为「极化资本主义」，'
-              + '而叙事上 2024 应是前史向算法资本主义的过渡。阶段轨道已把 stage 0 标为「前史」。',
+            fact: t('b2c.37')
+              + t('b2a.144'),
+            why: t('b2c.38')
+              + t('b3.13'),
           },
           {
-            id: 'L3', title: '岔路前阶段由技术单变量决定',
-            fact: '渗透度未越过 0.68 时，stageOf 只看 penetration。'
-              + '固定渗透度、扫遍制度/社会/意义全网格（1625 个样本），阶段恒定不变。',
-            why: '这是本模型最该被质疑的简化之一：一个制度完全崩溃但技术仍在推进的世界，'
-              + '与一个制度健全的世界，在前三阶段看起来一样。制度杠杆只在越线后才开始裁决方向。',
+            id: 'L3', title: t('b2a.145'),
+            fact: t('b2c.39')
+              + t('b2c.40'),
+            why: t('b2c.41')
+              + t('b2a.146'),
           },
         ];
         return h('div', null,
         h('div', { className: 'sn-quote' },
-          h('q', null, '“手推磨产生的是封建主的社会，蒸汽磨产生的是工业资本家的社会。”'),
-          h('cite', null, '—— 马克思《哲学的贫困》')),
+          h('q', null, t('b2a.147')),
+          h('cite', null, t('b2a.148'))),
         h('div', { className: 'sn-theory', style: { marginBottom: 12 } },
           DYNAMICS.map((d) => h('div', { key: d.key, className: 'sn-th', style: { '--sn-c': d.color } },
             h('h4', null, d.name),
             h('div', { className: 'c' }, d.claim),
             h('div', { className: 'd' }, d.detail)))),
         h('div', { className: 'sn-card', style: { marginBottom: 12 } },
-          h('div', { className: 'sn-card-head' }, '合取命题 · 两个闸门缺一不可', h('span', { className: 'sn-hint' }, '真实常数 0.68 ∧ 0.48')),
+          h('div', { className: 'sn-card-head' }, t('b2a.149'), h('span', { className: 'sn-hint' }, t('b2c.42'))),
           h('div', { className: 'sn-pad' },
             h('div', { style: { fontSize: 12.5, lineHeight: 1.8, marginBottom: 10 } },
-              '技术渗透 ≥ 0.68 ∧ 社会化 ≥ 0.48 同时越过闸门，历史才指向共产主义方向；缺任一项，落入其他稳态（算力封建 / 改良停滞 / 崩解）。单凭技术或单凭意愿，都不构成充分条件。'),
+              t('b3.14')),
             h('table', { className: 'sn-table' },
-              h('thead', null, h('tr', null, ['来源变量', '含义', '引擎杠杆'].map((t2, i) => h('th', { key: i }, t2)))),
+              h('thead', null, h('tr', null, [t('b2a.090'), t('b2a.091'), t('b2a.092')].map((t2, i) => h('th', { key: i }, t2)))),
               h('tbody', null,
-                [['a', '智能化水平', 'cognition / compute / automation'],
-                  ['m', '物质生产自动化', 'automation'],
-                  ['e', '能源与物质丰裕', 'energy'],
-                  ['p', '产权公有化', 'public_ownership'],
-                  ['b', '资本捕获 / 寡头化', 'capture'],
-                  ['g', '组织与协商能力', 'redistribution / coordination / education'],
+                [['a', t('b2a.093'), 'cognition / compute / automation'],
+                  ['m', t('b2a.094'), 'automation'],
+                  ['e', t('b2a.095'), 'energy'],
+                  ['p', t('b2a.096'), 'public_ownership'],
+                  ['b', t('b2a.097'), 'capture'],
+                  ['g', t('b2a.098'), 'redistribution / coordination / education'],
                 ].map((row, i) => h('tr', { key: i },
                   h('td', null, row[0]), h('td', null, row[1]), h('td', null, row[2]))))))),
         h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
@@ -2262,7 +2541,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-pad' },
               h('div', { style: { fontSize: 11.5, lineHeight: 1.7 } }, rb.impact),
               h('div', { style: { fontSize: 11, lineHeight: 1.7, marginTop: 6, color: 'var(--dsw-alias-label-secondary)' } },
-                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '模型回应：'), rb.reply))))),
+                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, t('b2b.42')), rb.reply))))),
         // v1.8：阶段语义的已知局限 —— 实测确认，非推测
         h('div', { className: 'sn-card', style: { marginBottom: 12 } },
           h('div', { className: 'sn-card-head' }, t('title.stageLimits'),
@@ -2275,8 +2554,8 @@ window.__ModuleLoader__.load({
               h('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, lim.id + ' · ' + lim.title),
               h('div', { style: { fontSize: 11, lineHeight: 1.7 } }, lim.fact),
               h('div', { style: { fontSize: 11, lineHeight: 1.7, marginTop: 4, color: 'var(--dsw-alias-label-secondary)' } },
-                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '为什么：'), lim.why))))),
-        h('div', { className: 'sn-card' },          h('div', { className: 'sn-card-head' }, '本路径的判定'),
+                h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, t('b2b.43')), lim.why))))),
+        h('div', { className: 'sn-card' },          h('div', { className: 'sn-card-head' }, t('b2a.099')),
           h('div', { className: 'sn-pad' },
             h('div', { style: { display: 'flex', gap: 9, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' } },
               h('span', { className: 'sn-pill', style: { color: sim.outcome.color } }, sim.outcome.name),
@@ -2287,14 +2566,14 @@ window.__ModuleLoader__.load({
                 h('span', { className: 'sn-drv-tag', style: { color: TAG_COLOR[d.tag] } }, d.tag),
                 h('span', { className: 'sn-drv-text' }, d.text)))))),
         h('div', { className: 'sn-quote', style: { marginTop: 12 } },
-          h('q', null, '“代替那存在着阶级和阶级对立的资产阶级旧社会的，将是这样一个联合体，在那里，每个人的自由发展是一切人的自由发展的条件。”'),
-          h('cite', null, '—— 马克思、恩格斯《共产党宣言》')),
+          h('q', null, t('b3.15')),
+          h('cite', null, t('b2a.150'))),
         h('div', { className: 'sn-card' },
           h('div', { className: 'sn-pad', style: { fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.8 } },
-            h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, '这是一个模拟器，不是预言。'),
-            ' 它的价值不在于预测哪一年会发生什么，而在于把「条件」摊开：技术提供可能性，制度决定落在哪一侧，而制度不是自动演化的 —— 它由组织起来的人写出来。模型中的每个系数都是一次可辩论的判断，你可以拨动杠杆，看它是否还站得住。')),
+            h('b', { style: { color: 'var(--dsw-alias-label-primary)' } }, t('b2a.151')),
+            t('b3.16'))),
         h('div', { style: { marginTop: 14, marginBottom: 4, fontSize: 11, color: 'var(--dsw-alias-label-secondary)', textAlign: 'center' } },
-          '启发式推演模型 · 参数为机制性定性标定，未经计量估计 · 不构成任何现实预测'));
+          t('b2a.152')));
       };
 
       const TABS = [
@@ -2318,10 +2597,10 @@ window.__ModuleLoader__.load({
               onClick: () => setTab(t.id),
             }, t.label))),
           h('div', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
-            h('button', { className: 'sn-btn', onClick: shareLink, title: '把当前推演编码为链接（显式快照）' }, t('btn.share')),
-            h('button', { className: 'sn-btn', onClick: exportJson, title: '导出 JSON 存档' }, t('btn.export')),
+            h('button', { className: 'sn-btn', onClick: shareLink, title: t('b2a.153') }, t('btn.share')),
+            h('button', { className: 'sn-btn', onClick: exportJson, title: t('b2a.100') }, t('btn.export')),
             h('button', {
-              className: 'sn-btn', title: '导入 JSON 存档',
+              className: 'sn-btn', title: t('b2a.101'),
               onClick: () => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
                 inp.onchange = () => { if (inp.files && inp.files[0]) importJson(inp.files[0]); };
                 inp.click();
@@ -2350,7 +2629,7 @@ window.__ModuleLoader__.load({
           onKeyDown: (e) => { if (e && e.key === 'Escape') { e.preventDefault(); setPicked(null); } },
           role: 'presentation',
         }, h('div', {
-          role: 'dialog', 'aria-modal': 'true', 'aria-label': picked.name + ' · 阶段详情',
+          role: 'dialog', 'aria-modal': 'true', 'aria-label': t('b2b.44', { v: picked.name }),
           // 打开时把焦点移入对话框，关闭时（卸载）浏览器归还给触发元素
           ref: (el) => { if (el && typeof el.focus === 'function') el.focus(); },
           tabIndex: -1,
@@ -2362,7 +2641,7 @@ window.__ModuleLoader__.load({
           onClick: (e) => e.stopPropagation(),
         },
           h('div', { style: { fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--dsw-alias-label-secondary)', fontWeight: 700 } },
-            '阶段 0' + (picked.id + 1)),
+            t('b2c.43') + (picked.id + 1)),
           h('h3', { style: { margin: '5px 0 9px', fontSize: 17, color: picked.color } }, picked.name),
           h('div', { style: { fontSize: 13, lineHeight: 1.5, marginBottom: 11, color: picked.color } }, picked.thesis),
           h('div', { style: { fontSize: 12, lineHeight: 1.8, color: 'var(--dsw-alias-label-secondary)', marginBottom: 13 } }, picked.detail),
