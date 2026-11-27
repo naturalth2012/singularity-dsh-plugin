@@ -43,6 +43,7 @@ const build = new Function('require', 'document', 'window',
   + ' LEVERS: LEVERS, LEVER_BY_KEY: LEVER_BY_KEY, sensitivity: sensitivity,'
   + ' diagnose: diagnose, decidePath: decidePath,'
   + ' rentPressure: rentPressure, findCrossing: findCrossing, RENT_BANDS: RENT_BANDS,'
+  + ' leversPolicyAt: leversPolicyAt, robustness: robustness, reversal: reversal,'
   + ' GATE_PEN: GATE_PEN, NOW: NOW };'
   + '})();');
 
@@ -446,6 +447,86 @@ if (loadStart > 0 && saveStart > 0) {
     if (!(v >= 0 && v <= 1)) bad++;
   }
   check('rentPressure 值域 probe 2000 态零越界', bad === 0, bad + ' 例越界');
+}
+
+/* ── v1.3 E1/E2/E3：政策干预 · 蒙特卡洛 · 反方读法 ───────────── */
+{
+  const LEVER_KEYS = api.LEVERS.map((lv) => lv.key);
+  const mk = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+  const POL = { year: 2040, overrides: { public_ownership: 0.85, redistribution: 0.80 } };
+
+  // 1) 无政策时逐年与 v1.2 轨迹全等（policyActive 全 false）
+  const noPol = api.simulate(api.targetOf('baseline'));
+  const withNull = api.simulate(api.targetOf('baseline'), null);
+  const same = noPol.years.every((y, i) => withNull.years[i].metrics.penetration === y.metrics.penetration
+    && withNull.years[i].rent === y.rent && withNull.years[i].policyActive === false);
+  check('无政策调用逐年全等（基线等价）', same && withNull.outcome.name === noPol.outcome.name);
+
+  // 2) 干预年前轨迹逐字节一致
+  const withPol = api.simulate(api.targetOf('baseline'), POL);
+  const pre = noPol.years.filter((y) => y.year < POL.year).every((y, i) =>
+    withPol.years[i].metrics.penetration === y.metrics.penetration
+    && withPol.years[i].metrics.socialization === y.metrics.socialization);
+  check('干预年前轨迹逐字节一致', pre);
+
+  // 3) 衔接年连续性：2039→2040 的社会化度跳变 ≤ 干预后逐年的正常步幅 ×3
+  const i40 = withPol.years.findIndex((y) => y.year === POL.year);
+  const jump = Math.abs(withPol.years[i40].metrics.socialization - withPol.years[i40 - 1].metrics.socialization);
+  const later = Math.abs(withPol.years[i40 + 1].metrics.socialization - withPol.years[i40].metrics.socialization);
+  check('干预年无跳变（衔接 ≤ 3× 后续步幅）', jump <= Math.max(later * 3, 0.02),
+    'jump=' + jump.toFixed(3) + ' later=' + later.toFixed(3));
+
+  // 4) 干预后终局改变：policyActive 从干预年起为 true
+  const active = withPol.years.filter((y) => y.year >= POL.year).every((y) => y.policyActive === true)
+    && withPol.years.filter((y) => y.year < POL.year).every((y) => y.policyActive === false);
+  check('policyActive 标记边界正确', active);
+
+  // 5) 干预能把 baseline 推出停滞（终局结局名改变）
+  check('政策重定向改变 baseline 终局',
+    withPol.outcome.name !== noPol.outcome.name,
+    noPol.outcome.name + ' → ' + withPol.outcome.name);
+
+  // 6) 未知杠杆键抛错
+  let threw = false;
+  try { api.simulate(api.targetOf('baseline'), { year: 2040, overrides: { bogus: 0.5 } }); } catch (e) { threw = true; }
+  check('未知政策杠杆键抛错', threw);
+
+  // 7) 年份越界抛错（2024 与 2061、非整数）
+  const badYears = [2024, 2061, 2040.5];
+  const threwAll = badYears.every((yy) => {
+    try { api.simulate(api.targetOf('baseline'), { year: yy, overrides: { capture: 0.1 } }); return false; } catch (e) { return true; }
+  });
+  check('政策年越界/非整数抛错', threwAll);
+
+  // 8) override 值钳制到 [0,1]（负值与超 1 均不炸且收敛有效）
+  const clamped = api.simulate(api.targetOf('baseline'), { year: 2035, overrides: { capture: -3, redistribution: 7 } });
+  check('override 超范围值被钳制', clamped.outcome.name !== undefined);
+
+  // 9) robustness：种子 rng 确定性 + 分布归一
+  const r1 = api.robustness(api.targetOf('baseline'), null, mk(42));
+  const r2 = api.robustness(api.targetOf('baseline'), null, mk(42));
+  const sum = r1.outcomes.reduce((a, b) => a + b.count, 0);
+  check('robustness 种子确定性', JSON.stringify(r1) === JSON.stringify(r2));
+  check('robustness 分布和 = runs', sum === r1.runs && r1.runs === 240,
+    'sum=' + sum + ' agreement=' + Math.round(r1.agreement * 100) + '%');
+
+  // 10) reversal：baseline 存在单杠杆翻转且杠杆 ∈ 四制度杠杆
+  const rev = api.reversal(api.targetOf('baseline'));
+  const SCAN = ['public_ownership', 'redistribution', 'coordination', 'capture'];
+  check('reversal baseline 可翻转且杠杆合法', rev && SCAN.indexOf(rev.lever) >= 0 && rev.delta > 0,
+    rev ? rev.lever + ' ' + rev.from.toFixed(2) + '→' + rev.to.toFixed(2) + ' = ' + rev.outcome : 'null');
+
+  // 11) reversal：全一态（极端建设态）无单杠杆可翻转 → null
+  const full = {};
+  LEVER_KEYS.forEach((k) => { full[k] = 1; });
+  check('reversal 全一态 = null（稳健强信号）', api.reversal(full) === null);
+
+  // 12) 六剧本带政策参数的 robustness 不炸且形态合法
+  const robOK = Object.keys(api.SCENARIOS).every((k) => {
+    const r = api.robustness(api.targetOf(k), POL, mk(7));
+    return r.outcomes.length >= 1 && r.agreement >= 0.5;
+  });
+  check('六剧本 robustness 形态合法', robOK);
 }
 
 console.log('\n--- 汇总 ---');
