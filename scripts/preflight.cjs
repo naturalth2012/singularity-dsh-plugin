@@ -69,6 +69,16 @@ console.log('\n=== locale 元数据 ===');
   }
 });
 
+console.log('\n=== 文档一致性（v1.5 T3）===');
+{
+  const pub = read('PUBLISHING.md');
+  check('PUBLISHING 路径为实际工作区', pub.includes('D:\\DeepseekAPP\\Singularity')
+    && !/D:\\AIApp/.test(pub));
+  check('PUBLISHING 含自动计数标记', pub.includes('<!-- counts:auto -->')
+    && pub.includes('<!-- /counts:auto -->'));
+  check('README 含自动计数标记', read('README.md').includes('<!-- counts:auto -->'));
+}
+
 console.log('\n--- 汇总 ---');
 console.log(`${pass}/${pass + fail} 通过`);
 if (fail) {
