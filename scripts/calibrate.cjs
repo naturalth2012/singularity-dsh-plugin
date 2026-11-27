@@ -25,7 +25,8 @@ for (; i < src.length && depth > 0; i++) {
 }
 const body = src.slice(bodyStart, i - 1);
 const patched = body.replace(/return\s*\{\s*\n\s*inject:/, 'const __exports = { inject:');
-const ReactStub = { createElement: () => ({}), useState: (v) => [v, () => {}], useMemo: (f) => f(), useEffect: () => {} };
+const ReactStub = {
+  Component: class { constructor(p) { this.props = p || {}; this.state = {}; } setState(x) { this.state = Object.assign({}, this.state, typeof x === "function" ? x(this.state) : x); } }, createElement: () => ({}), useState: (v) => [v, () => {}], useMemo: (f) => f(), useEffect: () => {} };
 const api = new Function('require', 'document', 'window',
   'return (function(){' + patched
   + '\n;return { simulate, targetOf, SCENARIOS, LEVERS, decidePath, branchScores,'
