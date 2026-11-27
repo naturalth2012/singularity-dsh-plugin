@@ -17,6 +17,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -245,13 +246,50 @@ if (!fs.existsSync(SNAP)) {
   check('engine.snapshot.js 存在', false, '运行 node scripts/extract-engine.cjs 生成');
 } else {
   const snap = fs.readFileSync(SNAP, 'utf8');
-  const bi = client.indexOf('ENGINE-BEGIN');
-  const ei = client.indexOf('ENGINE-END');
+  // 边界必须与上方 engine 切片同源（含 /* 与 */），否则比对的是残缺片段
+  const bi = client.lastIndexOf('/*', client.indexOf('ENGINE-BEGIN'));
+  const ei = client.indexOf('*/', client.indexOf('ENGINE-END')) + 2;
   const region = bi >= 0 && ei > bi ? client.slice(bi, ei) : null;
   const snapHas = region !== null && snap.includes(region);
   check('快照与引擎区逐字节一致', snapHas,
     snapHas ? 'ok' : '漂移！运行 node scripts/extract-engine.cjs 重新生成');
   check('快照含上游 NOTICE 头', snap.includes('naturalth2012') && snap.includes('MIT'));
+  // v1.4 审核加固：光有字符串包含不够——快照必须语法可解析、能装载、
+  // 且算出与契约锚点一致的数值。此前快照切片漏了 /* 与 */，是废文件而
+  // 「逐字节一致」自我印证通过（同一段错误切片比对自己）。
+  check('快照导出 ESM createEngine', /export default function createEngine/.test(snap));
+  check('快照无 CommonJS 残留', !/module\.exports/.test(snap));
+  let snapOk = true, snapDetail = '';
+  try {
+    const out = execFileSync(process.execPath, ['--check', SNAP], { encoding: 'utf8', stdio: 'pipe' });
+    void out;
+  } catch (e) {
+    snapOk = false;
+    snapDetail = 'node --check 失败: ' + String(e.stderr || e.message).split('\n')[0];
+  }
+  check('快照语法可解析', snapOk, snapDetail);
+  // 真实装载并核对契约锚点（baseline 终年租金 0.59）
+  let loadOk = false, loadDetail = '';
+  try {
+    const probe = 'import c from ' + JSON.stringify('file:///' + SNAP.replace(/\\/g, '/')) + ';'
+      + 'const a = c((n) => { throw new Error(n); });'
+      + 'const s = a.simulate(a.targetOf("baseline"));'
+      + 'if (Object.keys(a).length < 25) throw new Error("符号过少");'
+      + 'if (Math.abs(s.final.rent - 0.59) > 0.005) throw new Error("baseline 租金 " + s.final.rent);'
+      + 'if (a.reversal(a.targetOf("baseline")) === undefined) throw new Error("reversal 缺失");'
+      + 'const r = a.mulberry32(42), q = a.mulberry32(42); if (r() !== q()) throw new Error("种子不确定");';
+    const probePath = path.join(ROOT, 'scripts', '.snap-probe.mjs');
+    fs.writeFileSync(probePath, probe, 'utf8');
+    try {
+      execFileSync(process.execPath, [probePath], { encoding: 'utf8', stdio: 'pipe' });
+      loadOk = true;
+    } finally {
+      try { fs.unlinkSync(probePath); } catch (e) { /* 已删除 */ }
+    }
+  } catch (e) {
+    loadDetail = String(e.stderr || e.message).split('\n')[0];
+  }
+  check('快照可装载且锚点正确', loadOk, loadDetail);
 }
 check('契约提及 mulberry32', doc.includes('mulberry32'));
 
