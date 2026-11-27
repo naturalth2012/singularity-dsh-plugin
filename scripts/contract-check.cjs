@@ -209,6 +209,12 @@ const decidePathBody = extractFn(engine, 'decidePath');
 check('单一裁决函数：decidePath 体不引用 rentPressure',
   decidePathBody !== null && !decidePathBody.includes('rentPressure'));
 
+// v1.3：政策符号也不得进入裁决链
+const polTaint = ['policy', 'robustness', 'reversal', 'leversPolicyAt']
+  .filter((t) => decidePathBody.includes(t));
+check('单一裁决函数：decidePath 体不引用政策符号', polTaint.length === 0,
+  polTaint.length ? '含 ' + polTaint.join(',') : '');
+
 // 文档侧：公式、阈值、校准结论与新非对称声明都在契约中
 check('契约含租金压力节（公式/RENT_BANDS/findCrossing）',
   doc.includes('rentPressure') && doc.includes('RENT_BANDS') && doc.includes('findCrossing'));
@@ -219,6 +225,18 @@ check('契约载明校准阈值 0.45 / 0.60 / 0.75',
 check('契约含 2038/2039 校准锚点', doc.includes('2038') && doc.includes('2039'));
 check('契约 §9 补生态天花板与租金静态性声明',
   doc.includes('生态天花板不在模型域内') && doc.includes('租金压力是静态函数，非动力学反馈'));
+
+/* ── 7c. 政策干预与稳健性（v1.3）── */
+console.log('\n=== 7c. 政策干预与稳健性 ===');
+check('引擎定义 leversPolicyAt（分段插值）', /function\s+leversPolicyAt\s*\(/.test(engine));
+check('引擎定义 validatePolicy（键校验）', /function\s+validatePolicy\s*\(/.test(engine));
+check('simulate 含第二可选参 policy', /function\s+simulate\s*\(\s*target\s*,\s*policy\s*\)/.test(engine));
+check('引擎定义 robustness / reversal',
+  /function\s+robustness\s*\(/.test(engine) && /function\s+reversal\s*\(/.test(engine));
+check('逐年行携带 policyActive 标记', /policyActive:\s*!!\(/.test(engine));
+check('契约含 §8c 与政策不持久化声明',
+  doc.includes('8c. 政策干预与稳健性') && doc.includes('政策不持久化'));
+check('契约 §9 含政策重定向前馈声明', doc.includes('政策重定向仍是前馈插值'));
 
 /* ── 8. 文档结构完整性 ── */
 console.log('\n=== 8. 文档结构 ===');
