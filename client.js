@@ -260,6 +260,19 @@ window.__ModuleLoader__.load({
     }
     const RENT_BANDS = { watch: 0.45, warn: 0.60, formed: 0.75 };
 
+    /* v1.4 B2：种子随机数（mulberry32）—— 显示层确定性统计（如情景对比页的
+       稳健性一致性列）用它派生种子，刷新页面数字不抖动；同时满足「显示即
+       引擎输出」的可复算延伸。纯函数、零依赖、不进任何裁决链。 */
+    function mulberry32(seed) {
+      let a = seed >>> 0;
+      return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
     const STAGE_BY_ID = {};
     STAGES.forEach((st) => { STAGE_BY_ID[st.id] = st; });
 
@@ -563,7 +576,7 @@ window.__ModuleLoader__.load({
        DYNAMICS / EVENTS / 三个闸门常数 / simulate / targetOf /
        sensitivity / diagnose / decidePath / stageOf / branchScores /
        rentPressure / findCrossing / RENT_BANDS / leversPolicyAt /
-       robustness / reversal（政策干预见契约 §8c）。
+       robustness / reversal / mulberry32（政策干预见契约 §8c）。
        视图区只消费这些符号，不得反向修改模型状态。
        ══════════════════════════════════════════════════════════════ */
 
@@ -854,6 +867,59 @@ window.__ModuleLoader__.load({
 
     const pct = (v, d) => (v * 100).toFixed(d === undefined ? 0 : d) + '%';
 
+    /* ── v1.4 B5：分享深链 —— 显式快照：只有点「分享」才写 URL。
+       编码 base64url(JSON)；解码复用持久化的 clamp/白名单校验，
+       坏数据静默忽略。policy 不入 localStorage 但可入深链（实验可分享）。 */
+    function b64urlEncode(obj) {
+      try {
+        const json = JSON.stringify(obj);
+        if (typeof btoa === 'function') {
+          return btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        return Buffer.from(json, 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      } catch (e) { return null; }
+    }
+    function b64urlDecode(str) {
+      try {
+        let s = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (s.length % 4) s += '=';
+        const json = typeof atob === 'function'
+          ? decodeURIComponent(escape(atob(s)))
+          : Buffer.from(s, 'base64').toString('utf8');
+        return JSON.parse(json);
+      } catch (e) { return null; }
+    }
+    /** 解析深链参数 → { target, policy, scenario } | null。校验规则与 loadPersisted 同源。 */
+    function parseShareUrl(search) {
+      if (!search) return null;
+      let m = /[?&]t=([A-Za-z0-9_-]+)/.exec(search);
+      const t = m ? b64urlDecode(m[1]) : null;
+      if (!t || typeof t !== 'object') return null;
+      const target = {};
+      Object.keys(t).forEach((k) => {
+        if (!LEVER_BY_KEY[k]) return;
+        const v = t[k];
+        if (typeof v !== 'number' || !isFinite(v)) return;
+        target[k] = Math.max(0, Math.min(1, v));
+      });
+      if (!Object.keys(target).length) return null;
+      let policy = null;
+      m = /[?&]p=([A-Za-z0-9_-]+)/.exec(search);
+      const p = m ? b64urlDecode(m[1]) : null;
+      if (p && typeof p === 'object' && Number.isInteger(p.year) && p.year > T0 && p.year <= T2
+        && p.overrides && typeof p.overrides === 'object') {
+        const ov = {};
+        Object.keys(p.overrides).forEach((k) => {
+          if (!LEVER_BY_KEY[k]) return;
+          const v = p.overrides[k];
+          if (typeof v !== 'number' || !isFinite(v)) return;
+          ov[k] = Math.max(0, Math.min(1, v));
+        });
+        if (Object.keys(ov).length) policy = { year: p.year, overrides: ov };
+      }
+      return { target: target, policy: policy };
+    }
+
     const METRIC_META = {
       development: { name: '发展水平 D', color: '#a879ff' },
       productivity: { name: '生产力', color: '#4f8cff' },
@@ -906,9 +972,12 @@ window.__ModuleLoader__.load({
         kids.push(h('text', { key: 'gt' + g, className: 'lb', x: pad.l - 5, y: y + 3, textAnchor: 'end' }, Math.round(g * 100)));
       });
       series.forEach((s) => {
-        const pts = years.map((y) => [X(y.year), Y(y.metrics[s.key])]);
+        // v1.4 B1：get 访问器——默认读 row.metrics[key]；租金等非 metrics
+        // 字段（如 row.rent）由调用方传 get 行选择器。零破坏扩展。
+        const get = s.get || ((row) => row.metrics[s.key]);
+        const pts = years.map((y) => [X(y.year), Y(get(y))]);
         const d = pts.map((pt, i) => (i ? 'L' : 'M') + pt[0].toFixed(1) + ' ' + pt[1].toFixed(1)).join(' ');
-        kids.push(h('path', { key: 'p' + s.key, className: 'se', d: d, stroke: METRIC_META[s.key].color }));
+        kids.push(h('path', { key: 'p' + s.key, className: 'se', d: d, stroke: s.color || METRIC_META[s.key].color }));
       });
       if (p.cursorYear) {
         const cx = X(p.cursorYear);
@@ -916,9 +985,10 @@ window.__ModuleLoader__.load({
         const cy = years.filter((y) => y.year === p.cursorYear)[0];
         if (cy) {
           series.forEach((s) => {
+            const get = s.get || ((row) => row.metrics[s.key]);
             kids.push(h('circle', {
-              key: 'c' + s.key, cx: cx, cy: Y(cy.metrics[s.key]), r: 3,
-              fill: METRIC_META[s.key].color,
+              key: 'c' + s.key, cx: cx, cy: Y(get(cy)), r: 3,
+              fill: s.color || METRIC_META[s.key].color,
             }));
           });
         }
@@ -930,7 +1000,7 @@ window.__ModuleLoader__.load({
       });
       series.forEach((s, i) => {
         kids.push(h('g', { key: 'lg' + s.key, transform: 'translate(' + (pad.l + i * 108) + ',' + (pad.t - 9) + ')' },
-          h('rect', { x: 0, y: -4, width: 8, height: 3, rx: 1.5, fill: METRIC_META[s.key].color }),
+          h('rect', { x: 0, y: -4, width: 8, height: 3, rx: 1.5, fill: s.color || METRIC_META[s.key].color }),
           h('text', { className: 'lb', x: 12, y: 0 }, s.label)));
       });
 
@@ -1014,16 +1084,24 @@ window.__ModuleLoader__.load({
 
     /* ── 主组件 ── */
     function SingularityApp() {
+      // v1.4 B5：深链恢复优先级 URL > localStorage > 默认（坏数据静默忽略）
+      const [deepLink] = React.useState(() => {
+        try { return parseShareUrl(typeof window !== 'undefined' ? window.location.search : ''); }
+        catch (e) { return null; }
+      });
       const [tab, setTab] = React.useState('timeline');
       // 惰性初始化：只在首次挂载时读一次 localStorage，避免每次渲染都读盘。
       const [restored] = React.useState(loadPersisted);
-      const [scenario, setScenario] = React.useState(restored.scenario);
-      const [target, setTarget] = React.useState(restored.target);
+      const [scenario, setScenario] = React.useState(deepLink ? null : restored.scenario);
+      const [target, setTarget] = React.useState(deepLink ? deepLink.target : restored.target);
       const [year, setYear] = React.useState(2035);
       const [picked, setPicked] = React.useState(null);
       // v1.3 E1：政策沙盒状态。政策是实验不是世界观 —— 不入持久化，
-      // 载入剧本即清空（契约 §8c）。
-      const [policy, setPolicy] = React.useState(null);
+      // 载入剧本即清空（契约 §8c）。深链可带政策（实验可分享）。
+      const [policy, setPolicy] = React.useState(deepLink ? deepLink.policy : null);
+      const [ioMsg, setIoMsg] = React.useState('');
+      // v1.4 B4：热力图基准模式（'default' 全域 / 'neighborhood' 当前邻域）
+      const [heatMode, setHeatMode] = React.useState('default');
 
       // 杠杆或场景变化即写回；浏览态与政策态（tab / year / picked / policy）不参与持久化。
       React.useEffect(() => { savePersisted(target, scenario); }, [target, scenario]);
@@ -1037,21 +1115,38 @@ window.__ModuleLoader__.load({
       // v1.3 E2/E3：稳健性与最小翻转（240+80 次 simulate，可接受；政策/目标变化才重算）
       const rob = React.useMemo(() => robustness(target, policy), [target, policy]);
       const rev = React.useMemo(() => reversal(target, policy), [target, policy]);
+      // v1.4 B3：reversal 翻转环 —— 反方读法的几何化。箭头两端都是引擎输出
+      // 坐标（当前终局 + 按 rev.to 重跑后的终局），不发明任何几何。
+      // 必须留在 App 级：metricsTab 按标签条件调用，hooks 不能进 tab 函数体。
+      const revPoint = React.useMemo(() => {
+        if (!rev) return null;
+        const flipped = simulate(Object.assign({}, target, (o => { o[rev.lever] = rev.to; return o; })({})), policy);
+        const fm = flipped.final.metrics;
+        return { x: fm.penetration, y: fm.socialization, outcome: flipped.outcome.name };
+      }, [rev, target, policy]);
 
-      // v1.2 R7：租金热力图参数扫描。每格 = 其余杠杆取默认值（tech 走趋势、
-      // 制度/社会取 NOW），仅 override 格子的 public_ownership × capture，
-      // 因此与当前滑块无关 —— 只算一次（49 次 simulate ≈ 1800 次 derive）。
+      // v1.2 R7 / v1.4 B4：租金热力图参数扫描。默认模式：其余杠杆取默认值
+      // （tech 走趋势、制度/社会取 NOW），仅 override 格子的
+      // public_ownership × capture —— 与当前滑块无关，只算一次（49 次 simulate）。
+      // 邻域模式：以当前 (产权, 捕获) 为中心 ±三档（步长 1/6，clamp [0,1]）重扫。
       const heatGrid = React.useMemo(() => {
         const steps = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
         const base = {};
         LEVERS.forEach((lv) => {
           base[lv.key] = TECH_KEYS.indexOf(lv.key) >= 0 ? TECH_TREND[lv.key] : NOW[lv.key];
         });
-        return steps.map((po) => steps.map((cap) => {
+        let poAxis = steps, capAxis = steps;
+        if (heatMode === 'neighborhood') {
+          const po = target.public_ownership !== undefined ? target.public_ownership : NOW.public_ownership;
+          const cap = target.capture !== undefined ? target.capture : NOW.capture;
+          const win = (c) => [-3, -2, -1, 0, 1, 2, 3].map((d) => clamp(c + d / 6));
+          poAxis = win(po); capAxis = win(cap);
+        }
+        return poAxis.map((po) => capAxis.map((cap) => {
           const t2 = Object.assign({}, base, { public_ownership: po, capture: cap });
           return simulate(t2).final;
         }));
-      }, []);
+      }, [heatMode, target.public_ownership, target.capture]);
       const rentBand = (v) =>
         v >= RENT_BANDS.formed ? 3 : v >= RENT_BANDS.warn ? 2 : v >= RENT_BANDS.watch ? 1 : 0;
       const RENT_COLORS = ['#2f9e63', '#e0a63a', '#e07b39', '#d64550'];
@@ -1062,6 +1157,67 @@ window.__ModuleLoader__.load({
         setTarget(targetOf(key));
         setYear(2035);
         setPolicy(null);   // v1.3：载入剧本即清空政策（契约 §8c）
+        setIoMsg('');
+      };
+
+      /* v1.4 B5/B6：分享与存档。显式快照语义：点按钮才生成。 */
+      const shareLink = () => {
+        const enc = (o) => b64urlEncode(o);
+        const params = [];
+        const tEnc = enc(target);
+        if (tEnc) params.push('t=' + tEnc);
+        if (policy && policy.overrides && Object.keys(policy.overrides).length) {
+          const pEnc = enc(policy);
+          if (pEnc) params.push('p=' + pEnc);
+        }
+        if (!params.length) { setIoMsg('当前无可分享状态'); return; }
+        const url = (typeof window !== 'undefined' && window.location)
+          ? window.location.origin + window.location.pathname + '?' + params.join('&')
+          : '?' + params.join('&');
+        try { if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', url); } catch (e) { /* 忽略 */ }
+        const done = () => setIoMsg('链接已复制：' + url.slice(0, 60) + (url.length > 60 ? '…' : ''));
+        if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(done, () => setIoMsg('请手动复制地址栏链接'));
+        } else { setIoMsg('请手动复制地址栏链接'); }
+      };
+      const exportJson = () => {
+        try {
+          const payload = {
+            app: 'singularity', v: STORE_VERSION, date: new Date().toISOString().slice(0, 10),
+            target: target, scenario: scenario, policy: policy,
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'singularity-state-' + payload.date + '.json';
+          document.body.appendChild(a); a.click(); a.remove();
+          setIoMsg('存档已导出');
+        } catch (e) { setIoMsg('导出失败：' + e.message); }
+      };
+      const importJson = (file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(String(reader.result));
+            if (!data || data.app !== 'singularity' || data.v !== STORE_VERSION) {
+              setIoMsg('存档版本不符，已忽略'); return;
+            }
+            const t = {};
+            Object.keys(data.target || {}).forEach((k) => {
+              if (!LEVER_BY_KEY[k]) return;
+              const v = data.target[k];
+              if (typeof v !== 'number' || !isFinite(v)) return;
+              t[k] = Math.max(0, Math.min(1, v));
+            });
+            setTarget(t);
+            setScenario(typeof data.scenario === 'string' && SCENARIOS[data.scenario] ? data.scenario : null);
+            setPolicy(data.policy && data.policy.overrides && Object.keys(data.policy.overrides).length
+              ? { year: data.policy.year, overrides: data.policy.overrides } : null);
+            setYear(2035);
+            setIoMsg('存档已导入');
+          } catch (e) { setIoMsg('存档解析失败，已忽略'); }
+        };
+        reader.readAsText(file);
       };
 
       const curYear = sim.years.filter((y) => y.year === year)[0] || sim.years[0];
@@ -1096,6 +1252,7 @@ window.__ModuleLoader__.load({
                 { key: 'penetration', label: '技术渗透度' },
                 { key: 'socialization', label: '社会化度' },
                 { key: 'abundance', label: '可及丰裕度' },
+                { key: 'rent', label: '租金压力', get: (row) => row.rent, color: '#e0a63a' },
               ],
             })));
 
@@ -1360,6 +1517,16 @@ window.__ModuleLoader__.load({
           h('text', { x: px(GATE_PEN) + 4, y: 20, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.68'),
           h('text', { x: 42, y: py(GATE_SOC) - 4, fontSize: 8.5, fill: 'rgba(200,205,220,.85)' }, '闸门 0.48'),
           h('polyline', { points: traj, fill: 'none', stroke: '#4f8cff', strokeWidth: 2, strokeLinejoin: 'round' }),
+          revPoint ? h('g', { key: 'revArrow' },
+            h('line', {
+              x1: px(cur.metrics.penetration), y1: py(cur.metrics.socialization),
+              x2: px(revPoint.x), y2: py(revPoint.y),
+              stroke: '#e0a63a', strokeWidth: 1.5, strokeDasharray: '3 3',
+            }),
+            h('circle', { cx: px(revPoint.x), cy: py(revPoint.y), r: 5, fill: 'none', stroke: '#e0a63a', strokeWidth: 1.5, strokeDasharray: '2 2' }),
+            h('text', {
+              x: px(revPoint.x) + 7, y: py(revPoint.y) + 3, fontSize: 8.5, fill: '#e0a63a',
+            }, '若翻转：' + revPoint.outcome)) : null,
           ghostActive ? h('polyline', { points: ghostTraj, fill: 'none', stroke: 'rgba(150,158,175,.75)', strokeWidth: 1.5, strokeDasharray: '5 4' }) : null,
           ghostActive ? h('circle', {
             cx: px(sim.years.filter((y) => y.year >= policy.year)[0].metrics.penetration),
@@ -1370,11 +1537,15 @@ window.__ModuleLoader__.load({
           h('circle', { cx: px(cur.metrics.penetration), cy: py(cur.metrics.socialization), r: 4.5, fill: '#e6edf7', stroke: '#4f8cff', strokeWidth: 2 }),
           h('text', { x: 176, y: 240, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '渗透度 →'),
           h('text', { x: 12, y: 120, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 120)' }, '社会化度 →'));
-        // R7：热力图 —— 7×7 参数扫描（其余杠杆取默认值），颜色 = 终局租金档；点击载入两杆
+        // v1.4 B4：热力图 —— 7×7 参数扫描，颜色 = 终局租金档；点击载入两杆。
+        // 邻域模式以当前 (产权, 捕获) 为中心 ±三档；轴值从 heatGrid 推导（居中自适应）。
+        const heatAxis = heatMode === 'neighborhood'
+          ? { po: [1, 5 / 6, 4 / 6, 3 / 6, 2 / 6, 1 / 6, 0], cap: poSteps }
+          : { po: poSteps, cap: poSteps };
         const heatSvg = h('svg', { viewBox: '0 0 296 292', style: { width: '100%', display: 'block' } },
           heatGrid.map((row, r) => row.map((cell, c) => {
-            const po = poSteps[r];
-            const cap = c / 6;
+            const po = heatAxis.po[r];
+            const cap = heatAxis.cap[c];
             const on = Math.abs(po - curPo) < 0.084 && Math.abs(cap - curCap) < 0.084;
             return h('g', {
               key: r + '-' + c, style: { cursor: 'pointer' },
@@ -1387,10 +1558,14 @@ window.__ModuleLoader__.load({
                 stroke: on ? 'var(--dsw-alias-label-primary)' : 'none', strokeWidth: on ? 1.5 : 0,
               }));
           })),
-          h('text', { x: 168, y: 286, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' }, '公共产权 →'),
-          h('text', { x: 12, y: 140, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 140)' }, '资本捕获 →'),
-          h('text', { x: 26, y: 28, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' }, '1'),
-          h('text', { x: 26, y: 250, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' }, '0'));
+          h('text', { x: 168, y: 286, fontSize: 9.5, fill: 'rgba(160,170,190,.9)' },
+            heatMode === 'neighborhood' ? '公共产权（邻域 ±0.5）→' : '公共产权 →'),
+          h('text', { x: 12, y: 140, fontSize: 9.5, fill: 'rgba(160,170,190,.9)', transform: 'rotate(-90 12 140)' },
+            heatMode === 'neighborhood' ? '资本捕获（邻域 ±0.5）→' : '资本捕获 →'),
+          h('text', { x: 26, y: 28, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' },
+            Math.round(Math.max.apply(null, heatAxis.po) * 100) / 100),
+          h('text', { x: 26, y: 250, fontSize: 8, fill: 'rgba(160,170,190,.8)', textAnchor: 'end' },
+            Math.round(Math.min.apply(null, heatAxis.po) * 100) / 100));
         return h('div', null,
           h('div', { className: 'sn-metrics' },
             Object.keys(METRIC_META).map((k) => h(Metric, {
@@ -1421,17 +1596,30 @@ window.__ModuleLoader__.load({
                 h(LineChart, { years: sim.years, series: series, cursorYear: year, window: sim.window, height: 175 }))))),
           h('div', { className: 'sn-grid2', style: { marginBottom: 12 } },
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化', h('span', { className: 'sn-hint' }, ghostActive ? '灰虚线 = 无政策幽灵轨迹 · 圆环 = 干预年' : '虚线为闸门 0.68 / 0.48')),
+              h('div', { className: 'sn-card-head' }, '相图 · 渗透×社会化',
+                h('span', { className: 'sn-hint' },
+                  ghostActive ? '灰虚线 = 无政策幽灵轨迹 · 圆环 = 干预年 · 黄虚环 = 反方翻转点'
+                    : revPoint ? '黄虚环 = 反方读法翻转点' : '虚线为闸门 0.68 / 0.48')),
               h('div', { className: 'sn-pad' }, phaseSvg)),
             h('div', { className: 'sn-card' },
-              h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获', h('span', { className: 'sn-hint' }, '点击格子载入该组合')),
+              h('div', { className: 'sn-card-head' }, '租金热力图 · 产权×捕获',
+                h('span', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
+                  h('span', { className: 'sn-hint' }, '点击格子载入该组合'),
+                  h('button', {
+                    className: 'sn-btn' + (heatMode === 'default' ? ' sn-btn-primary' : ''),
+                    onClick: () => setHeatMode('default'), title: '全域扫描（其余杠杆取默认值）',
+                  }, '全域'),
+                  h('button', {
+                    className: 'sn-btn' + (heatMode === 'neighborhood' ? ' sn-btn-primary' : ''),
+                    onClick: () => setHeatMode('neighborhood'), title: '以当前产权×捕获为中心 ±0.5 重扫',
+                  }, '邻域'))),
               h('div', { className: 'sn-pad' }, heatSvg))),
           h('div', { className: 'sn-card', style: { marginTop: 12 } },
             h('div', { className: 'sn-card-head' }, '逐年数据', h('span', { className: 'sn-hint' }, '点击行跳到该年')),
             h('div', { style: { overflowX: 'auto', maxHeight: 320, overflowY: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null,
-                  ['年份', '阶段', '渗透', '社会化', '丰裕', '替代率', '劳动份额', '不等', '自由'].map((t, i) => h('th', { key: i }, t)))),
+                  ['年份', '阶段', '渗透', '社会化', '丰裕', '替代率', '劳动份额', '不等', '自由', '租金'].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null,
                   sim.years.filter((y) => y.year % 2 === 0).map((y) => h('tr', {
                     key: y.year, style: { cursor: 'pointer' },
@@ -1445,10 +1633,28 @@ window.__ModuleLoader__.load({
                     h('td', null, Math.round(y.metrics.replacement * 100) + '%'),
                     h('td', null, Math.round(y.metrics.labor_share * 100) + '%'),
                     h('td', null, Math.round(y.metrics.inequality * 100) + '%'),
-                    h('td', null, Math.round(y.metrics.freedom * 100) + '%')))))))));
+                    h('td', null, Math.round(y.metrics.freedom * 100) + '%'),
+                    h('td', { style: { color: y.rent >= 0.60 ? '#e07b39' : undefined } },
+                      Math.round(y.rent * 100) + '%')))))))));
       };
 
       /* ── 对比 ── */
+      // v1.4 B2：六剧本租金终值 + 种子化稳健性（App 级缓存一次，约 1440 次 simulate）。
+      // 种子 = 剧本键哈希 → 刷新页面数字不抖动（显示即引擎输出的可复算延伸）。
+      const compareStats = React.useMemo(() => {
+        const hash = (str) => {
+          let x = 2166136261;
+          for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619); }
+          return x >>> 0;
+        };
+        const out = {};
+        Object.keys(SCENARIOS).forEach((k) => {
+          const sim2 = simulate(targetOf(k));
+          const rob2 = robustness(targetOf(k), null, mulberry32(hash(k)));
+          out[k] = { rent: sim2.final.rent, agreement: rob2.agreement, dominant: rob2.dominant };
+        });
+        return out;
+      }, []);
       const compareTab = () => {
         const rows = Object.keys(SCENARIOS).map((k) => {
           const s = simulate(targetOf(k));
@@ -1459,16 +1665,19 @@ window.__ModuleLoader__.load({
             h('div', { className: 'sn-pad' },
               h('div', { style: { fontSize: 14, fontWeight: 650, marginBottom: 5 } }, '六种世界'),
               h('div', { className: 'sn-sub', style: { lineHeight: 1.7, maxWidth: 720 } },
-                '同样的技术，不同的制度选择。注意：六条路径的技术条件几乎相同，结局却完全相反 —— 这就是「制度决定落在哪一侧」。'))),
+                '同样的技术，不同的制度选择。注意：六条路径的技术条件几乎相同，结局却完全相反 —— 这就是「制度决定落在哪一侧」。'),
+              h('div', { className: 'sn-sub', style: { marginTop: 4 } },
+                '「一致性」= ±8% 扰动 × 240 次中主结局的占比（种子化，刷新可复算）；越低说明该结局越脆弱。')),
           h('div', { className: 'sn-card' },
             h('div', { style: { overflowX: 'auto' } },
               h('table', { className: 'sn-table' },
                 h('thead', null, h('tr', null,
-                  ['情景', '结局', '发展 D', '丰裕', '自由', '不平等', '窗口', ''].map((t, i) => h('th', { key: i }, t)))),
+                  ['情景', '结局', '发展 D', '丰裕', '自由', '不平等', '租金', '一致性', '窗口', ''].map((t, i) => h('th', { key: i }, t)))),
                 h('tbody', null,
                   rows.map((r) => {
                     const f = r.sim.final.metrics;
                     const o = r.sim.outcome;
+                    const st = compareStats[r.key];
                     return h('tr', { key: r.key },
                       h('td', null,
                         h('div', { style: { fontWeight: 600, fontSize: 12 } }, r.name),
@@ -1479,9 +1688,13 @@ window.__ModuleLoader__.load({
                       h('td', null, Math.round(f.freedom * 100) + '%'),
                       h('td', { style: { color: f.inequality > 0.6 ? 'var(--dsw-alias-state-error-primary)' : undefined } },
                         Math.round(f.inequality * 100) + '%'),
+                      h('td', { style: { color: st.rent >= RENT_BANDS.warn ? '#e07b39' : undefined } },
+                        Math.round(st.rent * 100) + '%'),
+                      h('td', { style: { color: st.agreement < 0.6 ? '#e0a63a' : undefined }, title: '±8% 扰动 ×240 次的主结局占比（种子化可复算）' },
+                        Math.round(st.agreement * 100) + '%'),
                       h('td', { style: { fontSize: 10.5 } }, r.sim.window ? r.sim.window.start + '–' + r.sim.window.end : '—'),
                       h('td', null, h('button', { className: 'sn-btn', onClick: () => applyScenario(r.key) }, '载入')));
-                  }))))));
+                  })))))));
       };
 
       /* ── 理论 ── */
@@ -1565,7 +1778,18 @@ window.__ModuleLoader__.load({
             TABS.map((t) => h('button', {
               key: t.id, className: 'sn-tab' + (tab === t.id ? ' sn-tab-on' : ''),
               onClick: () => setTab(t.id),
-            }, t.label)))),
+            }, t.label))),
+          h('div', { style: { display: 'flex', gap: 6, alignItems: 'center' } },
+            h('button', { className: 'sn-btn', onClick: shareLink, title: '把当前推演编码为链接（显式快照）' }, '分享'),
+            h('button', { className: 'sn-btn', onClick: exportJson, title: '导出 JSON 存档' }, '导出'),
+            h('button', {
+              className: 'sn-btn', title: '导入 JSON 存档',
+              onClick: () => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+                inp.onchange = () => { if (inp.files && inp.files[0]) importJson(inp.files[0]); };
+                inp.click();
+              },
+            }, '导入')),
+          ioMsg ? h('div', { style: { flexBasis: '100%', fontSize: 10.5, color: 'var(--dsw-alias-label-secondary)' } }, ioMsg) : null),
         h('div', { className: 'sn-body' },
           tab === 'timeline' ? timelineTab()
             : tab === 'engine' ? engineTab()
