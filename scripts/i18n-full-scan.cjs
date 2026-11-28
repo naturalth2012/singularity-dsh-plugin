@@ -68,6 +68,17 @@ function loadModule(localeSvc, forceTab, extra) {
     /return\s*\{\s*\n\s*inject:/, 'window.__spec = { inject:');
   patched = patched.replace("React.useState('timeline')",
     "React.useState(window.__FORCE_TAB || 'timeline')");
+  // 剧本切换必须同时改 target：渲染走的是 target（杠杆值），只改 scenario
+  // 不会改变模拟结果——这正是此前「切剧本仍报零残留」的假通过原因。
+  patched = patched.replace(
+    'const [scenario, setScenario] = React.useState(deepLink ? null : restored.scenario)',
+    'const [scenario, setScenario] = React.useState(window.__FORCE_SCENARIO || (deepLink ? null : restored.scenario))');
+  patched = patched.replace(
+    'const [target, setTarget] = React.useState(deepLink ? deepLink.target : restored.target)',
+    'const [target, setTarget] = React.useState(window.__FORCE_SCENARIO ? targetOf(window.__FORCE_SCENARIO) : (deepLink ? deepLink.target : restored.target))');
+  // 年份钩子：此前 __FORCE_YEAR 传了却没人读，year2060 状态其实一直是 2035。
+  patched = patched.replace('const [year, setYear] = React.useState(2035)',
+    'const [year, setYear] = React.useState(window.__FORCE_YEAR || 2035)');
   const req = (id) => require(path.join(REACT_DIR, id));
   const storage = Object.assign({}, (extra && extra.storage) || {});
   const windowStub = {
@@ -140,40 +151,44 @@ function main() {
   let total = 0;
   const byKind = new Map();
 
-  // 每个 tab 渲染多个状态：默认、末年、末年+弹窗
+  // 每个 tab 渲染多个状态：默认、末年、末年+弹窗。
+  // v2.2.5：补上剧本维度——带 cond 的事件与「晚期反转」句只在特定剧本出现，
+  // 只扫默认剧本会漏（v2.2.3 的「零残留」结论就是这么错的）。
   const states = [
     { label: 'default', extra: {} },
     { label: 'year2060', extra: { year: 2060 } },
     { label: 'year2030', extra: { year: 2030 } },
   ];
+  const SCENARIOS = ['baseline', 'social_democracy', 'techno_feudalism',
+    'planned_transition', 'collapse', 'commons'];
 
   for (const tab of tabs) {
     for (const st of states) {
-      let html = '';
-      try {
-        const svc = makeLocaleService('en');
-        const { regs, windowStub } = loadModule(svc, tab, st.extra);
-        const mainComp = regs.filter((r) => r.opts.name === 'main')[0];
-        if (!mainComp) { console.error('未注册 main'); process.exit(2); }
-        if (windowStub.__FORCE_YEAR !== undefined) {
-          // 年份钩子由 client.js 内部读取；若未支持则忽略
+      for (const sc of SCENARIOS) {
+        const extra = Object.assign({}, st.extra, { scenario: sc });
+        let html = '';
+        try {
+          const svc = makeLocaleService('en');
+          const { regs } = loadModule(svc, tab, extra);
+          const mainComp = regs.filter((r) => r.opts.name === 'main')[0];
+          if (!mainComp) { console.error('未注册 main'); process.exit(2); }
+          html = renderToStaticMarkup(React.createElement(mainComp.comp, { locale: svc }));
+        } catch (e) {
+          console.error('渲染失败 ' + tab + '/' + st.label + '/' + sc + ': ' + e.message);
+          process.exit(2);
         }
-        html = renderToStaticMarkup(React.createElement(mainComp.comp, { locale: svc }));
-      } catch (e) {
-        console.error('渲染失败 ' + tab + '/' + st.label + ': ' + e.message);
-        process.exit(2);
-      }
-      const frags = collectFragments(html);
-      if (frags.length) {
-        console.log('=== ' + tab + ' [' + st.label + '] ' + frags.length + ' 处 ===');
-        const seen = new Set();
-        for (const f of frags) {
-          const key = f.kind + '|' + f.v;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          total++;
-          byKind.set(f.kind, (byKind.get(f.kind) || 0) + 1);
-          console.log('  [' + f.kind + '] ' + (f.v.length > 80 ? f.v.slice(0, 80) + '…' : f.v));
+        const frags = collectFragments(html);
+        if (frags.length) {
+          console.log('=== ' + tab + ' [' + st.label + '/' + sc + '] ' + frags.length + ' 处 ===');
+          const seen = new Set();
+          for (const f of frags) {
+            const key = f.kind + '|' + f.v;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            total++;
+            byKind.set(f.kind, (byKind.get(f.kind) || 0) + 1);
+            console.log('  [' + f.kind + '] ' + (f.v.length > 80 ? f.v.slice(0, 80) + '…' : f.v));
+          }
         }
       }
     }

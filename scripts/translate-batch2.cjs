@@ -165,6 +165,21 @@ const BATCH2 = {
   "自动化产能与能源过剩，使基本生活品近乎零边际成本。分配不再以劳动时间为中介，阶级的经济基础被抽空，国家的主要职能从统治转向协调。": "Automated capacity and energy surplus bring basic goods to near-zero marginal cost. Distribution no longer passes through labor time, the economic basis of class is hollowed out, and the state's main function shifts from rule to coordination.",
   "劳动不再是谋生手段，而是自我确证与创造。稀缺被重新定义为注意力、创造力与意义——但这一次，稀缺不再由产权来分配。": "Labor is no longer a means of survival but a form of self-confirmation and creation. Scarcity is redefined as attention, creativity and meaning — but this time scarcity is not allocated by property rights.",
   "联合体": "Association",
+  // ── 补齐 resolveOutcome 的 stageLabel/detail/keys（全面扫描发现）──
+  "支线 · 引力占优但闸门未过": "Branch · gravity dominant, gate not crossed",
+  "支线 · 体面的停滞": "Branch · dignified stagnation",
+  "主线 · 共产主义高级形态": "Main line · higher communism",
+  "主线 · 按劳到按需": "Main line · from labor to need",
+  "主线 · 混合形态": "Main line · hybrid form",
+  "旁支 · 带伤的停滞": "Offshoot · wounded stagnation",
+  "共产主义引力占优，公共产权与协同的方向被选择了，但社会化度始终没到闸门阈值，历史停在过渡的门口。": "Communist gravity prevails and the direction of public ownership and coordination is chosen, but socialization never reaches the gate threshold; history stops at the threshold of transition.",
+  "断崖式失业叠加全面对抗，战争、封锁与基础设施失维把人类拉回低技术均衡。它甚至不是退回资本主义，而是退回更早的形态。": "Cliff-edge unemployment plus full confrontation, war, blockade and decaying infrastructure drag humanity back to a low-tech equilibrium. It is not even a return to capitalism but to an earlier form.",
+  "AI 税与全民分红吸收了冲击，社会保住了体面；但核心生产资料仍归私有，因此它不是共产主义，而是「有缓冲垫的资本主义」。": "An AI tax and universal dividend absorb the shock and preserve dignity, but core means of production remain privately owned — so it is not communism but \"capitalism with a cushion\".",
+  "物质稀缺被消解，劳动从谋生手段变为自我确证。国家职能收缩为协调与保障，阶级不再有经济基础。": "Material scarcity is dissolved and labor shifts from a means of survival to self-confirmation. The state contracts into coordination and security; class no longer has an economic basis.",
+  "分配不再以劳动时间为中介，阶级的经济基础被抽空。": "Distribution no longer passes through labor time, and the economic basis of class is hollowed out.",
+  "公共产权与全球协同已建立，但可及丰裕度仍不足以支撑按需分配。社会停在「一部分按需、一部分按劳」的混合状态。": "Public ownership and global coordination are established, but accessible abundance is still insufficient to support distribution by need. Society rests in a hybrid state of \"partly by need, partly by labor\".",
+  "AI 被吸收为一种普通的生产工具：生产力略有提升，劳动份额缓慢下滑，但替代率始终没有越过制度能够吸收的阈值。资本主义没有陨落，只是又老化了三十年。": "AI is absorbed as an ordinary production tool: productivity rises slightly and labor share slowly declines, but replacement never crosses the threshold institutions can absorb. Capitalism did not fall — it simply aged another thirty years.",
+  "未发生的历史": "History that did not happen",
 };
 
 module.exports = { BATCH2 };

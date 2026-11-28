@@ -18,6 +18,7 @@ const clientPath = path.join(ROOT, 'client.js');
 
 const { NOUNS } = require('./translate-data.cjs');
 const { BATCH2 } = require('./translate-batch2.cjs');
+const { TX_PATTERNS } = require('./translate-patterns.cjs');
 
 // 合并所有批次（后续批次追加到这里）
 let TX = {};
@@ -45,6 +46,7 @@ const block = [
   '       引擎仍返回中文名（契约与测试硬引用），翻译只发生在展示层。',
   '       ' + END,
   '    const TX = ' + JSON.stringify(TX) + ';',
+  '    const TX_PATTERNS = ' + JSON.stringify(TX_PATTERNS) + ';',
 ].join('\n');
 
 const lineStart = src.lastIndexOf('\n', bi) + 1;
@@ -54,7 +56,7 @@ let tail = ei + END.length;
 // 吃掉 END 之后紧跟的旧声明行（可能有多行：占位空声明 + 上次注入的完整声明）。
 // 这是幂等的关键——否则每跑一次就多一份 const TX，导致重复声明语法错误。
 for (;;) {
-  const m = /\n[ \t]*const TX = [\s\S]*?;\n/.exec(src.slice(tail));
+  const m = /\n[ \t]*const TX = [\s\S]*?;\n[ \t]*const TX_PATTERNS = [\s\S]*?;\n|\n[ \t]*const TX = [\s\S]*?;\n|\n[ \t]*const TX_PATTERNS = [\s\S]*?;\n/.exec(src.slice(tail));
   if (!m || m.index !== 0) break;
   tail += m[0].length - 1;
 }
@@ -71,4 +73,4 @@ if (written.includes('\r\n')) {
   console.log('（已修正 CRLF → LF）');
 }
 
-console.log(JSON.stringify({ entries: Object.keys(TX).length, bytes: JSON.stringify(TX).length }, null, 2));
+console.log(JSON.stringify({ entries: Object.keys(TX).length, patterns: TX_PATTERNS.length, bytes: JSON.stringify(TX).length + JSON.stringify(TX_PATTERNS).length }, null, 2));
