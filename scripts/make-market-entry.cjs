@@ -54,7 +54,9 @@ const en = 'An interactive foresight panel simulating social-form evolution in t
   + 'the smallest lever change that would flip the conclusion, a rent-pressure gauge with '
   + 'crossing years, a penetration-by-socialisation phase diagram with the feudal basin shaded, '
   + 'a rent heatmap over the ownership-by-capture plane, and a published model contract enforced '
-  + 'by ' + totalChecks + ' automated checks.';
+  + 'by ' + totalChecks + ' automated checks. The whole interface is bilingual (Chinese and '
+  + 'English): interface strings, model semantics, event narratives and dynamically generated '
+  + 'diagnostic sentences all follow the host language, with the engine itself untouched.';
 
 const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠杆（AI 认知、算力、自动化、能源、再分配、'
   + '公共产权、全球协同、劳动者组织度、意义供给、教育、团结度、转型冲击、阶级对抗、资本俘获）'
@@ -64,6 +66,7 @@ const zh = 'AI 时代社会形态演化的交互式推演面板：十四个杠�
   + '附分岔窗口徽标与无政策幽灵轨迹对照）、蒙特卡洛稳健性（240 次扰动输出结局分布与一致性）、'
   + '反方读法（给出翻转结论所需的最小杠杆干预）；v1.2 租金压力仪表（含越线年份）、'
   + '渗透×社会化相图（封建稳态域阴影）与产权×捕获租金热力图；'
+  + '界面中英双语：界面词条、模型语义、事件叙事与动态诊断句均跟随宿主语言，引擎本身零改动；'
   + '引擎纯 JS 离线运行，无 Host RPC、无网络请求、零运行时依赖，模型契约由 ' + totalChecks + ' 项自动化检查守护。';
 
 // 目录规范要求 icon 为 GitHub 托管的 raster 位图（storefront tile）；
